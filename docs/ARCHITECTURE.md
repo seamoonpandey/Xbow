@@ -610,8 +610,8 @@ volumes:
 | 8     | 14–15  | Python          | Fuzzer Module: send, reflect-check, browser    | ✅ DONE  |
 | 9     | 16     | TypeScript      | Report engine: HTML / PDF / JSON output        | ✅ DONE  |
 | 10    | 17–18  | Docker Compose  | Full integration + end-to-end test             | ✅ DONE  |
-| 11    | 19–20  | Next.js         | Dashboard: scan UI, results, reports           | 🔄 NEXT  |
-| 12    | 21     | All             | Tests, docs, CLI polish, release               | ⬜        |
+| 11    | 19–20  | Next.js         | Dashboard: scan UI, results, reports           | ✅ DONE  |
+| 12    | 21     | All             | Tests, docs, CLI polish, release               | 🔄 NEXT  |
 
 ---
 
