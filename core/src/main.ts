@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
+import * as path from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,6 +12,11 @@ async function bootstrap() {
   // security
   app.use(helmet());
   app.enableCors({ origin: process.env.CORS_ORIGIN ?? '*' });
+
+  // static reports directory
+  app.useStaticAssets(path.join(process.cwd(), 'reports'), {
+    prefix: '/reports/',
+  });
 
   // validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

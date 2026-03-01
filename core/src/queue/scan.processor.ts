@@ -164,7 +164,7 @@ export class ScanProcessor extends WorkerHost {
         scanId,
         scan,
         vulns,
-        scan.options.reportFormat ?? ['html', 'json'],
+        scan.options.reportFormat ?? ['html', 'json', 'pdf'],
       );
 
       this.scanService.updateStatus(
