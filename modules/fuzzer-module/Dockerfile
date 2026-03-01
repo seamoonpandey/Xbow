@@ -9,16 +9,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgbm1 libpango-1.0-0 libcairo2 libasound2 libxshmfence1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# when build context is ./modules, copy requirements from subdirectory
+COPY fuzzer-module/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # install playwright chromium browser
 RUN playwright install chromium
 
-COPY . .
+# copy module source
+COPY fuzzer-module/ .
 
-# copy shared schemas
-COPY ../shared /app/shared
+# copy shared schemas (sibling directory in build context)
+COPY shared/ /app/shared/
 
 EXPOSE 5003
 

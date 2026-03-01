@@ -2,10 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+# when build context is ./modules, copy requirements from subdirectory
+COPY context-module/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# copy module source
+COPY context-module/ .
+
+# copy shared schemas (sibling directory in build context)
+COPY shared/ /app/shared/
 
 EXPOSE 5001
 
