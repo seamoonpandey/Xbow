@@ -175,10 +175,13 @@ npm run test:watch
 ### Python Modules
 
 ```bash
-# from project root with venv active
-cd modules/context-module && python -m pytest test_app.py -v
-cd modules/payload-gen-module && python -m pytest test_app.py -v
-cd modules/fuzzer-module && python -m pytest test_app.py -v
+# from project root with venv active — run all together
+pytest modules/ -v
+
+# or individually
+cd modules/context-module && python -m pytest test_context.py -v
+cd modules/payload-gen-module && python -m pytest test_payload_gen.py -v
+cd modules/fuzzer-module && python -m pytest test_fuzzer.py -v
 ```
 
 ### End-to-End Smoke Test
