@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>RedSentinel Report — {{target}}</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm 12mm;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 10pt;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10pt;
+      border-bottom: 3px solid #ff4455;
+      margin-bottom: 15pt;
+    }
+
+    .header h1 {
+      color: #ff4455;
+      font-size: 18pt;
+    }
+
+    .header .date {
+      color: #666;
+      font-size: 9pt;
+    }
+
+    .meta-table {
+      width: 100%;
+      margin-bottom: 15pt;
+      border-collapse: collapse;
+    }
+
+    .meta-table td {
+      padding: 4pt 8pt;
+      border: 1px solid #ddd;
+      font-size: 9pt;
+    }
+
+    .meta-table td:first-child {
+      background: #f5f5f5;
+      font-weight: 600;
+      width: 120pt;
+      color: #555;
+    }
+
+    .summary {
+      display: flex;
+      gap: 12pt;
+      margin-bottom: 15pt;
+    }
+
+    .summary-box {
+      flex: 1;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 4pt;
+      padding: 8pt;
+    }
+
+    .summary-box .num {
+      font-size: 20pt;
+      font-weight: 700;
+    }
+
+    .summary-box .label {
+      font-size: 8pt;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .critical .num { color: #ff4455; }
+    .high .num { color: #ff6644; }
+    .medium .num { color: #cc8800; }
+    .low .num { color: #44aa00; }
+
+    h2 {
+      font-size: 12pt;
+      color: #333;
+      margin: 15pt 0 8pt;
+      padding-bottom: 4pt;
+      border-bottom: 1px solid #ccc;
+    }
+
+    table.vuln-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5pt;
+      margin-bottom: 12pt;
+    }
+
+    table.vuln-table th {
+      background: #f0f0f0;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3pt;
+      padding: 5pt 6pt;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    table.vuln-table td {
+      padding: 4pt 6pt;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
+
+    .payload-mono {
+      font-family: 'Courier New', monospace;
+      font-size: 7.5pt;
+      word-break: break-all;
+      max-width: 200pt;
+    }
+
+    .sev-critical { color: #ff4455; font-weight: 700; }
+    .sev-high { color: #ff6644; font-weight: 700; }
+    .sev-medium { color: #cc8800; font-weight: 600; }
+    .sev-low { color: #44aa00; }
+
+    .finding {
+      border: 1px solid #ddd;
+      border-left: 3px solid #ff4455;
+      border-radius: 3pt;
+      padding: 8pt;
+      margin-bottom: 8pt;
+      page-break-inside: avoid;
+    }
+
+    .finding.severity-medium { border-left-color: #cc8800; }
+    .finding.severity-low { border-left-color: #44aa00; }
+
+    .finding h3 {
+      font-size: 10pt;
+      margin-bottom: 5pt;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 80pt 1fr;
+      gap: 2pt 8pt;
+      font-size: 8.5pt;
+    }
+
+    .detail-grid dt { color: #666; font-weight: 600; }
+
+    .no-vulns {
+      text-align: center;
+      padding: 30pt;
+      color: #44aa00;
+      font-size: 13pt;
+    }
+
+    .footer {
+      margin-top: 20pt;
+      padding-top: 8pt;
+      border-top: 1px solid #ccc;
+      font-size: 7.5pt;
+      color: #999;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔴 RedSentinel XSS Report</h1>
+    <div class="date">{{generatedAt}}</div>
+  </div>
+
+  <table class="meta-table">
+    <tr><td>Target URL</td><td>{{target}}</td></tr>
+    <tr><td>Scan ID</td><td>{{scanId}}</td></tr>
+    <tr><td>Status</td><td>{{status}}</td></tr>
+    <tr><td>Completed</td><td>{{completedAt}}</td></tr>
+    <tr><td>Duration</td><td>{{duration}}</td></tr>
+    <tr><td>Scan Depth</td><td>{{depth}}</td></tr>
+    <tr><td>Total Findings</td><td>{{vulnCount}}</td></tr>
+  </table>
+
+  <div class="summary">
+    <div class="summary-box critical">
+      <div class="num">{{counts.critical}}</div>
+      <div class="label">Critical</div>
+    </div>
+    <div class="summary-box high">
+      <div class="num">{{counts.high}}</div>
+      <div class="label">High</div>
+    </div>
+    <div class="summary-box medium">
+      <div class="num">{{counts.medium}}</div>
+      <div class="label">Medium</div>
+    </div>
+    <div class="summary-box low">
+      <div class="num">{{counts.low}}</div>
+      <div class="label">Low</div>
+    </div>
+  </div>
+
+  {{#if hasVulns}}
+  <h2>Vulnerability Summary</h2>
+  <table class="vuln-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Param</th>
+        <th>Type</th>
+        <th>Severity</th>
+        <th>Reflected</th>
+        <th>Executed</th>
+        <th>Payload</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each vulns}}
+      <tr>
+        <td>{{this.index}}</td>
+        <td>{{this.param}}</td>
+        <td>{{this.type}}</td>
+        <td class="sev-{{this.severityClass}}">{{this.severity}}</td>
+        <td>{{this.reflectedText}}</td>
+        <td>{{this.executedText}}</td>
+        <td class="payload-mono">{{this.payload}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h2>Detailed Findings</h2>
+  {{#each vulns}}
+  <div class="finding severity-{{this.severityClass}}">
+    <h3>#{{this.index}} — {{this.param}} ({{this.severity}})</h3>
+    <dl class="detail-grid">
+      <dt>Type</dt><dd>{{this.type}}</dd>
+      <dt>Parameter</dt><dd>{{this.param}}</dd>
+      <dt>Payload</dt><dd class="payload-mono">{{this.payload}}</dd>
+      <dt>Reflected</dt><dd>{{this.reflectedText}}</dd>
+      <dt>JS Executed</dt><dd>{{this.executedText}}</dd>
+      <dt>Position</dt><dd>{{this.evidence.reflectionPosition}}</dd>
+      <dt>HTTP Code</dt><dd>{{this.evidence.responseCode}}</dd>
+    </dl>
+  </div>
+  {{/each}}
+
+  {{else}}
+  <div class="no-vulns">✅ No XSS vulnerabilities found.</div>
+  {{/if}}
+
+  <div class="footer">
+    RedSentinel v0.1.0 — Automated XSS Vulnerability Scanner — {{generatedAt}}
+  </div>
+</body>
+</html>
