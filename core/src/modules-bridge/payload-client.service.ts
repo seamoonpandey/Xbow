@@ -32,7 +32,10 @@ export class PayloadClientService {
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
-    this.baseUrl = this.config.get<string>('PAYLOAD_GEN_URL', 'http://localhost:5002');
+    this.baseUrl = this.config.get<string>(
+      'PAYLOAD_GEN_URL',
+      'http://localhost:5002',
+    );
   }
 
   async generate(req: GenerateRequest): Promise<GenerateResponse> {
@@ -46,8 +49,14 @@ export class PayloadClientService {
       );
       this.logger.log(`payload-gen returned ${data.payloads.length} payloads`);
       return data;
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail ?? err?.message ?? 'unknown';
+    } catch (err: unknown) {
+      let detail = 'unknown';
+      if (err instanceof Error) {
+        detail = err.message;
+      } else if (typeof err === 'object' && err !== null && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { detail?: string } } };
+        detail = axiosErr.response?.data?.detail ?? 'unknown';
+      }
       throw new PythonModuleException('payload-gen', detail);
     }
   }

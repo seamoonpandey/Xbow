@@ -54,10 +54,7 @@ const WAF_SIGNATURES: WafSignature[] = [
   },
   {
     name: 'wordfence',
-    bodyPatterns: [
-      /wordfence/i,
-      /wfvt_/i,
-    ],
+    bodyPatterns: [/wordfence/i, /wfvt_/i],
   },
   {
     name: 'f5-bigip',

@@ -43,12 +43,12 @@ export class ReportService {
     };
   }
 
-  async generate(
+  generate(
     scanId: string,
     scan: ScanRecord,
     vulns: Vuln[],
     formats: string[],
-  ): Promise<string> {
+  ): string {
     const reportBase = path.join(this.reportsDir, scanId);
 
     if (formats.includes('json')) {
@@ -61,7 +61,9 @@ export class ReportService {
       fs.writeFileSync(`${reportBase}.html`, html, 'utf-8');
     }
 
-    this.logger.log(`report generated for scanId=${scanId} formats=${formats.join(',')}`);
+    this.logger.log(
+      `report generated for scanId=${scanId} formats=${formats.join(',')}`,
+    );
     return `/reports/${scanId}.html`;
   }
 

@@ -68,7 +68,13 @@ export class ScanController {
     const start = (Number(page) - 1) * Number(limit);
     return all
       .slice(start, start + Number(limit))
-      .map((s) => ({ ...s, vulns: this.scanService.getVulns(s.id) }) as unknown as ScanResultDto);
+      .map(
+        (s) =>
+          ({
+            ...s,
+            vulns: this.scanService.getVulns(s.id),
+          }) as unknown as ScanResultDto,
+      );
   }
 
   @Get('scan/:id/report')

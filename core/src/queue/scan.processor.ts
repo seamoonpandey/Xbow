@@ -34,7 +34,12 @@ export class ScanProcessor extends WorkerHost {
 
     try {
       // ── Phase 1: CRAWL ──────────────────────────────────────────────
-      this.scanService.updateStatus(scanId, ScanStatus.CRAWLING, ScanPhase.CRAWL, 5);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.CRAWLING,
+        ScanPhase.CRAWL,
+        5,
+      );
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.CRAWL,
@@ -59,7 +64,12 @@ export class ScanProcessor extends WorkerHost {
       });
 
       // ── Phase 2: CONTEXT ────────────────────────────────────────────
-      this.scanService.updateStatus(scanId, ScanStatus.ANALYZING, ScanPhase.CONTEXT, 25);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.ANALYZING,
+        ScanPhase.CONTEXT,
+        25,
+      );
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.CONTEXT,
@@ -81,7 +91,12 @@ export class ScanProcessor extends WorkerHost {
       });
 
       // ── Phase 3: PAYLOAD-GEN ────────────────────────────────────────
-      this.scanService.updateStatus(scanId, ScanStatus.GENERATING, ScanPhase.PAYLOAD_GEN, 45);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.GENERATING,
+        ScanPhase.PAYLOAD_GEN,
+        45,
+      );
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.PAYLOAD_GEN,
@@ -103,7 +118,12 @@ export class ScanProcessor extends WorkerHost {
       });
 
       // ── Phase 4: FUZZ ───────────────────────────────────────────────
-      this.scanService.updateStatus(scanId, ScanStatus.FUZZING, ScanPhase.FUZZ, 65);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.FUZZING,
+        ScanPhase.FUZZ,
+        65,
+      );
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.FUZZ,
@@ -133,7 +153,12 @@ export class ScanProcessor extends WorkerHost {
       });
 
       // ── Phase 5: REPORT ─────────────────────────────────────────────
-      this.scanService.updateStatus(scanId, ScanStatus.REPORTING, ScanPhase.REPORT, 90);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.REPORTING,
+        ScanPhase.REPORT,
+        90,
+      );
       const vulns = this.scanService.getVulns(scanId);
       const reportUrl = await this.reportService.generate(
         scanId,
@@ -142,7 +167,12 @@ export class ScanProcessor extends WorkerHost {
         scan.options.reportFormat ?? ['html', 'json'],
       );
 
-      this.scanService.updateStatus(scanId, ScanStatus.DONE, ScanPhase.REPORT, 100);
+      this.scanService.updateStatus(
+        scanId,
+        ScanStatus.DONE,
+        ScanPhase.REPORT,
+        100,
+      );
 
       const durationMs = Date.now() - startedAt;
       this.gateway.emitComplete({
@@ -159,8 +189,8 @@ export class ScanProcessor extends WorkerHost {
       this.logger.log(
         `scan complete scanId=${scanId} vulns=${vulns.length} ms=${durationMs}`,
       );
-    } catch (err: any) {
-      const msg: string = err?.message ?? 'unknown error';
+    } catch (err: unknown) {
+      const msg: string = err instanceof Error ? err.message : 'unknown error';
       this.logger.error(`scan failed scanId=${scanId} error=${msg}`);
       this.scanService.markFailed(scanId, msg);
       this.gateway.emitError(scanId, msg);

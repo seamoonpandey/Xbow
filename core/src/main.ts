@@ -13,9 +13,7 @@ async function bootstrap() {
   app.enableCors({ origin: process.env.CORS_ORIGIN ?? '*' });
 
   // validation
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true }),
-  );
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // swagger
   const doc = new DocumentBuilder()
@@ -34,4 +32,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-

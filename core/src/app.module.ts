@@ -11,4 +11,3 @@ import { ScanModule } from './scan/scan.module';
   ],
 })
 export class AppModule {}
-

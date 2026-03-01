@@ -28,7 +28,10 @@ export class ContextClientService {
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
-    this.baseUrl = this.config.get<string>('CONTEXT_URL', 'http://localhost:5001');
+    this.baseUrl = this.config.get<string>(
+      'CONTEXT_URL',
+      'http://localhost:5001',
+    );
   }
 
   async analyze(req: AnalyzeRequest): Promise<ContextMap> {
@@ -38,8 +41,22 @@ export class ContextClientService {
       );
       this.logger.log(`context module responded for ${req.url}`);
       return data;
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail ?? err?.message ?? 'unknown';
+    } catch (err) {
+      let detail = 'unknown';
+      if (err instanceof Error) {
+        detail = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        const response = (err as Record<string, unknown>)?.response;
+        if (typeof response === 'object' && response !== null) {
+          const data = (response as Record<string, unknown>)?.data;
+          if (typeof data === 'object' && data !== null) {
+            const detailValue = (data as Record<string, unknown>)?.detail;
+            if (typeof detailValue === 'string') {
+              detail = detailValue;
+            }
+          }
+        }
+      }
       throw new PythonModuleException('context', detail);
     }
   }

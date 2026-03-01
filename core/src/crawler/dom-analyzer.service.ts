@@ -111,9 +111,7 @@ export class DomAnalyzerService {
       // extract method
       const methodMatch = formTag.match(/method=["']([^"']*)["']/i);
       const method =
-        methodMatch && methodMatch[1].toUpperCase() === 'POST'
-          ? 'POST'
-          : 'GET';
+        methodMatch && methodMatch[1].toUpperCase() === 'POST' ? 'POST' : 'GET';
 
       // extract input names
       const fields: string[] = [];
@@ -128,7 +126,7 @@ export class DomAnalyzerService {
       }
 
       if (fields.length > 0) {
-        forms.push({ action, method: method as 'GET' | 'POST', fields });
+        forms.push({ action, method: method, fields });
       }
     }
 

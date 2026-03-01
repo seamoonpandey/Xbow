@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { chromium, Browser, BrowserContext, Page } from 'playwright';
+import { chromium, Browser } from 'playwright';
 import { WafDetectorService } from './waf-detector.service';
 import { DomAnalyzerService } from './dom-analyzer.service';
 import {
@@ -43,7 +43,11 @@ export class CrawlerService implements OnModuleDestroy {
     }
   }
 
-  async crawl(url: string, depth: number, maxParams: number): Promise<CrawlResult> {
+  async crawl(
+    url: string,
+    depth: number,
+    maxParams: number,
+  ): Promise<CrawlResult> {
     const startedAt = Date.now();
     const visited = new Set<string>();
     const toVisit: { url: string; currentDepth: number }[] = [
@@ -63,7 +67,11 @@ export class CrawlerService implements OnModuleDestroy {
     });
 
     // capture waf on the first request
-    let wafResult = { detected: false, name: null as string | null, confidence: 0 };
+    let wafResult = {
+      detected: false,
+      name: null as string | null,
+      confidence: 0,
+    };
     let wafChecked = false;
 
     try {
@@ -93,9 +101,7 @@ export class CrawlerService implements OnModuleDestroy {
               headers[k.toLowerCase()] = v;
             }
             const cookies = await context.cookies();
-            const cookieStrings = cookies.map(
-              (c) => `${c.name}=${c.value}`,
-            );
+            const cookieStrings = cookies.map((c) => `${c.name}=${c.value}`);
             const body = await page.content();
             wafResult = this.wafDetector.detect(headers, body, cookieStrings);
             wafChecked = true;
@@ -130,13 +136,10 @@ export class CrawlerService implements OnModuleDestroy {
             try {
               const absUrl = new URL(src, item.url).toString();
               if (isSameDomain(url, absUrl)) {
-                const resp = await page.evaluate(
-                  async (scriptUrl: string) => {
-                    const r = await fetch(scriptUrl);
-                    return r.text();
-                  },
-                  absUrl,
-                );
+                const resp = await page.evaluate(async (scriptUrl: string) => {
+                  const r = await fetch(scriptUrl);
+                  return r.text();
+                }, absUrl);
                 allScripts.push(resp);
               }
             } catch {
@@ -165,10 +168,9 @@ export class CrawlerService implements OnModuleDestroy {
               }
             }
           }
-        } catch (err: any) {
-          this.logger.warn(
-            `failed to crawl ${item.url}: ${err?.message ?? 'unknown'}`,
-          );
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'unknown';
+          this.logger.warn(`failed to crawl ${item.url}: ${errorMessage}`);
         } finally {
           await page.close();
         }
@@ -178,7 +180,6 @@ export class CrawlerService implements OnModuleDestroy {
       const domSinks = this.domAnalyzer.scanDomSinks(allScripts);
 
       // extract forms from last visited pages
-      const forms = this.domAnalyzer.extractForms('', url); // forms already gathered via params
 
       const durationMs = Date.now() - startedAt;
       const result: CrawlResult = {
