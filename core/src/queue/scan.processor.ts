@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { ScanService } from '../scan/scan.service';
 import { ScanGateway } from '../scan/scan.gateway';
+import { CrawlerService } from '../crawler/crawler.service';
 import { ContextClientService } from '../modules-bridge/context-client.service';
 import { PayloadClientService } from '../modules-bridge/payload-client.service';
 import { FuzzerClientService } from '../modules-bridge/fuzzer-client.service';
@@ -17,6 +18,7 @@ export class ScanProcessor extends WorkerHost {
   constructor(
     private readonly scanService: ScanService,
     private readonly gateway: ScanGateway,
+    private readonly crawlerService: CrawlerService,
     private readonly contextClient: ContextClientService,
     private readonly payloadClient: PayloadClientService,
     private readonly fuzzerClient: FuzzerClientService,
@@ -40,15 +42,20 @@ export class ScanProcessor extends WorkerHost {
         message: 'crawling target, discovering params',
       });
 
-      // placeholder — real crawler service wired in Day 7
-      const discoveredParams = ['q', 'search', 'id'];
-      const waf = 'none';
+      const crawlResult = await this.crawlerService.crawl(
+        scan.url,
+        scan.options.depth ?? 3,
+        scan.options.maxParams ?? 100,
+      );
+
+      const discoveredParams = crawlResult.params.map((p) => p.name);
+      const waf = crawlResult.waf.name ?? 'none';
 
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.CRAWL,
         progress: 20,
-        message: `found ${discoveredParams.length} params`,
+        message: `found ${discoveredParams.length} params across ${crawlResult.urls.length} urls${crawlResult.waf.detected ? `, waf: ${waf}` : ''}`,
       });
 
       // ── Phase 2: CONTEXT ────────────────────────────────────────────
