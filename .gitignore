@@ -58,3 +58,13 @@ Thumbs.db
 node_modules/
 .next/
 dist/
+
+# ─── Coverage reports ─────────────────────────────────────
+coverage/
+coverage-e2e/
+coverage-python/
+htmlcov/
+.coverage
+*.lcov
+core/coverage/
+core/coverage-e2e/

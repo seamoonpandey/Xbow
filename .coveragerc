@@ -1,0 +1,33 @@
+[run]
+source =
+    modules/context-module
+    modules/payload-gen-module
+    modules/fuzzer-module
+    model
+    tools/inference
+omit =
+    **/test_*.py
+    **/tests/**
+    **/__pycache__/**
+    **/conftest.py
+    **/.venv/**
+    **/setup.py
+
+[report]
+show_missing = true
+precision = 2
+fail_under = 30
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__
+    raise NotImplementedError
+    pass
+    except ImportError
+
+[html]
+directory = coverage-python
+title = RedSentinel Python Coverage
+
+[xml]
+output = coverage-python/coverage.xml

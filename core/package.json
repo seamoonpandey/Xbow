@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage --coverageDirectory=../coverage-e2e",
+    "test:cov:all": "npm run test:cov && npm run test:e2e:cov"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",
@@ -91,9 +93,28 @@
       "node_modules/(?!uuid/)"
     ],
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!**/*.e2e-spec.ts",
+      "!**/main.ts",
+      "!**/node_modules/**"
     ],
     "coverageDirectory": "../coverage",
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html",
+      "lcov",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 30,
+        "functions": 50,
+        "lines": 40,
+        "statements": 40
+      }
+    },
     "testEnvironment": "node"
   }
 }
