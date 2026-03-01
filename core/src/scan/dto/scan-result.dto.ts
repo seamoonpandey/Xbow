@@ -4,19 +4,19 @@ import { Vuln } from '../../common/interfaces/vuln.interface';
 
 export class ScanResultDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  url: string;
+  url!: string;
 
   @ApiProperty({ enum: ScanStatus })
-  status: ScanStatus;
+  status!: ScanStatus;
 
   @ApiPropertyOptional({ enum: ScanPhase })
   phase?: ScanPhase;
 
   @ApiProperty()
-  progress: number;
+  progress!: number;
 
   @ApiPropertyOptional()
   vulns?: Vuln[];
@@ -25,7 +25,7 @@ export class ScanResultDto {
   summary?: ScanSummaryDto;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiPropertyOptional()
   completedAt?: Date;
@@ -36,16 +36,16 @@ export class ScanResultDto {
 
 export class ScanSummaryDto {
   @ApiProperty()
-  totalParams: number;
+  totalParams!: number;
 
   @ApiProperty()
-  paramsTested: number;
+  paramsTested!: number;
 
   @ApiProperty()
-  vulnsFound: number;
+  vulnsFound!: number;
 
   @ApiProperty()
-  durationMs: number;
+  durationMs!: number;
 
   @ApiPropertyOptional()
   reportUrl?: string;

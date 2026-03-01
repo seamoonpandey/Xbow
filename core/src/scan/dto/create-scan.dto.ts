@@ -13,7 +13,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreateScanDto {
   @ApiProperty({ example: 'https://target.com' })
   @IsUrl()
-  url: string;
+  url!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
