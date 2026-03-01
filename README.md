@@ -162,8 +162,11 @@ red-sentinel/
 ```bash
 cd core
 
-# unit tests
+# unit tests (66 tests)
 npm test
+
+# integration & e2e tests (31 tests)
+npm run test:e2e
 
 # unit tests with coverage
 npm run test:cov
@@ -175,13 +178,23 @@ npm run test:watch
 ### Python Modules
 
 ```bash
-# from project root with venv active — run all together
+# from project root with venv active — run all unit tests together
 pytest modules/ -v
 
 # or individually
 cd modules/context-module && python -m pytest test_context.py -v
 cd modules/payload-gen-module && python -m pytest test_payload_gen.py -v
 cd modules/fuzzer-module && python -m pytest test_fuzzer.py -v
+```
+
+### Integration Tests
+
+```bash
+# python cross-module integration (6 tests)
+pytest tests/test_integration.py -v
+
+# nestjs integration — scan lifecycle, pipeline, websocket
+cd core && npm run test:e2e
 ```
 
 ### End-to-End Smoke Test
