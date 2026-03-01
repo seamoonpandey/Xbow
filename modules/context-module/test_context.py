@@ -6,15 +6,22 @@ mocks heavy dependencies (ai classifier, probe injector, char fuzzer).
 
 import sys
 import os
+import importlib.util
 from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-# add module to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-
-from app import app
+# load local app.py under a unique module name to avoid cache collisions
+_dir = os.path.dirname(__file__)
+_spec = importlib.util.spec_from_file_location("context_app", os.path.join(_dir, "app.py"))
+_mod = importlib.util.module_from_spec(_spec)
+sys.modules["context_app"] = _mod
+# allow app.py's own relative imports to resolve
+if _dir not in sys.path:
+    sys.path.insert(0, _dir)
+_spec.loader.exec_module(_mod)
+app = _mod.app
 
 
 @pytest.fixture
@@ -53,11 +60,11 @@ async def test_analyze_missing_url():
 
 
 @pytest.mark.anyio
-@patch("app.inject_probes", new_callable=AsyncMock)
-@patch("app.fuzz_chars", new_callable=AsyncMock)
-@patch("app.analyze_reflection")
-@patch("app.get_primary_context")
-@patch("app.get_dom_context")
+@patch("context_app.inject_probes", new_callable=AsyncMock)
+@patch("context_app.fuzz_chars", new_callable=AsyncMock)
+@patch("context_app.analyze_reflection")
+@patch("context_app.get_primary_context")
+@patch("context_app.get_dom_context")
 async def test_analyze_param_no_reflection(
     mock_dom, mock_primary, mock_reflection, mock_fuzz, mock_probes
 ):
@@ -79,12 +86,12 @@ async def test_analyze_param_no_reflection(
 
 
 @pytest.mark.anyio
-@patch("app.inject_probes", new_callable=AsyncMock)
-@patch("app.fuzz_chars", new_callable=AsyncMock)
-@patch("app.analyze_reflection")
-@patch("app.get_primary_context")
-@patch("app.get_dom_context")
-@patch("app.classifier")
+@patch("context_app.inject_probes", new_callable=AsyncMock)
+@patch("context_app.fuzz_chars", new_callable=AsyncMock)
+@patch("context_app.analyze_reflection")
+@patch("context_app.get_primary_context")
+@patch("context_app.get_dom_context")
+@patch("context_app.classifier")
 async def test_analyze_param_with_reflection(
     mock_classifier, mock_dom, mock_primary, mock_reflection, mock_fuzz, mock_probes
 ):

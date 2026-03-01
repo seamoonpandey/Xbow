@@ -5,15 +5,25 @@ mocks the payload bank and pipeline functions.
 
 import sys
 import os
+import importlib.util
 from unittest.mock import patch, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from app import app
+# load local app.py under a unique module name to avoid cache collisions
+_dir = os.path.dirname(__file__)
+_spec = importlib.util.spec_from_file_location("payload_gen_app", os.path.join(_dir, "app.py"))
+_mod = importlib.util.module_from_spec(_spec)
+sys.modules["payload_gen_app"] = _mod
+# allow app.py's own relative imports to resolve
+if _dir not in sys.path:
+    sys.path.insert(0, _dir)
+parent = os.path.dirname(_dir)
+if parent not in sys.path:
+    sys.path.insert(0, parent)
+_spec.loader.exec_module(_mod)
+app = _mod.app
 
 
 @pytest.fixture
@@ -36,7 +46,7 @@ async def test_health_endpoint():
 async def test_generate_empty_contexts():
     """empty contexts should return empty payloads list"""
     # ensure bank is loaded (mock it)
-    import app as app_module
+    import payload_gen_app as app_module
     app_module.bank = MagicMock()
     app_module.bank.size = 100
 
@@ -54,7 +64,7 @@ async def test_generate_empty_contexts():
 @pytest.mark.anyio
 async def test_generate_no_bank_returns_503():
     """when bank is not loaded, should return 503"""
-    import app as app_module
+    import payload_gen_app as app_module
     original_bank = app_module.bank
     app_module.bank = None
 
@@ -73,12 +83,12 @@ async def test_generate_no_bank_returns_503():
 
 
 @pytest.mark.anyio
-@patch("app.select_payloads")
-@patch("app.mutate_payloads")
-@patch("app.rank_payloads")
+@patch("payload_gen_app.select_payloads")
+@patch("payload_gen_app.mutate_payloads")
+@patch("payload_gen_app.rank_payloads")
 async def test_generate_with_context(mock_rank, mock_mutate, mock_select):
     """pipeline: select → mutate → rank → return"""
-    import app as app_module
+    import payload_gen_app as app_module
     app_module.bank = MagicMock()
     app_module.bank.size = 100
 

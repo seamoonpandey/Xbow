@@ -5,15 +5,25 @@ mocks heavy dependencies (http_sender, reflection_checker, browser_verifier, dom
 
 import sys
 import os
+import importlib.util
 from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from app import app
+# load local app.py under a unique module name to avoid cache collisions
+_dir = os.path.dirname(__file__)
+_spec = importlib.util.spec_from_file_location("fuzzer_app", os.path.join(_dir, "app.py"))
+_mod = importlib.util.module_from_spec(_spec)
+sys.modules["fuzzer_app"] = _mod
+# allow app.py's own relative imports to resolve
+if _dir not in sys.path:
+    sys.path.insert(0, _dir)
+parent = os.path.dirname(_dir)
+if parent not in sys.path:
+    sys.path.insert(0, parent)
+_spec.loader.exec_module(_mod)
+app = _mod.app
 
 
 @pytest.fixture
@@ -75,10 +85,10 @@ class MockScanResult:
 
 
 @pytest.mark.anyio
-@patch("app.send_payloads", new_callable=AsyncMock)
-@patch("app.check_reflection_batch")
-@patch("app.verify_payloads", new_callable=AsyncMock)
-@patch("app.scan_response_body")
+@patch("fuzzer_app.send_payloads", new_callable=AsyncMock)
+@patch("fuzzer_app.check_reflection_batch")
+@patch("fuzzer_app.verify_payloads", new_callable=AsyncMock)
+@patch("fuzzer_app.scan_response_body")
 async def test_fuzz_reflected_payload(
     mock_dom_scan, mock_verify, mock_reflect, mock_send
 ):
@@ -120,10 +130,10 @@ async def test_fuzz_reflected_payload(
 
 
 @pytest.mark.anyio
-@patch("app.send_payloads", new_callable=AsyncMock)
-@patch("app.check_reflection_batch")
-@patch("app.verify_payloads", new_callable=AsyncMock)
-@patch("app.scan_response_body")
+@patch("fuzzer_app.send_payloads", new_callable=AsyncMock)
+@patch("fuzzer_app.check_reflection_batch")
+@patch("fuzzer_app.verify_payloads", new_callable=AsyncMock)
+@patch("fuzzer_app.scan_response_body")
 async def test_fuzz_non_reflected_not_vuln(
     mock_dom_scan, mock_verify, mock_reflect, mock_send
 ):
