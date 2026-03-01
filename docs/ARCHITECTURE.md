@@ -607,8 +607,8 @@ volumes:
 | 5     | 8–9    | TypeScript      | Crawler: spider, param discovery, WAF detect   | ✅ DONE  |
 | 6     | 10–11  | Python          | Context Module: probe, reflect, AI classify    | ✅ DONE  |
 | 7     | 12–13  | Python          | Payload-Gen Module: select, mutate, obfuscate  | ✅ DONE  |
-| 8     | 14–15  | Python          | Fuzzer Module: send, reflect-check, browser    | 🔄 NEXT  |
-| 9     | 16     | TypeScript      | Report engine: HTML / PDF / JSON output        | ⬜        |
+| 8     | 14–15  | Python          | Fuzzer Module: send, reflect-check, browser    | ✅ DONE  |
+| 9     | 16     | TypeScript      | Report engine: HTML / PDF / JSON output        | 🔄 NEXT  |
 | 10    | 17–18  | Docker Compose  | Full integration + end-to-end test             | ⬜        |
 | 11    | 19–20  | Next.js         | Dashboard: scan UI, results, reports           | ⬜        |
 | 12    | 21     | All             | Tests, docs, CLI polish, release               | ⬜        |
