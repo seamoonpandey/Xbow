@@ -10,16 +10,6 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateScanDto {
-  @ApiProperty({ example: 'https://target.com' })
-  @IsUrl()
-  url!: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  options?: ScanOptionsDto;
-}
-
 export class ScanOptionsDto {
   @ApiPropertyOptional({ default: 3 })
   @IsOptional()
@@ -64,4 +54,14 @@ export class ScanOptionsDto {
   @IsArray()
   @IsIn(['html', 'json', 'pdf'], { each: true })
   reportFormat?: ('html' | 'json' | 'pdf')[] = ['html', 'json'];
+}
+
+export class CreateScanDto {
+  @ApiProperty({ example: 'https://target.com' })
+  @IsUrl()
+  url!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  options?: ScanOptionsDto;
 }

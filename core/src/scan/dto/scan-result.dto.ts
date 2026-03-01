@@ -2,6 +2,23 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ScanStatus, ScanPhase } from '../../common/interfaces/scan.interface';
 import { Vuln } from '../../common/interfaces/vuln.interface';
 
+export class ScanSummaryDto {
+  @ApiProperty()
+  totalParams!: number;
+
+  @ApiProperty()
+  paramsTested!: number;
+
+  @ApiProperty()
+  vulnsFound!: number;
+
+  @ApiProperty()
+  durationMs!: number;
+
+  @ApiPropertyOptional()
+  reportUrl?: string;
+}
+
 export class ScanResultDto {
   @ApiProperty()
   id!: string;
@@ -32,21 +49,4 @@ export class ScanResultDto {
 
   @ApiPropertyOptional()
   error?: string;
-}
-
-export class ScanSummaryDto {
-  @ApiProperty()
-  totalParams!: number;
-
-  @ApiProperty()
-  paramsTested!: number;
-
-  @ApiProperty()
-  vulnsFound!: number;
-
-  @ApiProperty()
-  durationMs!: number;
-
-  @ApiPropertyOptional()
-  reportUrl?: string;
 }
