@@ -116,23 +116,53 @@ export class ReportService implements OnModuleDestroy {
   ): Promise<string> {
     const reportBase = path.join(this.reportsDir, scanId);
     const data = this.buildTemplateData(scan, vulns);
+    const generated: string[] = [];
+    const failed: string[] = [];
 
     if (formats.includes('json')) {
-      this.generateJson(reportBase, scanId, scan, vulns);
+      try {
+        this.generateJson(reportBase, scanId, scan, vulns);
+        generated.push('json');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`json report failed scanId=${scanId}: ${msg}`);
+        failed.push('json');
+      }
     }
 
     if (formats.includes('html')) {
-      this.generateHtml(reportBase, data);
+      try {
+        this.generateHtml(reportBase, data);
+        generated.push('html');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`html report failed scanId=${scanId}: ${msg}`);
+        failed.push('html');
+      }
     }
 
     if (formats.includes('pdf')) {
-      await this.generatePdf(reportBase, data);
+      try {
+        await this.generatePdf(reportBase, data);
+        generated.push('pdf');
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `pdf report failed scanId=${scanId} (puppeteer/chromium unavailable?): ${msg}`,
+        );
+        failed.push('pdf');
+      }
     }
 
     this.logger.log(
-      `report generated scanId=${scanId} formats=${formats.join(',')} vulns=${vulns.length}`,
+      `report generated scanId=${scanId} formats=[${generated.join(',')}]${failed.length ? ` skipped=[${failed.join(',')}]` : ''} vulns=${vulns.length}`,
     );
-    return `/reports/${scanId}.html`;
+
+    // Return the best available report link
+    if (generated.includes('html')) return `/reports/${scanId}.html`;
+    if (generated.includes('json')) return `/reports/${scanId}.json`;
+    if (generated.includes('pdf')) return `/reports/${scanId}.pdf`;
+    return '';
   }
 
   getReportPath(scanId: string, format: string): string | null {
@@ -202,11 +232,17 @@ export class ReportService implements OnModuleDestroy {
   ): Promise<void> {
     const html = this.pdfTemplate(data);
 
-    if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      });
+    try {
+      if (!this.browser) {
+        this.browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
+      }
+    } catch (err) {
+      // Reset so the next attempt can try launching again
+      this.browser = null;
+      throw err;
     }
 
     const page = await this.browser.newPage();
@@ -218,8 +254,21 @@ export class ReportService implements OnModuleDestroy {
         margin: { top: '15mm', right: '12mm', bottom: '15mm', left: '12mm' },
       });
       fs.writeFileSync(`${reportBase}.pdf`, pdfBuffer);
+    } catch (err) {
+      // If the browser session is broken, close it so next scan gets a fresh one
+      try {
+        await this.browser.close();
+      } catch {
+        /* ignore close error */
+      }
+      this.browser = null;
+      throw err;
     } finally {
-      await page.close();
+      try {
+        await page.close();
+      } catch {
+        /* ignore */
+      }
     }
   }
 
