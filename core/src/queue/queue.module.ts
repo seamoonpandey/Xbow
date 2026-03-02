@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScanQueueProducer, SCAN_QUEUE } from './scan.producer';
 import { ScanProcessor } from './scan.processor';
 import { ModulesBridgeModule } from '../modules-bridge/bridge.module';
 import { ReportModule } from '../report/report.module';
+import { ScanModule } from '../scan/scan.module';
+import { CrawlerModule } from '../crawler/crawler.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ReportModule } from '../report/report.module';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({ name: SCAN_QUEUE }),
+    forwardRef(() => ScanModule),
+    CrawlerModule,
     ModulesBridgeModule,
     ReportModule,
   ],

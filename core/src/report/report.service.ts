@@ -10,7 +10,7 @@ import {
   VulnSeverity,
 } from '../common/interfaces/vuln.interface';
 import { FuzzResult } from '../modules-bridge/fuzzer-client.service';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'crypto';
 
 interface TemplateData {
   target: string;

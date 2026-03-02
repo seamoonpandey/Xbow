@@ -42,12 +42,11 @@ bank: PayloadBank | None = None
 @app.on_event("startup")
 async def load_bank():
     global bank
-    train_path = os.path.join(DATASET_DIR, "train.csv")
-    if os.path.exists(train_path):
-        bank = PayloadBank(train_path)
-        logger.info(f"loaded payload bank from {train_path}")
+    bank = PayloadBank()
+    if bank.size > 0:
+        logger.info(f"loaded payload bank with {bank.size} payloads")
     else:
-        logger.warning(f"dataset not found at {train_path}, bank unavailable")
+        logger.warning("payload bank is empty — check DATA_DIR / dataset paths")
 
 
 @app.get("/health")
