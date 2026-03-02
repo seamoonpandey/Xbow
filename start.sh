@@ -75,21 +75,21 @@ tmux new-window -t "$SESSION" -n "python" -c "$ROOT/modules/context-module"
 tmux send-keys -t "$SESSION:python.0" \
   "printf '\\033[1;33m── Context Module :5001 ──\\033[0m\\n'; \
    $EXPORT_LINE \
-   cd $ROOT/modules/context-module && python3 app.py" C-m
+   source $ROOT/venv/bin/activate && cd $ROOT/modules/context-module && python app.py" C-m
 
 # Pane 1 — Payload-gen :5002
 tmux split-window -v -t "$SESSION:python" -c "$ROOT/modules/payload-gen-module"
 tmux send-keys -t "$SESSION:python.1" \
   "printf '\\033[1;33m── Payload-Gen :5002 ──\\033[0m\\n'; \
    $EXPORT_LINE \
-   cd $ROOT/modules/payload-gen-module && python3 app.py" C-m
+   source $ROOT/venv/bin/activate && cd $ROOT/modules/payload-gen-module && python app.py" C-m
 
 # Pane 2 — Fuzzer :5003
 tmux split-window -v -t "$SESSION:python" -c "$ROOT/modules/fuzzer-module"
 tmux send-keys -t "$SESSION:python.2" \
   "printf '\\033[1;33m── Fuzzer Module :5003 ──\\033[0m\\n'; \
    $EXPORT_LINE \
-   cd $ROOT/modules/fuzzer-module && python3 app.py" C-m
+   source $ROOT/venv/bin/activate && cd $ROOT/modules/fuzzer-module && python app.py" C-m
 
 tmux select-layout -t "$SESSION:python" even-vertical
 
@@ -118,7 +118,7 @@ tmux send-keys -t "$SESSION:dashboard" \
 tmux new-window -t "$SESSION" -n "exploit" -c "$ROOT/exploitable"
 tmux send-keys -t "$SESSION:exploit" \
   "printf '\\033[1;31m── Exploitable Test Site :9090 ──\\033[0m\\n'; \
-   python3 app.py" C-m
+   source $ROOT/venv/bin/activate && python app.py" C-m
 
 # ══════════════════════════════════════════════════════════════
 #  Window 5 — shell  (free terminal)

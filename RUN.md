@@ -67,20 +67,14 @@ psql -h localhost -U rs -d redsentinel -c "SELECT 1;"
 
 ### 4. Python dependencies
 
-Each Python microservice has its own `requirements.txt`. Install them all:
+All Python services share a **single virtual environment** at the project root:
 
 ```bash
-# Context module (port 5001) — includes PyTorch + transformers
-pip3 install -r modules/context-module/requirements.txt
-
-# Payload generator (port 5002)
-pip3 install -r modules/payload-gen-module/requirements.txt
-
-# Fuzzer (port 5003) — includes Playwright
-pip3 install -r modules/fuzzer-module/requirements.txt
-
-# Vulnerable test site (port 9090)
-pip3 install -r exploitable/requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+deactivate
 ```
 
 ### 5. Playwright browser
@@ -88,8 +82,10 @@ pip3 install -r exploitable/requirements.txt
 The fuzzer uses Playwright to launch a real browser for XSS verification:
 
 ```bash
-python3 -m playwright install chromium
-python3 -m playwright install-deps chromium
+source venv/bin/activate
+python -m playwright install chromium
+python -m playwright install-deps chromium
+deactivate
 ```
 
 ### 6. Node.js dependencies
@@ -170,8 +166,9 @@ Verify: `redis-cli ping` → should print `PONG`
 ### Terminal 2 — Context Module (port 5001)
 
 ```bash
+source venv/bin/activate
 cd modules/context-module
-python3 app.py
+python app.py
 ```
 
 You should see:
@@ -184,8 +181,9 @@ Verify: `curl http://localhost:5001/health`
 ### Terminal 3 — Payload Generator (port 5002)
 
 ```bash
+source venv/bin/activate
 cd modules/payload-gen-module
-python3 app.py
+python app.py
 ```
 
 You should see:
@@ -198,8 +196,9 @@ Verify: `curl http://localhost:5002/health`
 ### Terminal 4 — Fuzzer (port 5003)
 
 ```bash
+source venv/bin/activate
 cd modules/fuzzer-module
-python3 app.py
+python app.py
 ```
 
 You should see:
@@ -240,8 +239,9 @@ Open: http://localhost:8080
 ### Terminal 7 (optional) — Vulnerable Test Site (port 9090)
 
 ```bash
+source venv/bin/activate
 cd exploitable
-python3 app.py
+python app.py
 ```
 
 Open: http://localhost:9090

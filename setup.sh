@@ -35,6 +35,9 @@ command -v curl         &>/dev/null || PKGS_NEEDED+=(curl)
 command -v lsof         &>/dev/null || PKGS_NEEDED+=(lsof)
 command -v git          &>/dev/null || PKGS_NEEDED+=(git)
 
+# python3-venv is needed for virtual environments
+python3 -m venv --help &>/dev/null 2>&1 || PKGS_NEEDED+=(python3-venv)
+
 if [[ ${#PKGS_NEEDED[@]} -gt 0 ]]; then
   info "Installing: ${PKGS_NEEDED[*]}"
   sudo apt-get update -qq >> "$LOG" 2>&1
@@ -117,30 +120,27 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════════
-#  6. Python dependencies — per module
+#  6. Python virtual environment (single venv for whole project)
 # ══════════════════════════════════════════════════════════════
-info "Installing Python packages for context-module..."
-pip3 install -q -r "$ROOT/modules/context-module/requirements.txt" >> "$LOG" 2>&1
-ok "context-module deps"
+VENV="$ROOT/venv"
 
-info "Installing Python packages for payload-gen-module..."
-pip3 install -q -r "$ROOT/modules/payload-gen-module/requirements.txt" >> "$LOG" 2>&1
-ok "payload-gen-module deps"
+info "Creating project venv..."
+if [[ ! -d "$VENV" ]]; then
+  python3 -m venv "$VENV"
+fi
+"$VENV/bin/pip" install -q --upgrade pip >> "$LOG" 2>&1
+ok "venv created at $VENV"
 
-info "Installing Python packages for fuzzer-module..."
-pip3 install -q -r "$ROOT/modules/fuzzer-module/requirements.txt" >> "$LOG" 2>&1
-ok "fuzzer-module deps"
-
-info "Installing Python packages for exploitable test site..."
-pip3 install -q -r "$ROOT/exploitable/requirements.txt" >> "$LOG" 2>&1
-ok "exploitable deps"
+info "Installing Python deps from requirements.txt..."
+"$VENV/bin/pip" install -q --no-cache-dir -r "$ROOT/requirements.txt" >> "$LOG" 2>&1
+ok "All Python deps installed"
 
 # ══════════════════════════════════════════════════════════════
 #  7. Playwright browsers (for fuzzer)
 # ══════════════════════════════════════════════════════════════
 info "Installing Playwright browsers (Chromium)..."
-python3 -m playwright install chromium >> "$LOG" 2>&1
-python3 -m playwright install-deps chromium >> "$LOG" 2>&1 || true
+"$VENV/bin/python" -m playwright install chromium >> "$LOG" 2>&1
+"$VENV/bin/python" -m playwright install-deps chromium >> "$LOG" 2>&1 || true
 ok "Playwright Chromium installed"
 
 # Also install for Puppeteer (used by report PDF generation)
