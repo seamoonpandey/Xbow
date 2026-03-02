@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # ── Red Sentinel — tmux launcher ─────────────────────────────
-# Starts all services in a single tmux session with labeled windows.
+# Starts all dev servers in a single tmux session with labeled windows.
 #
-#   Window 0 "infra"     : Redis + Postgres health check
-#   Window 1 "python"    : context :5001 | payload-gen :5002 | fuzzer :5003
-#   Window 2 "core"      : NestJS API :3000
-#   Window 3 "dashboard" : Next.js   :8080
-#   Window 4 "exploit"   : Vulnerable test site :9090
-#   Window 5 "shell"     : Free terminal with cheat-sheet
+#   Window 0 "python"    : context :5001 | payload-gen :5002 | fuzzer :5003
+#   Window 1 "core"      : NestJS API :3000
+#   Window 2 "dashboard" : Next.js   :8080
+#   Window 3 "exploit"   : Vulnerable test site :9090
+#   Window 4 "shell"     : Free terminal
 #
 # Usage:  ./start.sh          (starts & attaches)
 #         ./start.sh --detach (starts in background)
@@ -20,7 +19,7 @@ DETACH=false
 [[ "${1:-}" == "--detach" || "${1:-}" == "-d" ]] && DETACH=true
 
 # ── Pre-flight checks ────────────────────────────────────────
-for cmd in tmux redis-server node python3; do
+for cmd in tmux node python3; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "✗ Required command '$cmd' not found. Install it first." >&2
     exit 1
@@ -31,7 +30,7 @@ done
 tmux kill-session -t "$SESSION" 2>/dev/null || true
 sleep 0.3
 
-# ── Env vars for native (non-Docker) mode ────────────────────
+# ── Env vars ─────────────────────────────────────────────────
 ENV_COMMON=(
   "REDIS_HOST=localhost"
   "REDIS_PORT=6379"
@@ -40,37 +39,18 @@ ENV_COMMON=(
   "PAYLOAD_GEN_URL=http://localhost:5002"
   "FUZZER_URL=http://localhost:5003"
   "DATABASE_URL=postgresql://rs:rs@localhost:5432/redsentinel"
-  "POSTGRES_USER=rs"
-  "POSTGRES_PASSWORD=rs"
-  "POSTGRES_DB=redsentinel"
   "NODE_ENV=development"
 )
 
-# Build an export string to inject into every pane
 EXPORT_LINE=""
 for ev in "${ENV_COMMON[@]}"; do
   EXPORT_LINE+="export $ev; "
 done
 
 # ══════════════════════════════════════════════════════════════
-#  Window 0 — infra  (Redis top / Postgres bottom)
+#  Window 0 — python  (3 vertical panes)
 # ══════════════════════════════════════════════════════════════
-tmux new-session -d -s "$SESSION" -n "infra" -c "$ROOT" -x 220 -y 50
-
-tmux send-keys -t "$SESSION:infra" \
-  "printf '\\033[1;36m── Redis ──\\033[0m\\n'; redis-server --daemonize no --loglevel notice" C-m
-
-tmux split-window -v -t "$SESSION:infra" -c "$ROOT" -p 30
-tmux send-keys -t "$SESSION:infra.1" \
-  "printf '\\033[1;36m── Postgres ──\\033[0m\\n'; \
-   pg_isready -h localhost -q && echo 'Postgres is already running' || \
-   (sudo pg_ctlcluster 14 main start 2>/dev/null || sudo systemctl start postgresql 2>/dev/null || echo 'Start postgres manually'); \
-   echo 'Done.'; exec bash" C-m
-
-# ══════════════════════════════════════════════════════════════
-#  Window 1 — python  (3 vertical panes)
-# ══════════════════════════════════════════════════════════════
-tmux new-window -t "$SESSION" -n "python" -c "$ROOT/modules/context-module"
+tmux new-session -d -s "$SESSION" -n "python" -c "$ROOT/modules/context-module" -x 220 -y 50
 
 # Pane 0 — Context module :5001
 tmux send-keys -t "$SESSION:python.0" \
@@ -95,7 +75,7 @@ tmux send-keys -t "$SESSION:python.2" \
 tmux select-layout -t "$SESSION:python" even-vertical
 
 # ══════════════════════════════════════════════════════════════
-#  Window 2 — core  (NestJS :3000)
+#  Window 1 — core  (NestJS :3000)
 # ══════════════════════════════════════════════════════════════
 tmux new-window -t "$SESSION" -n "core" -c "$ROOT/core"
 tmux send-keys -t "$SESSION:core" \
@@ -105,7 +85,7 @@ tmux send-keys -t "$SESSION:core" \
    npm run start:dev" C-m
 
 # ══════════════════════════════════════════════════════════════
-#  Window 3 — dashboard  (Next.js :8080)
+#  Window 2 — dashboard  (Next.js :8080)
 # ══════════════════════════════════════════════════════════════
 tmux new-window -t "$SESSION" -n "dashboard" -c "$ROOT/dashboard"
 tmux send-keys -t "$SESSION:dashboard" \
@@ -114,7 +94,7 @@ tmux send-keys -t "$SESSION:dashboard" \
    npx next dev -p 8080" C-m
 
 # ══════════════════════════════════════════════════════════════
-#  Window 4 — exploit  (Vulnerable test site :9090)
+#  Window 3 — exploit  (Vulnerable test site :9090)
 # ══════════════════════════════════════════════════════════════
 tmux new-window -t "$SESSION" -n "exploit" -c "$ROOT/exploitable"
 tmux send-keys -t "$SESSION:exploit" \
@@ -122,7 +102,7 @@ tmux send-keys -t "$SESSION:exploit" \
    source $ROOT/venv/bin/activate && python app.py" C-m
 
 # ══════════════════════════════════════════════════════════════
-#  Window 5 — shell  (free terminal)
+#  Window 4 — shell  (free terminal)
 # ══════════════════════════════════════════════════════════════
 tmux new-window -t "$SESSION" -n "shell" -c "$ROOT"
 tmux send-keys -t "$SESSION:shell" "$EXPORT_LINE" C-m
@@ -132,8 +112,6 @@ tmux send-keys -t "$SESSION:shell" "cat <<'EOF'
   ╔══════════════════════════════════════════════════════╗
   ║              Red Sentinel — Running                  ║
   ╠══════════════════════════════════════════════════════╣
-  ║  Redis          localhost:6379                       ║
-  ║  Postgres        localhost:5432                      ║
   ║  Context API     http://localhost:5001               ║
   ║  Payload-Gen     http://localhost:5002               ║
   ║  Fuzzer          http://localhost:5003               ║
@@ -145,7 +123,7 @@ tmux send-keys -t "$SESSION:shell" "cat <<'EOF'
   ╠══════════════════════════════════════════════════════╣
   ║  tmux shortcuts:                                     ║
   ║    Ctrl+B n/p   → next / prev window                 ║
-  ║    Ctrl+B 0-5   → jump to window                     ║
+  ║    Ctrl+B 0-4   → jump to window                     ║
   ║    Ctrl+B d     → detach (services keep running)     ║
   ║    Ctrl+B o     → switch pane (in python window)     ║
   ╚══════════════════════════════════════════════════════╝
