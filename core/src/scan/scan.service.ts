@@ -6,7 +6,7 @@ import {
   ScanStatus,
   ScanPhase,
 } from '../common/interfaces/scan.interface';
-import { Vuln } from '../common/interfaces/vuln.interface';
+import { Vuln, VulnType } from '../common/interfaces/vuln.interface';
 import {
   ScanNotFoundException,
   ScanAlreadyRunningException,
@@ -19,6 +19,7 @@ export class ScanService {
   private readonly logger = new Logger(ScanService.name);
   private readonly scans = new Map<string, ScanRecord>();
   private readonly vulns = new Map<string, Vuln[]>();
+  private readonly vulnKeys = new Map<string, Set<string>>();
 
   create(dto: CreateScanDto): ScanRecord {
     const id = uuidv4();
@@ -42,6 +43,7 @@ export class ScanService {
     };
     this.scans.set(id, record);
     this.vulns.set(id, []);
+    this.vulnKeys.set(id, new Set());
     this.logger.log(`scan created id=${id} url=${record.url}`);
     return record;
   }
@@ -102,11 +104,18 @@ export class ScanService {
     return scan;
   }
 
-  addVuln(scanId: string, vuln: Vuln): void {
+  addVuln(scanId: string, vuln: Vuln): boolean {
     this.findOne(scanId);
+    const key = this.buildVulnKey(vuln);
+    const seen = this.vulnKeys.get(scanId) ?? new Set<string>();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    this.vulnKeys.set(scanId, seen);
+
     const list = this.vulns.get(scanId) ?? [];
     list.push(vuln);
     this.vulns.set(scanId, list);
+    return true;
   }
 
   markFailed(id: string, error: string): ScanRecord {
@@ -116,6 +125,48 @@ export class ScanService {
     scan.updatedAt = new Date();
     scan.completedAt = new Date();
     return scan;
+  }
+
+  private buildVulnKey(v: Vuln): string {
+    // A stable signature to prevent duplicate reporting/emitting.
+    // Intentionally excludes fields that vary per run (id, discoveredAt).
+    //
+    // IMPORTANT: For reflected/stored XSS, we only want one representative
+    // finding per (type, page, param). Otherwise, the same vuln can be
+    // confirmed by many payload variants and inflate the report.
+    const type = String(v.type ?? '').trim();
+    const url = this.normalizeUrlForDedup(String(v.url ?? '').trim());
+    const param = String(v.param ?? '').trim();
+    const payload = String(v.payload ?? '').trim();
+
+    if (type === VulnType.REFLECTED_XSS || type === VulnType.STORED_XSS) {
+      return `${type}|${url}|${param}`;
+    }
+
+    if (type === VulnType.DOM_XSS) {
+      // DOM findings are already summarized by (sink <- source) in the payload.
+      // Dedupe on that per page.
+      return `${type}|${url}|${payload}`;
+    }
+
+    return `${type}|${url}|${param}|${payload}`;
+  }
+
+  private normalizeUrlForDedup(rawUrl: string): string {
+    // Canonicalize query by parameter *names* only (ignore values + ordering).
+    // This prevents duplicates caused by crawling the same route with
+    // different query values.
+    try {
+      const u = new URL(rawUrl);
+      const keys = [...new Set([...u.searchParams.keys()])].sort();
+      const qs =
+        keys.length > 0
+          ? `?${keys.map((k) => `${encodeURIComponent(k)}=`).join('&')}`
+          : '';
+      return `${u.origin}${u.pathname}${qs}`;
+    } catch {
+      return rawUrl;
+    }
   }
 
   private isIdle(scan: ScanRecord): boolean {

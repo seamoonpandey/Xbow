@@ -8,10 +8,37 @@ import { ContextClientService } from '../modules-bridge/context-client.service';
 import { PayloadClientService } from '../modules-bridge/payload-client.service';
 import { FuzzerClientService } from '../modules-bridge/fuzzer-client.service';
 import { ReportService } from '../report/report.service';
-import { ScanStatus, ScanPhase } from '../common/interfaces/scan.interface';
+import {
+  ScanStatus,
+  ScanPhase,
+  ScanRecord,
+} from '../common/interfaces/scan.interface';
 import { SCAN_QUEUE } from './scan.producer';
 
-@Processor(SCAN_QUEUE)
+const SCAN_WORKER_CONCURRENCY = Math.max(
+  1,
+  Number(process.env.SCAN_WORKER_CONCURRENCY ?? 2),
+);
+
+function canonicalizeTargetUrl(
+  rawUrl: string,
+  baseUrl?: string,
+): { url: string; params: string[] } {
+  try {
+    const u = baseUrl ? new URL(rawUrl, baseUrl) : new URL(rawUrl);
+    const paramNames = [...new Set([...u.searchParams.keys()])].sort();
+    const canonicalSearch =
+      paramNames.length > 0
+        ? `?${paramNames.map((p) => `${encodeURIComponent(p)}=`).join('&')}`
+        : '';
+    const canonicalUrl = `${u.origin}${u.pathname}${canonicalSearch}`;
+    return { url: canonicalUrl, params: paramNames };
+  } catch {
+    return { url: rawUrl, params: [] };
+  }
+}
+
+@Processor(SCAN_QUEUE, { concurrency: SCAN_WORKER_CONCURRENCY })
 export class ScanProcessor extends WorkerHost {
   private readonly logger = new Logger(ScanProcessor.name);
 
@@ -29,10 +56,20 @@ export class ScanProcessor extends WorkerHost {
 
   async process(job: Job<{ scanId: string }>): Promise<void> {
     const { scanId } = job.data;
-    const scan = this.scanService.findOne(scanId);
     const startedAt = Date.now();
 
     try {
+      let scan: ScanRecord;
+      try {
+        scan = this.scanService.findOne(scanId);
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : 'scan not found';
+        this.logger.warn(
+          `skipping scan job for missing scanId=${scanId}: ${detail}`,
+        );
+        return;
+      }
+
       // ── Phase 1: CRAWL ──────────────────────────────────────────────
       this.scanService.updateStatus(
         scanId,
@@ -61,32 +98,33 @@ export class ScanProcessor extends WorkerHost {
       // that handles each parameter, not just the root URL.
       const urlParamsMap = new Map<string, string[]>();
       for (const crawledUrl of crawlResult.urls) {
-        try {
-          const u = new URL(crawledUrl);
-          const params = [...new Set(u.searchParams.keys())];
-          if (params.length > 0) {
-            urlParamsMap.set(crawledUrl, params);
-          }
-        } catch {
-          // skip invalid URLs
-        }
+        const { url: canonicalUrl, params } = canonicalizeTargetUrl(crawledUrl);
+        const existing = urlParamsMap.get(canonicalUrl) ?? [];
+        const merged = [...new Set([...existing, ...params])];
+        // Always include the URL (even if it has no params) so we can still
+        // perform DOM-only scanning on pages without injectable parameters.
+        urlParamsMap.set(canonicalUrl, merged);
       }
 
       // Also include form action URLs with their fields
       for (const form of crawlResult.forms) {
         if (form.action && form.fields.length > 0) {
-          const existing = urlParamsMap.get(form.action) ?? [];
-          const merged = [...new Set([...existing, ...form.fields])];
-          urlParamsMap.set(form.action, merged);
+          const { url: canonicalUrl, params } = canonicalizeTargetUrl(
+            form.action,
+            scan.url,
+          );
+          const existing = urlParamsMap.get(canonicalUrl) ?? [];
+          const merged = [...new Set([...existing, ...params, ...form.fields])];
+          urlParamsMap.set(canonicalUrl, merged);
         }
       }
 
       // If the original scan URL has params, ensure it's included
       try {
-        const rootUrl = new URL(scan.url);
-        const rootParams = [...new Set(rootUrl.searchParams.keys())];
-        if (rootParams.length > 0 && !urlParamsMap.has(scan.url)) {
-          urlParamsMap.set(scan.url, rootParams);
+        const { url: canonicalRoot, params: rootParams } =
+          canonicalizeTargetUrl(scan.url);
+        if (rootParams.length > 0 && !urlParamsMap.has(canonicalRoot)) {
+          urlParamsMap.set(canonicalRoot, rootParams);
         }
       } catch {
         // skip
@@ -148,6 +186,54 @@ export class ScanProcessor extends WorkerHost {
           `[${i + 1}/${totalTargets}] processing ${targetUrl} (${targetParams.length} params)`,
         );
 
+        // If this URL has no params at all, skip context/payload generation and
+        // do a DOM-only scan (fetch + inline script analysis).
+        if (targetParams.length === 0) {
+          this.scanService.updateStatus(
+            scanId,
+            ScanStatus.FUZZING,
+            ScanPhase.FUZZ,
+            pct(0.5),
+          );
+          this.gateway.emitProgress({
+            scanId,
+            phase: ScanPhase.FUZZ,
+            progress: pct(0.5),
+            message: `[${i + 1}/${totalTargets}] dom-only scanning ${targetUrl}`,
+          });
+
+          try {
+            const domResp = await this.fuzzerClient.test({
+              url: targetUrl,
+              payloads: [],
+              verifyExecution: false,
+              timeout: scan.options.timeout ?? 60000,
+            });
+            const domVulns = domResp.results.filter((r) => r.vuln);
+            for (const r of domVulns) {
+              const vuln = this.reportService.buildVuln(scanId, targetUrl, r);
+              if (this.scanService.addVuln(scanId, vuln)) {
+                this.gateway.emitFinding({ scanId, vuln });
+              }
+            }
+            totalVulnsFound += domVulns.length;
+          } catch (err) {
+            const detail =
+              err instanceof Error ? err.message : 'fuzzer error';
+            this.logger.warn(
+              `dom-only scan failed for ${targetUrl}: ${detail}, skipping`,
+            );
+          }
+
+          this.gateway.emitProgress({
+            scanId,
+            phase: ScanPhase.FUZZ,
+            progress: pct(1),
+            message: `[${i + 1}/${totalTargets}] dom-only done (${totalVulnsFound} total)`,
+          });
+          continue;
+        }
+
         // ── CONTEXT for this URL ────────────────────────────────────
         this.gateway.emitProgress({
           scanId,
@@ -178,7 +264,52 @@ export class ScanProcessor extends WorkerHost {
             (ctx as { reflects_in: string }).reflects_in !== 'none',
         );
         if (reflectedParams.length === 0) {
-          this.logger.debug(`no reflections on ${targetUrl}, skipping`);
+          this.logger.debug(
+            `no reflections on ${targetUrl}, running dom-only scan`,
+          );
+
+          this.scanService.updateStatus(
+            scanId,
+            ScanStatus.FUZZING,
+            ScanPhase.FUZZ,
+            pct(0.5),
+          );
+          this.gateway.emitProgress({
+            scanId,
+            phase: ScanPhase.FUZZ,
+            progress: pct(0.5),
+            message: `[${i + 1}/${totalTargets}] dom-only scanning ${targetUrl}`,
+          });
+
+          try {
+            const domResp = await this.fuzzerClient.test({
+              url: targetUrl,
+              payloads: [],
+              verifyExecution: false,
+              timeout: scan.options.timeout ?? 60000,
+            });
+            const domVulns = domResp.results.filter((r) => r.vuln);
+            for (const r of domVulns) {
+              const vuln = this.reportService.buildVuln(scanId, targetUrl, r);
+              if (this.scanService.addVuln(scanId, vuln)) {
+                this.gateway.emitFinding({ scanId, vuln });
+              }
+            }
+            totalVulnsFound += domVulns.length;
+          } catch (err) {
+            const detail =
+              err instanceof Error ? err.message : 'fuzzer error';
+            this.logger.warn(
+              `dom-only scan failed for ${targetUrl}: ${detail}, skipping`,
+            );
+          }
+
+          this.gateway.emitProgress({
+            scanId,
+            phase: ScanPhase.FUZZ,
+            progress: pct(1),
+            message: `[${i + 1}/${totalTargets}] dom-only done (${totalVulnsFound} total)`,
+          });
           continue;
         }
 
@@ -222,6 +353,28 @@ export class ScanProcessor extends WorkerHost {
           continue;
         }
 
+        // ── Deduplicate payloads before fuzzing ─────────────────────
+        // Group by target_param and keep at most maxPayloadsPerParam
+        // unique payloads per param. This prevents the fuzzer from sending
+        // redundant HTTP requests for identical payloads or the same vuln.
+        const maxPerParam = scan.options.maxPayloadsPerParam ?? 10;
+        const perParam = new Map<string, Set<string>>();
+        const uniquePayloads: typeof payloads = [];
+        for (const p of payloads) {
+          const paramKey = String(p.target_param ?? '');
+          if (!perParam.has(paramKey)) perParam.set(paramKey, new Set());
+          const seen = perParam.get(paramKey)!;
+          if (seen.has(p.payload)) continue; // exact duplicate
+          if (seen.size >= maxPerParam) continue; // per-param cap reached
+          seen.add(p.payload);
+          uniquePayloads.push(p);
+        }
+        if (uniquePayloads.length < payloads.length) {
+          this.logger.debug(
+            `deduped payloads ${payloads.length} → ${uniquePayloads.length} for ${targetUrl}`,
+          );
+        }
+
         // ── FUZZ for this URL ───────────────────────────────────────
         this.scanService.updateStatus(
           scanId,
@@ -233,14 +386,14 @@ export class ScanProcessor extends WorkerHost {
           scanId,
           phase: ScanPhase.FUZZ,
           progress: pct(0.66),
-          message: `[${i + 1}/${totalTargets}] fuzzing ${targetUrl} with ${payloads.length} payloads`,
+          message: `[${i + 1}/${totalTargets}] fuzzing ${targetUrl} with ${uniquePayloads.length} payloads`,
         });
 
         let results;
         try {
           const fuzzResp = await this.fuzzerClient.test({
             url: targetUrl,
-            payloads,
+            payloads: uniquePayloads,
             verifyExecution: scan.options.verifyExecution ?? true,
             timeout: scan.options.timeout ?? 60000,
           });
@@ -254,12 +407,13 @@ export class ScanProcessor extends WorkerHost {
           continue;
         }
 
-        totalPayloadsTested += payloads.length;
+        totalPayloadsTested += uniquePayloads.length;
         const confirmedVulns = results.filter((r) => r.vuln);
         for (const r of confirmedVulns) {
           const vuln = this.reportService.buildVuln(scanId, targetUrl, r);
-          this.scanService.addVuln(scanId, vuln);
-          this.gateway.emitFinding({ scanId, vuln });
+          if (this.scanService.addVuln(scanId, vuln)) {
+            this.gateway.emitFinding({ scanId, vuln });
+          }
         }
         totalVulnsFound += confirmedVulns.length;
 

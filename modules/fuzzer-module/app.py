@@ -14,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from shared.schemas import FuzzRequest, FuzzResult, FuzzResponse
-from http_sender import send_payloads
+from http_sender import send_payloads, fetch_url
 from reflection_checker import check_reflection_batch
 from browser_verifier import verify_payloads
 from dom_xss_scanner import scan_response_body, findings_to_results
@@ -51,7 +51,35 @@ async def test(request: FuzzRequest):
     timeout_ms = request.timeout
 
     if not payloads:
-        return FuzzResponse(results=[])
+        # DOM-only mode: fetch the page once and scan inline scripts for DOM sinks.
+        logger.info(
+            f"dom-only scan {url}, timeout={timeout_ms}ms"
+        )
+        fetched = await fetch_url(url=url, timeout_ms=timeout_ms)
+        if fetched.error or not fetched.response_body:
+            logger.warning(
+                f"dom-only fetch failed for {url}: {fetched.error}"
+            )
+            return FuzzResponse(results=[])
+
+        scan_result = scan_response_body(fetched.response_body, url)
+        dom_results = findings_to_results(scan_result.findings, url)
+        return FuzzResponse(results=[FuzzResult(**r) for r in dom_results])
+
+    # Deduplicate payloads by (payload_text, target_param) before sending any
+    # HTTP requests so identical payloads are never tested twice.
+    seen_pre: set[str] = set()
+    deduped_payloads: list[dict] = []
+    for p in payloads:
+        k = f"{p.get('payload', '')}:{p.get('target_param', '')}"
+        if k not in seen_pre:
+            seen_pre.add(k)
+            deduped_payloads.append(p)
+    if len(deduped_payloads) < len(payloads):
+        logger.debug(
+            f"deduped payloads {len(payloads)} → {len(deduped_payloads)} before send"
+        )
+    payloads = deduped_payloads
 
     logger.info(
         f"fuzzing {url} with {len(payloads)} payloads, "

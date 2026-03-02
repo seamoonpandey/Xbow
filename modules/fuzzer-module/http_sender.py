@@ -102,6 +102,51 @@ async def send_payloads(
     return batch
 
 
+async def fetch_url(
+    url: str,
+    timeout_ms: int = 10000,
+) -> SendResult:
+    """Fetch a URL once (no injection).
+
+    Used for DOM-only scanning on pages that have no injectable parameters.
+    """
+    timeout_s = timeout_ms / 1000
+    start = time.monotonic()
+
+    async with httpx.AsyncClient(
+        headers=DEFAULT_HEADERS,
+        timeout=httpx.Timeout(timeout_s, connect=5.0),
+        follow_redirects=True,
+        verify=False,
+    ) as client:
+        try:
+            resp = await client.get(url)
+            elapsed = (time.monotonic() - start) * 1000
+            return SendResult(
+                payload="",
+                target_param="",
+                method="GET",
+                status_code=resp.status_code,
+                response_body=resp.text,
+                response_headers=dict(resp.headers),
+                elapsed_ms=round(elapsed, 2),
+                url=url,
+            )
+        except Exception as e:
+            elapsed = (time.monotonic() - start) * 1000
+            return SendResult(
+                payload="",
+                target_param="",
+                method="GET",
+                status_code=0,
+                response_body="",
+                response_headers={},
+                elapsed_ms=round(elapsed, 2),
+                error=str(e),
+                url=url,
+            )
+
+
 async def _send_one(
     client: httpx.AsyncClient,
     semaphore: asyncio.Semaphore,

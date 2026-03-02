@@ -109,9 +109,72 @@ describe('ScanService', () => {
         },
         discoveredAt: new Date(),
       };
-      service.addVuln(scan.id, vuln);
+      expect(service.addVuln(scan.id, vuln)).toBe(true);
       expect(service.getVulns(scan.id)).toHaveLength(1);
       expect(service.getVulns(scan.id)[0].param).toBe('q');
+    });
+
+    it('dedupes identical vulns', () => {
+      const scan = service.create({ url: 'https://example.com' });
+      const vuln = {
+        id: 'v1',
+        scanId: scan.id,
+        url: 'https://example.com/search?q=',
+        param: 'q',
+        payload: '<script>alert(1)</script>',
+        type: 'REFLECTED_XSS' as any,
+        severity: 'HIGH' as any,
+        reflected: true,
+        executed: true,
+        evidence: {
+          responseCode: 200,
+          reflectionPosition: 'body',
+          browserAlertTriggered: true,
+        },
+        discoveredAt: new Date(),
+      };
+
+      expect(service.addVuln(scan.id, vuln)).toBe(true);
+      expect(service.addVuln(scan.id, { ...vuln, id: 'v2' })).toBe(false);
+      expect(service.getVulns(scan.id)).toHaveLength(1);
+    });
+
+    it('dedupes reflected xss across different payload variants', () => {
+      const scan = service.create({ url: 'https://example.com' });
+      const base = {
+        scanId: scan.id,
+        url: 'https://example.com/search?q=hello',
+        param: 'q',
+        type: 'reflected_xss' as any,
+        severity: 'MEDIUM' as any,
+        reflected: true,
+        executed: false,
+        evidence: {
+          responseCode: 200,
+          reflectionPosition: 'body',
+          browserAlertTriggered: false,
+        },
+        discoveredAt: new Date(),
+      };
+
+      expect(
+        service.addVuln(scan.id, {
+          ...base,
+          id: 'v1',
+          payload: '"/><img src=x onerror=alert(1)>',
+        } as any),
+      ).toBe(true);
+
+      // Different payload should not create a new entry for the same param.
+      expect(
+        service.addVuln(scan.id, {
+          ...base,
+          id: 'v2',
+          payload: '<svg onload=alert(1)>',
+        } as any),
+      ).toBe(false);
+
+      expect(service.getVulns(scan.id)).toHaveLength(1);
     });
   });
 
