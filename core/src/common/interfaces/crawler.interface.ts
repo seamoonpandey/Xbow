@@ -9,6 +9,7 @@ export interface DiscoveredForm {
   action: string;
   method: 'GET' | 'POST';
   fields: string[];
+  sourceUrl?: string;
 }
 
 export interface DomSink {

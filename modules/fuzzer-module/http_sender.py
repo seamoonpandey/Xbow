@@ -195,6 +195,129 @@ async def _send_one(
             )
 
 
+async def send_stored_payloads(
+    store_url: str,
+    display_url: str,
+    payloads: list[dict],
+    form_fields: dict[str, str],
+    timeout_ms: int = 10000,
+    concurrency: int = 5,
+) -> SendBatch:
+    """
+    Stored XSS mode: for each payload, POST to store_url with all form_fields
+    (plus payload injected into target_param), then GET display_url and return
+    that response body for reflection checking.
+
+    Handles CSRF by fetching display_url before each submission to extract a
+    fresh token from the form's hidden csrf input.
+    """
+    import re as _re
+    batch = SendBatch()
+    semaphore = asyncio.Semaphore(concurrency)
+    timeout_s = timeout_ms / 1000
+
+    async with httpx.AsyncClient(
+        headers=DEFAULT_HEADERS,
+        timeout=httpx.Timeout(timeout_s, connect=5.0),
+        follow_redirects=True,
+        verify=False,
+    ) as client:
+
+        async def _send_stored_one(payload_text: str, param: str) -> SendResult:
+            async with semaphore:
+                start = time.monotonic()
+                try:
+                    # 1. Fetch display page to get fresh CSRF token
+                    csrf_resp = await client.get(display_url)
+                    csrf_token = _extract_csrf(csrf_resp.text)
+
+                    # 2. Build full form submission
+                    post_data = dict(form_fields)  # clone defaults
+                    if csrf_token:
+                        post_data["csrf"] = csrf_token
+                    post_data[param] = payload_text  # inject payload
+
+                    # 3. POST to store URL
+                    submit_resp = await client.post(store_url, data=post_data)
+                    logger.debug(
+                        f"stored submit {store_url} param={param} "
+                        f"status={submit_resp.status_code}"
+                    )
+
+                    # 4. Fetch display page to check for reflection
+                    display_resp = await client.get(display_url)
+                    elapsed = (time.monotonic() - start) * 1000
+
+                    return SendResult(
+                        payload=payload_text,
+                        target_param=param,
+                        method="STORED_POST",
+                        status_code=display_resp.status_code,
+                        response_body=display_resp.text,
+                        response_headers=dict(display_resp.headers),
+                        elapsed_ms=round(elapsed, 2),
+                        url=display_url,
+                    )
+                except Exception as e:
+                    elapsed = (time.monotonic() - start) * 1000
+                    logger.warning(f"stored send error param={param}: {e}")
+                    return SendResult(
+                        payload=payload_text,
+                        target_param=param,
+                        method="STORED_POST",
+                        status_code=0,
+                        response_body="",
+                        response_headers={},
+                        elapsed_ms=round(elapsed, 2),
+                        error=str(e),
+                        url=store_url,
+                    )
+
+        tasks = []
+        for entry in payloads:
+            payload_text = entry.get("payload", "")
+            param = entry.get("target_param", "")
+            tasks.append(_send_stored_one(payload_text, param))
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for r in results:
+            if isinstance(r, SendResult):
+                batch.results.append(r)
+                batch.total_sent += 1
+                if r.error:
+                    batch.total_errors += 1
+            elif isinstance(r, Exception):
+                batch.total_errors += 1
+                logger.warning(f"stored send error: {r}")
+
+    logger.info(
+        f"stored: sent {batch.total_sent} requests, {batch.total_errors} errors"
+    )
+    return batch
+
+
+def _extract_csrf(html: str) -> str:
+    """Extract CSRF token from a hidden form input."""
+    import re as _re
+    # Match <input ... name="csrf" ... value="TOKEN">
+    m = _re.search(
+        r'<input[^>]*name=["\']csrf["\'][^>]*value=["\']([^"\']+)["\']',
+        html,
+        _re.IGNORECASE,
+    )
+    if m:
+        return m.group(1)
+    # Try reversed order: value before name
+    m = _re.search(
+        r'<input[^>]*value=["\']([^"\']+)["\'][^>]*name=["\']csrf["\']',
+        html,
+        _re.IGNORECASE,
+    )
+    if m:
+        return m.group(1)
+    return ""
+
+
 def _inject_param_get(url: str, param: str, value: str) -> str:
     """inject payload value into a url query parameter"""
     parsed = urlparse(url)

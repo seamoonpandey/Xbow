@@ -54,6 +54,18 @@ export class ScanProcessor extends WorkerHost {
     super();
   }
 
+  /** Extract a numeric post/article ID from a URL query string */
+  private extractPostId(url: string): string | null {
+    try {
+      const u = new URL(url);
+      for (const key of ['postId', 'post_id', 'id', 'articleId', 'article_id']) {
+        const val = u.searchParams.get(key);
+        if (val) return val;
+      }
+    } catch { /* ignore */ }
+    return null;
+  }
+
   async process(job: Job<{ scanId: string }>): Promise<void> {
     const { scanId } = job.data;
     const startedAt = Date.now();
@@ -88,6 +100,7 @@ export class ScanProcessor extends WorkerHost {
 
       const urlParamsMap = new Map<string, string[]>();
       let waf = 'none';
+      let crawledForms: import('../common/interfaces/crawler.interface').DiscoveredForm[] = [];
 
       if (scan.options.singlePage) {
         // ── Single-page fast path: just parse the given URL ──────────
@@ -103,6 +116,7 @@ export class ScanProcessor extends WorkerHost {
         );
 
         waf = crawlResult.waf.name ?? 'none';
+        crawledForms = crawlResult.forms;
 
         // The crawler returns individual URLs it visited; extract query
         // params from each so context/fuzz target the actual page.
@@ -454,6 +468,137 @@ export class ScanProcessor extends WorkerHost {
           progress: pct(1),
           message: `[${i + 1}/${totalTargets}] ${confirmedVulns.length} vulns on ${targetUrl} (${totalVulnsFound} total)`,
         });
+      }
+
+      // ── Stored XSS sub-pipeline ─────────────────────────────────────
+      // POST forms where action ≠ sourceUrl are stored XSS candidates.
+      // The payload is submitted via form POST and appears on the source
+      // page (or a related display page).
+      const SKIP_FIELDS = new Set([
+        'csrf', '_csrf', 'token', '_token', 'captcha', '__RequestVerificationToken',
+      ]);
+      const storedForms = crawledForms.filter(
+        (f) =>
+          f.method === 'POST' &&
+          f.sourceUrl &&
+          f.fields.length > 0,
+      );
+
+      if (storedForms.length > 0) {
+        this.logger.log(
+          `found ${storedForms.length} stored XSS form candidate(s)`,
+        );
+        this.gateway.emitProgress({
+          scanId,
+          phase: ScanPhase.FUZZ,
+          progress: 86,
+          message: `testing ${storedForms.length} form(s) for stored XSS`,
+        });
+
+        for (const form of storedForms) {
+          const actionUrl = new URL(form.action, scan.url).href;
+          const displayUrl = form.sourceUrl!;
+          const testableFields = form.fields.filter(
+            (f) => !SKIP_FIELDS.has(f.toLowerCase()),
+          );
+
+          if (testableFields.length === 0) continue;
+
+          this.logger.log(
+            `stored XSS: action=${actionUrl} display=${displayUrl} ` +
+            `testable=${testableFields.join(',')}`,
+          );
+
+          // Build default form field values
+          const defaultFields: Record<string, string> = {};
+          for (const field of form.fields) {
+            if (SKIP_FIELDS.has(field.toLowerCase())) continue;
+            // provide sensible defaults for common field names
+            const fl = field.toLowerCase();
+            if (fl.includes('email')) defaultFields[field] = 'test@test.com';
+            else if (fl.includes('name')) defaultFields[field] = 'testuser';
+            else if (fl.includes('website') || fl.includes('url') || fl.includes('homepage'))
+              defaultFields[field] = 'http://test.com';
+            else if (fl.includes('postid') || fl.includes('post_id'))
+              defaultFields[field] = this.extractPostId(displayUrl) ?? '1';
+            else defaultFields[field] = 'test input';
+          }
+
+          // Build a synthetic context map for each testable field (html_body)
+          const storedContexts: Record<string, { reflects_in: string; allowed_chars: string[]; context_confidence: number }> = {};
+          for (const field of testableFields) {
+            storedContexts[field] = {
+              reflects_in: 'html_body',
+              allowed_chars: ['<', '>', '"', "'", '/', '(', ')', ';', '='],
+              context_confidence: 0.7,
+            };
+          }
+
+          // Generate payloads for html_body context
+          let storedPayloads;
+          try {
+            const genResp = await this.payloadClient.generate({
+              contexts: storedContexts,
+              waf,
+              maxPayloads: scan.options.maxPayloadsPerParam ?? 20,
+            });
+            storedPayloads = genResp.payloads;
+          } catch (err) {
+            const detail = err instanceof Error ? err.message : 'payload-gen error';
+            this.logger.warn(`stored XSS payload-gen failed: ${detail}, skipping`);
+            continue;
+          }
+
+          if (storedPayloads.length === 0) {
+            this.logger.debug('no payloads generated for stored XSS form');
+            continue;
+          }
+
+          // Deduplicate
+          const maxPerParam = scan.options.maxPayloadsPerParam ?? 10;
+          const perParam = new Map<string, Set<string>>();
+          const uniqueStored: typeof storedPayloads = [];
+          for (const p of storedPayloads) {
+            const paramKey = String(p.target_param ?? '');
+            if (!perParam.has(paramKey)) perParam.set(paramKey, new Set());
+            const seen = perParam.get(paramKey)!;
+            if (seen.has(p.payload)) continue;
+            if (seen.size >= maxPerParam) continue;
+            seen.add(p.payload);
+            uniqueStored.push(p);
+          }
+
+          // Fuzz in stored mode
+          try {
+            const fuzzResp = await this.fuzzerClient.test({
+              url: actionUrl,
+              payloads: uniqueStored,
+              verifyExecution: false,       // skip browser verify for stored
+              timeout: scan.options.timeout ?? 60000,
+              storedMode: true,
+              displayUrl,
+              formFields: defaultFields,
+            });
+
+            const storedVulns = fuzzResp.results.filter((r) => r.vuln);
+            for (const r of storedVulns) {
+              const vuln = this.reportService.buildVuln(scanId, displayUrl, r);
+              if (this.scanService.addVuln(scanId, vuln)) {
+                this.gateway.emitFinding({ scanId, vuln });
+              }
+            }
+            totalVulnsFound += storedVulns.length;
+            totalPayloadsTested += uniqueStored.length;
+
+            this.logger.log(
+              `stored XSS form: ${storedVulns.length} vulns found ` +
+              `(${uniqueStored.length} payloads tested)`,
+            );
+          } catch (err) {
+            const detail = err instanceof Error ? err.message : 'fuzzer error';
+            this.logger.warn(`stored XSS fuzzer failed: ${detail}, skipping`);
+          }
+        }
       }
 
       // ── Phase 5: REPORT ─────────────────────────────────────────────

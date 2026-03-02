@@ -11,6 +11,9 @@ class AnalyzeRequest(BaseModel):
     url: str
     params: list[str]
     waf: str = "none"
+    form_method: str = "GET"  # GET or POST
+    form_fields: list[str] = Field(default_factory=list)  # all required field names
+    display_url: str = ""  # page where stored output appears (for stored XSS)
 
 
 class ParamContext(BaseModel):
@@ -55,6 +58,10 @@ class FuzzRequest(BaseModel):
     payloads: list[FuzzPayload]
     verify_execution: bool = True
     timeout: int = 10000
+    stored_mode: bool = False  # if True, submit to url but check display_url for reflection
+    display_url: str = ""  # page to check for stored XSS output
+    form_method: str = "GET"  # HTTP method for submission
+    form_fields: dict[str, str] = Field(default_factory=dict)  # prefilled form fields (csrf, postId, etc.)
 
 
 class FuzzResult(BaseModel):

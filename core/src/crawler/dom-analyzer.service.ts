@@ -126,7 +126,7 @@ export class DomAnalyzerService {
       }
 
       if (fields.length > 0) {
-        forms.push({ action, method: method, fields });
+        forms.push({ action, method: method, fields, sourceUrl: baseUrl });
       }
     }
 

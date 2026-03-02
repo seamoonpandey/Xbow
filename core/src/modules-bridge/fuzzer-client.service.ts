@@ -10,6 +10,10 @@ export interface TestRequest {
   payloads: GeneratedPayload[];
   verifyExecution: boolean;
   timeout: number;
+  /** Stored XSS support — url becomes the store (form action) URL */
+  storedMode?: boolean;
+  displayUrl?: string;          // page where stored content appears
+  formFields?: Record<string, string>; // prefilled form fields
 }
 
 export interface FuzzResult {
@@ -66,6 +70,9 @@ export class FuzzerClientService {
             payloads: req.payloads,
             verify_execution: req.verifyExecution,
             timeout: req.timeout,
+            stored_mode: req.storedMode ?? false,
+            display_url: req.displayUrl ?? '',
+            form_fields: req.formFields ?? {},
           },
           { timeout: axiosTimeoutMs },
         ),

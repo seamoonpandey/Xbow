@@ -14,7 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from shared.schemas import FuzzRequest, FuzzResult, FuzzResponse
-from http_sender import send_payloads, fetch_url
+from http_sender import send_payloads, send_stored_payloads, fetch_url
 from reflection_checker import check_reflection_batch
 from browser_verifier import verify_payloads
 from dom_xss_scanner import scan_response_body, findings_to_results
@@ -44,11 +44,18 @@ async def test(request: FuzzRequest):
     """
     test payloads against target url.
     pipeline: send → check reflection → verify in browser → scan dom
+    supports stored xss mode (submit form → check display page)
     """
     url = request.url
     payloads = [p.model_dump() for p in request.payloads]
     verify_execution = request.verify_execution
     timeout_ms = request.timeout
+
+    # ── Stored XSS mode ─────────────────────────────────────────────
+    stored_mode = request.stored_mode
+    store_url = request.url  # In stored mode, url is the form action (store) URL
+    display_url = request.display_url
+    form_fields = request.form_fields
 
     if not payloads:
         # DOM-only mode: fetch the page once and scan inline scripts for DOM sinks.
@@ -84,8 +91,92 @@ async def test(request: FuzzRequest):
     logger.info(
         f"fuzzing {url} with {len(payloads)} payloads, "
         f"verify={verify_execution}, timeout={timeout_ms}ms"
+        f"{' STORED_MODE' if stored_mode else ''}"
     )
 
+    # ── Stored XSS pathway ───────────────────────────────────────────
+    if stored_mode and store_url and display_url:
+        logger.info(
+            f"stored XSS mode: store={store_url} display={display_url} "
+            f"fields={list(form_fields.keys())}"
+        )
+        send_batch = await send_stored_payloads(
+            store_url=store_url,
+            display_url=display_url,
+            payloads=payloads,
+            form_fields=form_fields,
+            timeout_ms=timeout_ms,
+            concurrency=5,
+        )
+
+        # Check reflection on display page responses
+        send_dicts = [
+            {
+                "payload": r.payload,
+                "target_param": r.target_param,
+                "response_body": r.response_body,
+                "status_code": r.status_code,
+                "method": r.method,
+                "error": r.error,
+            }
+            for r in send_batch.results
+        ]
+
+        reflected = check_reflection_batch(send_dicts)
+
+        # Assemble results — stored XSS is always medium+ if reflected exactly
+        DANGEROUS_POSITIONS = {"html_body", "script", "attribute", "style"}
+        final_results: list[FuzzResult] = []
+        seen_payloads: set[str] = set()
+
+        for r in reflected:
+            payload = r["payload"]
+            param = r["target_param"]
+            key = f"{payload}:{param}"
+            if key in seen_payloads:
+                continue
+            seen_payloads.add(key)
+
+            is_reflected = r.get("reflected", False)
+            is_exact = r.get("exact_match", False)
+            position = r.get("reflection_position", "none")
+            is_vuln = False
+            vuln_type = ""
+
+            # Stored XSS: exact reflection = confirmed stored XSS
+            if is_reflected and is_exact:
+                is_vuln = True
+                vuln_type = "stored_xss"
+
+            # Stored XSS: decoded-only reflection in dangerous position
+            if not is_vuln and is_reflected and not is_exact and position in DANGEROUS_POSITIONS:
+                is_vuln = True
+                vuln_type = "stored_xss"
+
+            final_results.append(FuzzResult(
+                payload=payload,
+                target_param=param,
+                reflected=is_reflected,
+                executed=False,
+                vuln=is_vuln,
+                type=vuln_type,
+                evidence={
+                    "response_code": r.get("status_code", 0),
+                    "reflection_position": position,
+                    "browser_alert_triggered": False,
+                    "exact_match": is_exact,
+                    "context_snippet": r.get("context_snippet", ""),
+                },
+            ))
+
+        vuln_count = sum(1 for r in final_results if r.vuln)
+        logger.info(
+            f"stored fuzz complete: {len(final_results)} results, "
+            f"{vuln_count} vulnerabilities confirmed"
+        )
+        return FuzzResponse(results=final_results)
+
+    # ── Regular reflected XSS pathway ────────────────────────────────
     # step 1: send http requests with injected payloads
     send_batch = await send_payloads(
         url=url,
