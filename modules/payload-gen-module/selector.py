@@ -49,8 +49,13 @@ def select_payloads(
     target_labels = CONTEXT_TO_LABELS[reflects_in]
     candidates: list[PayloadEntry] = []
 
+    # NOTE: PayloadBank.query returns results in dataset (CSV) order.
+    # Query deeper than the final max_payloads so we can later sort/choose higher-signal
+    # payloads (e.g., auto-triggering vectors) instead of being stuck with the first N rows.
+    per_label_limit = min(max(max_payloads * 50, 200), 2000)
+
     for label in target_labels:
-        entries = bank.query(context=label, limit=max_payloads * 2)
+        entries = bank.query(context=label, limit=per_label_limit)
         candidates.extend(entries)
 
     # deduplicate by payload text
@@ -72,26 +77,57 @@ def select_payloads(
         )
         compatible = unique
 
-    # sort by label priority (more relevant first), then auto-trigger likelihood,
-    # then severity (high first), then length.
-    # this prevents broad labels like event_handler from dominating more context-appropriate
-    # payloads (e.g., attribute_escape for attribute reflections).
-    label_priority = {label: idx for idx, label in enumerate(target_labels)}
+    # To avoid any single label dominating (especially with skewed datasets), rank within each
+    # label and then round-robin across labels.
     severity_order = {"high": 0, "medium": 1, "low": 2}
-
     prefer_auto_trigger = reflects_in in {"attribute", "html_body"}
-    compatible.sort(
-        key=lambda e: (
-            label_priority.get(e.context, len(target_labels)),
-            0
-            if (prefer_auto_trigger and _is_auto_trigger_payload(e.payload))
-            else 1,
+
+    by_label: dict[str, list[PayloadEntry]] = {label: [] for label in target_labels}
+    extras: list[PayloadEntry] = []
+    for entry in compatible:
+        if entry.context in by_label:
+            by_label[entry.context].append(entry)
+        else:
+            extras.append(entry)
+
+    def _entry_sort_key(e: PayloadEntry):
+        return (
+            0 if (prefer_auto_trigger and _is_auto_trigger_payload(e.payload)) else 1,
             severity_order.get(e.severity, 1),
             e.length,
         )
-    )
 
-    selected = compatible[:max_payloads]
+    for label in target_labels:
+        by_label[label].sort(key=_entry_sort_key)
+    extras.sort(key=_entry_sort_key)
+
+    selected: list[PayloadEntry] = []
+    selected_payloads: set[str] = set()
+
+    made_progress = True
+    while len(selected) < max_payloads and made_progress:
+        made_progress = False
+        for label in target_labels:
+            if len(selected) >= max_payloads:
+                break
+            if not by_label[label]:
+                continue
+            candidate = by_label[label].pop(0)
+            if candidate.payload in selected_payloads:
+                continue
+            selected_payloads.add(candidate.payload)
+            selected.append(candidate)
+            made_progress = True
+
+    # If we still have budget, fill from any remaining extras.
+    if len(selected) < max_payloads:
+        for candidate in extras:
+            if len(selected) >= max_payloads:
+                break
+            if candidate.payload in selected_payloads:
+                continue
+            selected_payloads.add(candidate.payload)
+            selected.append(candidate)
 
     logger.info(
         f"param={param} context={reflects_in} selected={len(selected)} "

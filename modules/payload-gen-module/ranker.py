@@ -54,6 +54,12 @@ SEVERITY_VALUES: dict[str, float] = {
 }
 
 
+_AUTO_TRIGGER_RE = re.compile(
+    r"(\bonerror\s*=|\bonload\s*=|<script\b|<img\b|<svg\b|data:text/html|javascript:)",
+    re.IGNORECASE,
+)
+
+
 def rank_payloads(
     payloads: list[dict],
     context: str,
@@ -99,6 +105,12 @@ def _compute_score(
     technique_score = _score_technique(technique)
     char_score = _score_char_coverage(text, allowed_chars) if allowed_chars else 1.0
 
+    # For contexts that are typically verified via real browser execution, prefer payloads that
+    # are likely to auto-fire without user interaction.
+    auto_trigger_bonus = 0.0
+    if context in {"attribute", "html_body"} and _AUTO_TRIGGER_RE.search(text):
+        auto_trigger_bonus = 0.15
+
     # severity bonus
     severity_bonus = SEVERITY_VALUES.get(severity, 0.5)
 
@@ -108,6 +120,7 @@ def _compute_score(
         + WEIGHT_LENGTH * length_score
         + WEIGHT_TECHNIQUE * technique_score
         + WEIGHT_CHAR_COVERAGE * char_score
+        + auto_trigger_bonus
     ) * severity_bonus
 
     return min(total, 1.0)
