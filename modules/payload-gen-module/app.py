@@ -65,10 +65,10 @@ async def generate(request: GenerateRequest):
     generate context-aware payloads for each parameter context.
     pipeline: select → mutate → obfuscate → rank → limit
     """
-    if not bank:
+    if not bank or bank.size == 0:
         raise HTTPException(
             status_code=503,
-            detail="payload bank not loaded, dataset unavailable",
+            detail="payload bank is empty/unavailable (check DATA_DIR/DATASET_DIR)",
         )
 
     contexts = request.contexts

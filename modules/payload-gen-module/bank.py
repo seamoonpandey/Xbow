@@ -12,7 +12,33 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(os.getenv("DATA_DIR", "/app/data"))
+def _resolve_data_dir() -> Path:
+    """Resolve the dataset directory.
+
+    Priority:
+    1) DATA_DIR env var (preferred)
+    2) DATASET_DIR env var (legacy/alternate)
+    3) repo-local ./dataset when running from source
+    4) docker default /app/data
+    """
+    env = os.getenv("DATA_DIR") or os.getenv("DATASET_DIR")
+    if env:
+        return Path(env)
+
+    # bank.py lives in: <repo>/modules/payload-gen-module/bank.py
+    # repo root is 2 levels up from this file's parent.
+    try:
+        repo_root = Path(__file__).resolve().parents[2]
+        candidate = repo_root / "dataset"
+        if candidate.exists():
+            return candidate
+    except Exception:
+        pass
+
+    return Path("/app/data")
+
+
+DATA_DIR = _resolve_data_dir()
 PAYLOADS_FILE = DATA_DIR / "processed" / "payloads_labeled.csv"
 FALLBACK_FILE = DATA_DIR / "splits" / "train.csv"
 

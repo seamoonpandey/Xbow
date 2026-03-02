@@ -83,6 +83,35 @@ async def test_generate_no_bank_returns_503():
 
 
 @pytest.mark.anyio
+async def test_generate_empty_bank_returns_503():
+    """when bank is loaded but empty, should return 503"""
+    import payload_gen_app as app_module
+    original_bank = app_module.bank
+    app_module.bank = MagicMock()
+    app_module.bank.size = 0
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post(
+                "/generate",
+                json={
+                    "contexts": {
+                        "q": {
+                            "reflects_in": "html_text",
+                            "allowed_chars": ["<", ">"],
+                            "context_confidence": 0.9,
+                        }
+                    },
+                    "waf": "none",
+                    "max_payloads": 10,
+                },
+            )
+        assert resp.status_code == 503
+    finally:
+        app_module.bank = original_bank
+
+
+@pytest.mark.anyio
 @patch("payload_gen_app.select_payloads")
 @patch("payload_gen_app.mutate_payloads")
 @patch("payload_gen_app.rank_payloads")

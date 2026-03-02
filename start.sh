@@ -35,6 +35,7 @@ sleep 0.3
 ENV_COMMON=(
   "REDIS_HOST=localhost"
   "REDIS_PORT=6379"
+  "DATA_DIR=$ROOT/dataset"
   "CONTEXT_URL=http://localhost:5001"
   "PAYLOAD_GEN_URL=http://localhost:5002"
   "FUZZER_URL=http://localhost:5003"
