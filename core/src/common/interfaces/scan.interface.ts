@@ -26,6 +26,7 @@ export interface ScanOptions {
   maxPayloadsPerParam?: number;
   timeout?: number;
   reportFormat?: ('html' | 'json' | 'pdf')[];
+  singlePage?: boolean;
 }
 
 export interface ScanRecord {

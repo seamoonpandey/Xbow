@@ -17,6 +17,12 @@ export interface VulnEvidence {
   reflectionPosition: string;
   browserAlertTriggered: boolean;
   screenshot?: string;
+  /* DOM-XSS specific fields */
+  sink?: string;
+  source?: string;
+  line?: number;
+  snippet?: string;
+  scriptUrl?: string;
 }
 
 export interface Vuln {

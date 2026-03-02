@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createScan } from "@/lib/api";
 import type { Scan } from "@/lib/types";
-import { Crosshair } from "lucide-react";
+import { Crosshair, Layers, FileSearch } from "lucide-react";
 
 interface NewScanFormProps {
   onCreated: (scan: Scan) => void;
@@ -11,7 +11,7 @@ interface NewScanFormProps {
 
 export function NewScanForm({ onCreated }: NewScanFormProps) {
   const [url, setUrl] = useState("");
-  const [depth, setDepth] = useState(3);
+  const [singlePage, setSinglePage] = useState(true);
   const [maxPayloads, setMaxPayloads] = useState(50);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +23,8 @@ export function NewScanForm({ onCreated }: NewScanFormProps) {
 
     try {
       const scan = await createScan(url, {
-        depth,
+        singlePage,
+        depth: singlePage ? 1 : 3,
         maxPayloadsPerParam: maxPayloads,
         reportFormat: ["html", "json", "pdf"],
       });
@@ -53,38 +54,59 @@ export function NewScanForm({ onCreated }: NewScanFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="depth" className="mb-1 block text-sm text-zinc-400">
-            Crawl Depth
-          </label>
-          <input
-            id="depth"
-            type="number"
-            min={1}
-            max={10}
-            value={depth}
-            onChange={(e) => setDepth(Number(e.target.value))}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="maxPayloads"
-            className="mb-1 block text-sm text-zinc-400"
+      {/* ── Scan mode toggle ── */}
+      <div>
+        <p className="mb-2 text-sm text-zinc-400">Scan mode</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setSinglePage(true)}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${
+              singlePage
+                ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
+                : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-500"
+            }`}
           >
-            Max Payloads / Param
-          </label>
-          <input
-            id="maxPayloads"
-            type="number"
-            min={5}
-            max={200}
-            value={maxPayloads}
-            onChange={(e) => setMaxPayloads(Number(e.target.value))}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500"
-          />
+            <FileSearch size={15} className="shrink-0" />
+            <span>
+              <span className="block font-medium">Single page</span>
+              <span className="text-xs opacity-70">Fast · exact URL only</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSinglePage(false)}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${
+              !singlePage
+                ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
+                : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-500"
+            }`}
+          >
+            <Layers size={15} className="shrink-0" />
+            <span>
+              <span className="block font-medium">Full crawl</span>
+              <span className="text-xs opacity-70">Thorough · follows links</span>
+            </span>
+          </button>
         </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="maxPayloads"
+          className="mb-1 block text-sm text-zinc-400"
+        >
+          Max payloads / param
+        </label>
+        <input
+          id="maxPayloads"
+          type="number"
+          min={5}
+          max={200}
+          value={maxPayloads}
+          onChange={(e) => setMaxPayloads(Number(e.target.value))}
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500"
+        />
       </div>
 
       {error && (

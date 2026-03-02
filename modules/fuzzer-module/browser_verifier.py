@@ -186,16 +186,15 @@ async def _verify_one(
                 # even on timeout/nav error, dialog may have fired
                 nav_error = f"goto failed: {e}"
 
-            # optionally wait for network to settle (best-effort)
+            # optionally wait for network to settle (best-effort, 1.5 s cap so it
+            # never blocks the whole batch waiting for analytics/websockets)
             try:
-                await page.wait_for_load_state("networkidle", timeout=timeout_ms)
-            except Exception as e:
-                # network idle often never happens; keep best-effort info
-                if nav_error is None:
-                    nav_error = f"load_state failed: {e}"
+                await page.wait_for_load_state("networkidle", timeout=1500)
+            except Exception:
+                pass  # non-fatal — DOMContentLoaded is enough for XSS detection
 
             # brief wait for any delayed js execution
-            await page.wait_for_timeout(1200)
+            await page.wait_for_timeout(300)
 
             # check for dom mutations that indicate script injection
             dom_mutations = await _count_injected_elements(page, payload)

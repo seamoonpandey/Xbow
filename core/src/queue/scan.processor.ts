@@ -81,53 +81,61 @@ export class ScanProcessor extends WorkerHost {
         scanId,
         phase: ScanPhase.CRAWL,
         progress: 5,
-        message: 'crawling target, discovering params',
+        message: scan.options.singlePage
+          ? 'single-page mode — skipping crawl'
+          : 'crawling target, discovering params',
       });
 
-      const crawlResult = await this.crawlerService.crawl(
-        scan.url,
-        scan.options.depth ?? 3,
-        scan.options.maxParams ?? 100,
-      );
-
-      const waf = crawlResult.waf.name ?? 'none';
-
-      // ── Build per-URL param map from discovered URLs ────────────────
-      // The crawler returns individual URLs it visited; we extract query
-      // params from each so that context/fuzz target the actual page
-      // that handles each parameter, not just the root URL.
       const urlParamsMap = new Map<string, string[]>();
-      for (const crawledUrl of crawlResult.urls) {
-        const { url: canonicalUrl, params } = canonicalizeTargetUrl(crawledUrl);
-        const existing = urlParamsMap.get(canonicalUrl) ?? [];
-        const merged = [...new Set([...existing, ...params])];
-        // Always include the URL (even if it has no params) so we can still
-        // perform DOM-only scanning on pages without injectable parameters.
-        urlParamsMap.set(canonicalUrl, merged);
-      }
+      let waf = 'none';
 
-      // Also include form action URLs with their fields
-      for (const form of crawlResult.forms) {
-        if (form.action && form.fields.length > 0) {
-          const { url: canonicalUrl, params } = canonicalizeTargetUrl(
-            form.action,
-            scan.url,
-          );
-          const existing = urlParamsMap.get(canonicalUrl) ?? [];
-          const merged = [...new Set([...existing, ...params, ...form.fields])];
-          urlParamsMap.set(canonicalUrl, merged);
-        }
-      }
-
-      // If the original scan URL has params, ensure it's included
-      try {
+      if (scan.options.singlePage) {
+        // ── Single-page fast path: just parse the given URL ──────────
         const { url: canonicalRoot, params: rootParams } =
           canonicalizeTargetUrl(scan.url);
-        if (rootParams.length > 0 && !urlParamsMap.has(canonicalRoot)) {
-          urlParamsMap.set(canonicalRoot, rootParams);
+        urlParamsMap.set(canonicalRoot, rootParams);
+      } else {
+        // ── Crawl the target site ─────────────────────────────────────
+        const crawlResult = await this.crawlerService.crawl(
+          scan.url,
+          scan.options.depth ?? 3,
+          scan.options.maxParams ?? 100,
+        );
+
+        waf = crawlResult.waf.name ?? 'none';
+
+        // The crawler returns individual URLs it visited; extract query
+        // params from each so context/fuzz target the actual page.
+        for (const crawledUrl of crawlResult.urls) {
+          const { url: canonicalUrl, params } = canonicalizeTargetUrl(crawledUrl);
+          const existing = urlParamsMap.get(canonicalUrl) ?? [];
+          urlParamsMap.set(canonicalUrl, [...new Set([...existing, ...params])]);
         }
-      } catch {
-        // skip
+
+        // Also include form action URLs with their fields
+        for (const form of crawlResult.forms) {
+          if (form.action && form.fields.length > 0) {
+            const { url: canonicalUrl, params } = canonicalizeTargetUrl(
+              form.action,
+              scan.url,
+            );
+            const existing = urlParamsMap.get(canonicalUrl) ?? [];
+            urlParamsMap.set(canonicalUrl, [
+              ...new Set([...existing, ...params, ...form.fields]),
+            ]);
+          }
+        }
+
+        // Ensure the original scan URL is included if it has params
+        try {
+          const { url: canonicalRoot, params: rootParams } =
+            canonicalizeTargetUrl(scan.url);
+          if (rootParams.length > 0 && !urlParamsMap.has(canonicalRoot)) {
+            urlParamsMap.set(canonicalRoot, rootParams);
+          }
+        } catch {
+          // skip
+        }
       }
 
       const targetEntries = Array.from(urlParamsMap.entries());
@@ -139,7 +147,9 @@ export class ScanProcessor extends WorkerHost {
         scanId,
         phase: ScanPhase.CRAWL,
         progress: 20,
-        message: `found ${totalUniqueParams} params across ${crawlResult.urls.length} urls, ${targetEntries.length} targets${crawlResult.waf.detected ? `, waf: ${waf}` : ''}`,
+        message: `found ${totalUniqueParams} params across ${targetEntries.length} url(s)${
+          waf !== 'none' ? `, waf: ${waf}` : ''
+        }`,
       });
 
       if (targetEntries.length === 0) {

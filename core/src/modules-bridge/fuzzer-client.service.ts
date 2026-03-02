@@ -23,6 +23,12 @@ export interface FuzzResult {
     response_code: number;
     reflection_position: string;
     browser_alert_triggered: boolean;
+    /* DOM-XSS specific fields */
+    sink?: string;
+    source?: string;
+    line?: number;
+    snippet?: string;
+    script_url?: string;
   };
 }
 
@@ -47,13 +53,21 @@ export class FuzzerClientService {
 
   async test(req: TestRequest): Promise<TestResponse> {
     try {
+      // Allow considerably more time than the per-payload timeout so the axios
+      // call never races the fuzzer's own batch processing. Add 90 s headroom
+      // on top of whatever the scan timeout is (minimum 120 s total).
+      const axiosTimeoutMs = Math.max(req.timeout + 90_000, 120_000);
       const { data } = await firstValueFrom(
-        this.http.post<TestResponse>(`${this.baseUrl}/test`, {
-          url: req.url,
-          payloads: req.payloads,
-          verify_execution: req.verifyExecution,
-          timeout: req.timeout,
-        }),
+        this.http.post<TestResponse>(
+          `${this.baseUrl}/test`,
+          {
+            url: req.url,
+            payloads: req.payloads,
+            verify_execution: req.verifyExecution,
+            timeout: req.timeout,
+          },
+          { timeout: axiosTimeoutMs },
+        ),
       );
       this.logger.log(
         `fuzzer tested ${req.payloads.length} payloads → ${data.results.filter((r) => r.vuln).length} vulns`,

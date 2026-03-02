@@ -103,6 +103,11 @@ export class ReportService implements OnModuleDestroy {
         responseCode: result.evidence.response_code,
         reflectionPosition: result.evidence.reflection_position,
         browserAlertTriggered: result.evidence.browser_alert_triggered,
+        ...(result.evidence.sink !== undefined && { sink: result.evidence.sink }),
+        ...(result.evidence.source !== undefined && { source: result.evidence.source }),
+        ...(result.evidence.line !== undefined && { line: result.evidence.line }),
+        ...(result.evidence.snippet !== undefined && { snippet: result.evidence.snippet }),
+        ...(result.evidence.script_url !== undefined && { scriptUrl: result.evidence.script_url }),
       },
       discoveredAt: new Date(),
     };
@@ -474,6 +479,7 @@ export class ReportService implements OnModuleDestroy {
 
   private mapType(raw: string): VulnType {
     if (raw === 'dom_xss') return VulnType.DOM_XSS;
+    if (raw === 'open_redirect') return VulnType.DOM_XSS;
     if (raw === 'stored_xss') return VulnType.STORED_XSS;
     return VulnType.REFLECTED_XSS;
   }

@@ -28,6 +28,7 @@ export interface ScanOptions {
   maxPayloadsPerParam?: number;
   timeout?: number;
   reportFormat?: ("html" | "json" | "pdf")[];
+  singlePage?: boolean;
 }
 
 export interface Scan {
@@ -65,6 +66,12 @@ export interface VulnEvidence {
   reflectionPosition: string;
   browserAlertTriggered: boolean;
   screenshot?: string;
+  /* DOM-XSS specific fields */
+  sink?: string;
+  source?: string;
+  line?: number;
+  snippet?: string;
+  scriptUrl?: string;
 }
 
 export interface Vuln {

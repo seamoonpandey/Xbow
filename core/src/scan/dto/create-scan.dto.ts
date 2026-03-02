@@ -54,6 +54,16 @@ export class ScanOptionsDto {
   @IsArray()
   @IsIn(['html', 'json', 'pdf'], { each: true })
   reportFormat?: ('html' | 'json' | 'pdf')[] = ['html', 'json'];
+
+  @ApiPropertyOptional({
+    default: false,
+    description:
+      'When true, skip crawling and scan only the exact URL provided. ' +
+      'Faster and cheaper — use for targeted single-page checks.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  singlePage?: boolean = false;
 }
 
 export class CreateScanDto {
