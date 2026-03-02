@@ -57,6 +57,17 @@ export class CrawlerService implements OnModuleDestroy {
     const allScripts: string[] = [];
     const paramNames = new Set<string>();
 
+    // hard caps to prevent runaway crawls on large sites
+    const maxUrls = Math.max(
+      this.config.get<number>('CRAWLER_MAX_URLS', 50),
+      10,
+    );
+    const crawlTimeoutMs = this.config.get<number>(
+      'CRAWLER_TIMEOUT_MS',
+      30000,
+    );
+    const visitedPatterns = new Set<string>();
+
     const browser = await this.getBrowser();
     const context = await browser.newContext({
       userAgent: this.config.get<string>(
@@ -75,11 +86,22 @@ export class CrawlerService implements OnModuleDestroy {
     let wafChecked = false;
 
     try {
-      while (toVisit.length > 0 && paramNames.size < maxParams) {
+      while (
+        toVisit.length > 0 &&
+        paramNames.size < maxParams &&
+        visited.size < maxUrls &&
+        Date.now() - startedAt < crawlTimeoutMs
+      ) {
         const item = toVisit.shift()!;
         const normalized = this.normalizeForVisit(item.url);
 
         if (visited.has(normalized)) continue;
+
+        // deduplicate URL patterns (e.g. /user/view/X — only crawl a few per pattern)
+        const pattern = this.urlToPattern(item.url);
+        if (visitedPatterns.has(pattern) && item.currentDepth > 0) continue;
+        visitedPatterns.add(pattern);
+
         visited.add(normalized);
 
         this.logger.debug(`crawling: ${item.url} (depth=${item.currentDepth})`);
@@ -207,6 +229,30 @@ export class CrawlerService implements OnModuleDestroy {
       const u = new URL(raw);
       u.hash = '';
       return u.toString().replace(/\/$/, '');
+    } catch {
+      return raw;
+    }
+  }
+
+  /**
+   * convert a URL to a structural pattern for deduplication.
+   * replaces path segments that look like IDs/slugs with placeholders.
+   * e.g. /user/view/JohnDoe → /user/view/{slug}
+   *      /com/report/101608 → /com/report/{id}
+   */
+  private urlToPattern(raw: string): string {
+    try {
+      const u = new URL(raw);
+      const segments = u.pathname.split('/').map((seg) => {
+        if (!seg) return seg;
+        if (/^\d+$/.test(seg)) return '{id}';
+        if (/^[a-f0-9-]{8,}$/i.test(seg)) return '{uuid}';
+        // treat trailing slugs (mixed case, numbers, special chars) as dynamic
+        if (seg.length > 3 && /[A-Z]/.test(seg) && /[a-z]/.test(seg))
+          return '{slug}';
+        return seg;
+      });
+      return `${u.origin}${segments.join('/')}`;
     } catch {
       return raw;
     }

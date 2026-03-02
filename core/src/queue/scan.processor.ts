@@ -53,104 +53,223 @@ export class ScanProcessor extends WorkerHost {
         scan.options.maxParams ?? 100,
       );
 
-      const discoveredParams = crawlResult.params.map((p) => p.name);
       const waf = crawlResult.waf.name ?? 'none';
+
+      // ── Build per-URL param map from discovered URLs ────────────────
+      // The crawler returns individual URLs it visited; we extract query
+      // params from each so that context/fuzz target the actual page
+      // that handles each parameter, not just the root URL.
+      const urlParamsMap = new Map<string, string[]>();
+      for (const crawledUrl of crawlResult.urls) {
+        try {
+          const u = new URL(crawledUrl);
+          const params = [...new Set(u.searchParams.keys())];
+          if (params.length > 0) {
+            urlParamsMap.set(crawledUrl, params);
+          }
+        } catch {
+          // skip invalid URLs
+        }
+      }
+
+      // Also include form action URLs with their fields
+      for (const form of crawlResult.forms) {
+        if (form.action && form.fields.length > 0) {
+          const existing = urlParamsMap.get(form.action) ?? [];
+          const merged = [...new Set([...existing, ...form.fields])];
+          urlParamsMap.set(form.action, merged);
+        }
+      }
+
+      // If the original scan URL has params, ensure it's included
+      try {
+        const rootUrl = new URL(scan.url);
+        const rootParams = [...new Set(rootUrl.searchParams.keys())];
+        if (rootParams.length > 0 && !urlParamsMap.has(scan.url)) {
+          urlParamsMap.set(scan.url, rootParams);
+        }
+      } catch {
+        // skip
+      }
+
+      const targetEntries = Array.from(urlParamsMap.entries());
+      const totalUniqueParams = new Set(
+        targetEntries.flatMap(([, params]) => params),
+      ).size;
 
       this.gateway.emitProgress({
         scanId,
         phase: ScanPhase.CRAWL,
         progress: 20,
-        message: `found ${discoveredParams.length} params across ${crawlResult.urls.length} urls${crawlResult.waf.detected ? `, waf: ${waf}` : ''}`,
+        message: `found ${totalUniqueParams} params across ${crawlResult.urls.length} urls, ${targetEntries.length} targets${crawlResult.waf.detected ? `, waf: ${waf}` : ''}`,
       });
 
-      // ── Phase 2: CONTEXT ────────────────────────────────────────────
+      if (targetEntries.length === 0) {
+        this.logger.warn(
+          `no parameterized URLs found for scanId=${scanId}, nothing to test`,
+        );
+        this.scanService.updateStatus(
+          scanId,
+          ScanStatus.DONE,
+          ScanPhase.REPORT,
+          100,
+        );
+        this.gateway.emitComplete({
+          scanId,
+          summary: {
+            totalParams: 0,
+            paramsTested: 0,
+            vulnsFound: 0,
+            durationMs: Date.now() - startedAt,
+          },
+          reportUrl: '',
+        });
+        return;
+      }
+
+      // ── Per-URL pipeline: CONTEXT → PAYLOAD-GEN → FUZZ ─────────────
       this.scanService.updateStatus(
         scanId,
         ScanStatus.ANALYZING,
         ScanPhase.CONTEXT,
         25,
       );
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.CONTEXT,
-        progress: 25,
-        message: 'analyzing reflection contexts via AI',
-      });
 
-      const contexts = await this.contextClient.analyze({
-        url: scan.url,
-        params: discoveredParams,
-        waf,
-      });
+      let totalPayloadsTested = 0;
+      let totalVulnsFound = 0;
+      const totalTargets = targetEntries.length;
 
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.CONTEXT,
-        progress: 40,
-        message: 'context analysis complete',
-      });
+      for (let i = 0; i < totalTargets; i++) {
+        const [targetUrl, targetParams] = targetEntries[i];
+        const pct = (n: number) =>
+          Math.round(25 + ((i + n) / totalTargets) * 60);
 
-      // ── Phase 3: PAYLOAD-GEN ────────────────────────────────────────
-      this.scanService.updateStatus(
-        scanId,
-        ScanStatus.GENERATING,
-        ScanPhase.PAYLOAD_GEN,
-        45,
-      );
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.PAYLOAD_GEN,
-        progress: 45,
-        message: 'generating ranked payloads',
-      });
+        this.logger.log(
+          `[${i + 1}/${totalTargets}] processing ${targetUrl} (${targetParams.length} params)`,
+        );
 
-      const { payloads } = await this.payloadClient.generate({
-        contexts,
-        waf,
-        maxPayloads: scan.options.maxPayloadsPerParam ?? 50,
-      });
+        // ── CONTEXT for this URL ────────────────────────────────────
+        this.gateway.emitProgress({
+          scanId,
+          phase: ScanPhase.CONTEXT,
+          progress: pct(0),
+          message: `[${i + 1}/${totalTargets}] analyzing ${targetUrl}`,
+        });
 
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.PAYLOAD_GEN,
-        progress: 60,
-        message: `${payloads.length} payloads generated`,
-      });
+        let contexts;
+        try {
+          contexts = await this.contextClient.analyze({
+            url: targetUrl,
+            params: targetParams,
+            waf,
+          });
+        } catch (err) {
+          const detail =
+            err instanceof Error ? err.message : 'context module error';
+          this.logger.warn(
+            `context failed for ${targetUrl}: ${detail}, skipping`,
+          );
+          continue;
+        }
 
-      // ── Phase 4: FUZZ ───────────────────────────────────────────────
-      this.scanService.updateStatus(
-        scanId,
-        ScanStatus.FUZZING,
-        ScanPhase.FUZZ,
-        65,
-      );
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.FUZZ,
-        progress: 65,
-        message: 'fuzzing target with payloads',
-      });
+        // skip if no reflections found for this URL
+        const reflectedParams = Object.entries(contexts).filter(
+          ([, ctx]) =>
+            (ctx as { reflects_in: string }).reflects_in !== 'none',
+        );
+        if (reflectedParams.length === 0) {
+          this.logger.debug(`no reflections on ${targetUrl}, skipping`);
+          continue;
+        }
 
-      const { results } = await this.fuzzerClient.test({
-        url: scan.url,
-        payloads,
-        verifyExecution: scan.options.verifyExecution ?? true,
-        timeout: scan.options.timeout ?? 60000,
-      });
+        this.logger.log(
+          `${reflectedParams.length} reflecting params on ${targetUrl}`,
+        );
 
-      const confirmedVulns = results.filter((r) => r.vuln);
-      for (const r of confirmedVulns) {
-        const vuln = this.reportService.buildVuln(scanId, scan.url, r);
-        this.scanService.addVuln(scanId, vuln);
-        this.gateway.emitFinding({ scanId, vuln });
+        // ── PAYLOAD-GEN for this URL ────────────────────────────────
+        this.scanService.updateStatus(
+          scanId,
+          ScanStatus.GENERATING,
+          ScanPhase.PAYLOAD_GEN,
+          pct(0.33),
+        );
+        this.gateway.emitProgress({
+          scanId,
+          phase: ScanPhase.PAYLOAD_GEN,
+          progress: pct(0.33),
+          message: `[${i + 1}/${totalTargets}] generating payloads for ${targetUrl}`,
+        });
+
+        let payloads;
+        try {
+          const genResp = await this.payloadClient.generate({
+            contexts,
+            waf,
+            maxPayloads: scan.options.maxPayloadsPerParam ?? 50,
+          });
+          payloads = genResp.payloads;
+        } catch (err) {
+          const detail =
+            err instanceof Error ? err.message : 'payload-gen error';
+          this.logger.warn(
+            `payload-gen failed for ${targetUrl}: ${detail}, skipping`,
+          );
+          continue;
+        }
+
+        if (payloads.length === 0) {
+          this.logger.debug(`no payloads generated for ${targetUrl}`);
+          continue;
+        }
+
+        // ── FUZZ for this URL ───────────────────────────────────────
+        this.scanService.updateStatus(
+          scanId,
+          ScanStatus.FUZZING,
+          ScanPhase.FUZZ,
+          pct(0.66),
+        );
+        this.gateway.emitProgress({
+          scanId,
+          phase: ScanPhase.FUZZ,
+          progress: pct(0.66),
+          message: `[${i + 1}/${totalTargets}] fuzzing ${targetUrl} with ${payloads.length} payloads`,
+        });
+
+        let results;
+        try {
+          const fuzzResp = await this.fuzzerClient.test({
+            url: targetUrl,
+            payloads,
+            verifyExecution: scan.options.verifyExecution ?? true,
+            timeout: scan.options.timeout ?? 60000,
+          });
+          results = fuzzResp.results;
+        } catch (err) {
+          const detail =
+            err instanceof Error ? err.message : 'fuzzer error';
+          this.logger.warn(
+            `fuzzer failed for ${targetUrl}: ${detail}, skipping`,
+          );
+          continue;
+        }
+
+        totalPayloadsTested += payloads.length;
+        const confirmedVulns = results.filter((r) => r.vuln);
+        for (const r of confirmedVulns) {
+          const vuln = this.reportService.buildVuln(scanId, targetUrl, r);
+          this.scanService.addVuln(scanId, vuln);
+          this.gateway.emitFinding({ scanId, vuln });
+        }
+        totalVulnsFound += confirmedVulns.length;
+
+        this.gateway.emitProgress({
+          scanId,
+          phase: ScanPhase.FUZZ,
+          progress: pct(1),
+          message: `[${i + 1}/${totalTargets}] ${confirmedVulns.length} vulns on ${targetUrl} (${totalVulnsFound} total)`,
+        });
       }
-
-      this.gateway.emitProgress({
-        scanId,
-        phase: ScanPhase.FUZZ,
-        progress: 85,
-        message: `${confirmedVulns.length} vulnerabilities confirmed`,
-      });
 
       // ── Phase 5: REPORT ─────────────────────────────────────────────
       this.scanService.updateStatus(
@@ -178,8 +297,8 @@ export class ScanProcessor extends WorkerHost {
       this.gateway.emitComplete({
         scanId,
         summary: {
-          totalParams: discoveredParams.length,
-          paramsTested: discoveredParams.length,
+          totalParams: totalUniqueParams,
+          paramsTested: totalPayloadsTested,
           vulnsFound: vulns.length,
           durationMs,
         },
@@ -187,14 +306,15 @@ export class ScanProcessor extends WorkerHost {
       });
 
       this.logger.log(
-        `scan complete scanId=${scanId} vulns=${vulns.length} ms=${durationMs}`,
+        `scan complete scanId=${scanId} targets=${totalTargets} vulns=${vulns.length} ms=${durationMs}`,
       );
     } catch (err: unknown) {
       const msg: string = err instanceof Error ? err.message : 'unknown error';
       this.logger.error(`scan failed scanId=${scanId} error=${msg}`);
       this.scanService.markFailed(scanId, msg);
       this.gateway.emitError(scanId, msg);
-      throw err; // let BullMQ retry
+      // don't re-throw — scan is already marked FAILED,
+      // retrying would hit "already running" guard
     }
   }
 }
