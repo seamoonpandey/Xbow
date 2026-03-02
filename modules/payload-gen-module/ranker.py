@@ -22,6 +22,9 @@ CONTEXT_BOOSTERS: dict[str, list[str]] = {
     "event_handler": [r"\bon\w+=", r"<\w+\s"],
     "js_uri": [r"javascript:", r"data:"],
     "tag_injection": [r"<\w+", r"/>"],
+    # Reflection-in-attribute (as reported by the context module) is typically best exploited
+    # by breaking out and using an auto-triggering handler (onerror/onload) on a tag.
+    "attribute": [r"\bonerror\s*=|\bonload\s*=", r"<img\b|<svg\b|<script\b"],
     "template_injection": [r"\{\{", r"\}\}", r"\$\{"],
     "dom_sink": [r"document\.", r"\.innerHTML", r"eval\("],
     "attribute_escape": [r'"\s*\w+=', r"'\s*\w+=", r"\\"],
