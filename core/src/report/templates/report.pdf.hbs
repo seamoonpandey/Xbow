@@ -2,262 +2,446 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>RedSentinel Report — {{target}}</title>
+  <title>Security Report — {{target}}</title>
   <style>
-    @page {
-      size: A4;
-      margin: 15mm 12mm;
+    :root {
+      --text: #1a1a1a;
+      --text-soft: #444;
+      --muted: #888;
+      --border: #ddd;
+      --bg: #fff;
+      --surface: #f8f8f8;
+      --red: #d32f2f;
+      --orange: #f57c00;
+      --green: #388e3c;
+      --blue: #1565c0;
     }
+
+    @page { size: A4; margin: 20mm 18mm; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      font-size: 10pt;
-      color: #222;
-      line-height: 1.5;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 11px;
     }
 
+    /* ── Header ────────────────────── */
     .header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding-bottom: 10pt;
-      border-bottom: 3px solid #ff4455;
-      margin-bottom: 15pt;
+      gap: 0.6rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 3px solid var(--red);
+      margin-bottom: 0.5rem;
     }
 
-    .header h1 {
-      color: #ff4455;
-      font-size: 18pt;
-    }
+    .header h1 { font-size: 18px; color: var(--red); }
+    .subtitle { color: var(--muted); font-size: 10px; margin-bottom: 1.2rem; }
 
-    .header .date {
-      color: #666;
-      font-size: 9pt;
-    }
-
-    .meta-table {
-      width: 100%;
-      margin-bottom: 15pt;
-      border-collapse: collapse;
-    }
-
-    .meta-table td {
-      padding: 4pt 8pt;
-      border: 1px solid #ddd;
-      font-size: 9pt;
-    }
-
-    .meta-table td:first-child {
-      background: #f5f5f5;
-      font-weight: 600;
-      width: 120pt;
-      color: #555;
-    }
-
-    .summary {
-      display: flex;
-      gap: 12pt;
-      margin-bottom: 15pt;
-    }
-
-    .summary-box {
-      flex: 1;
-      text-align: center;
-      border: 1px solid #ddd;
-      border-radius: 4pt;
-      padding: 8pt;
-    }
-
-    .summary-box .num {
-      font-size: 20pt;
-      font-weight: 700;
-    }
-
-    .summary-box .label {
-      font-size: 8pt;
-      color: #666;
-      text-transform: uppercase;
-    }
-
-    .critical .num { color: #ff4455; }
-    .high .num { color: #ff6644; }
-    .medium .num { color: #cc8800; }
-    .low .num { color: #44aa00; }
-
-    h2 {
-      font-size: 12pt;
-      color: #333;
-      margin: 15pt 0 8pt;
-      padding-bottom: 4pt;
-      border-bottom: 1px solid #ccc;
-    }
-
-    table.vuln-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 8.5pt;
-      margin-bottom: 12pt;
-    }
-
-    table.vuln-table th {
-      background: #f0f0f0;
-      font-size: 7.5pt;
-      text-transform: uppercase;
-      letter-spacing: 0.3pt;
-      padding: 5pt 6pt;
-      text-align: left;
-      border: 1px solid #ddd;
-    }
-
-    table.vuln-table td {
-      padding: 4pt 6pt;
-      border: 1px solid #ddd;
-      vertical-align: top;
-    }
-
-    .payload-mono {
-      font-family: 'Courier New', monospace;
-      font-size: 7.5pt;
-      word-break: break-all;
-      max-width: 200pt;
-    }
-
-    .sev-critical { color: #ff4455; font-weight: 700; }
-    .sev-high { color: #ff6644; font-weight: 700; }
-    .sev-medium { color: #cc8800; font-weight: 600; }
-    .sev-low { color: #44aa00; }
-
-    .finding {
-      border: 1px solid #ddd;
-      border-left: 3px solid #ff4455;
-      border-radius: 3pt;
-      padding: 8pt;
-      margin-bottom: 8pt;
+    /* ── Risk banner ───────────────── */
+    .risk-banner {
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
       page-break-inside: avoid;
     }
 
-    .finding.severity-medium { border-left-color: #cc8800; }
-    .finding.severity-low { border-left-color: #44aa00; }
+    .risk-banner.risk-critical { border-color: var(--red); background: #fef2f2; }
+    .risk-banner.risk-high     { border-color: #e65100; background: #fff8f0; }
+    .risk-banner.risk-medium   { border-color: var(--orange); background: #fffbf0; }
+    .risk-banner.risk-low      { border-color: var(--green); background: #f0fdf4; }
+    .risk-banner.risk-none     { border-color: var(--green); background: #f0fdf4; }
 
-    .finding h3 {
-      font-size: 10pt;
-      margin-bottom: 5pt;
+    .risk-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
     }
 
-    .detail-grid {
+    .risk-level {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .risk-banner.risk-critical .risk-level { color: var(--red); }
+    .risk-banner.risk-high .risk-level { color: #e65100; }
+    .risk-banner.risk-medium .risk-level { color: var(--orange); }
+    .risk-banner.risk-low .risk-level, .risk-banner.risk-none .risk-level { color: var(--green); }
+
+    .risk-desc { color: var(--text-soft); font-size: 10px; margin-top: 2px; }
+
+    /* ── Scan details ──────────────── */
+    .scan-details {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .detail-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 10px;
+      flex: 1 1 120px;
+    }
+
+    .detail-card .label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-card .value { font-size: 11px; font-weight: 600; word-break: break-all; }
+
+    /* ── Counts bar ────────────────── */
+    .counts-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .count-chip {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .count-chip .num { font-size: 14px; font-weight: 700; }
+    .count-chip.critical .num { color: var(--red); }
+    .count-chip.high .num     { color: #e65100; }
+    .count-chip.medium .num   { color: var(--orange); }
+    .count-chip.low .num      { color: var(--green); }
+
+    /* ── Section titles ────────────── */
+    h2 {
+      font-size: 13px;
+      color: var(--blue);
+      margin: 16px 0 6px;
+      padding-bottom: 3px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 .count-tag { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+    .section-intro { color: var(--text-soft); font-size: 10px; margin-bottom: 8px; }
+
+    /* ── Affected pages ────────────── */
+    .affected-pages {
+      list-style: none;
+      margin-bottom: 10px;
+      font-size: 10px;
+    }
+
+    .affected-pages li {
+      padding: 2px 0;
+      color: var(--blue);
+      word-break: break-all;
+    }
+
+    .affected-pages li::before { content: "▸ "; color: var(--orange); }
+
+    /* ── Summary table ─────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-bottom: 12px;
+    }
+
+    th {
+      background: var(--surface);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding: 5px 6px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+    }
+
+    .sev-critical { color: var(--red); font-weight: 700; }
+    .sev-high     { color: #e65100; font-weight: 700; }
+    .sev-medium   { color: var(--orange); font-weight: 600; }
+    .sev-low      { color: var(--green); }
+
+    .code-cell {
+      font-family: 'Courier New', monospace;
+      font-size: 8px;
+      background: var(--surface);
+      padding: 1px 4px;
+      border-radius: 3px;
+      word-break: break-all;
+      display: inline-block;
+      max-width: 220px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 8px;
+      font-weight: 600;
+    }
+
+    .badge-yes { background: #e8f5e9; color: var(--green); }
+    .badge-no  { background: #ffebee; color: var(--red); }
+
+    /* ── Vuln cards ────────────────── */
+    .vuln-card {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+    }
+
+    .vuln-card.severity-high   { border-left-color: #e65100; }
+    .vuln-card.severity-medium { border-left-color: var(--orange); }
+    .vuln-card.severity-low    { border-left-color: var(--green); }
+
+    .vuln-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .vuln-card-head h3 { font-size: 11px; }
+
+    .sev-tag {
+      padding: 1px 8px;
+      border-radius: 8px;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .sev-tag.sev-critical { background: #ffebee; color: var(--red); }
+    .sev-tag.sev-high     { background: #fff3e0; color: #e65100; }
+    .sev-tag.sev-medium   { background: #fff8e1; color: var(--orange); }
+    .sev-tag.sev-low      { background: #e8f5e9; color: var(--green); }
+
+    .vuln-section { margin-bottom: 6px; }
+
+    .vuln-section-title {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .vuln-section p { color: var(--text-soft); font-size: 10px; line-height: 1.55; }
+
+    .vuln-meta {
       display: grid;
-      grid-template-columns: 80pt 1fr;
-      gap: 2pt 8pt;
-      font-size: 8.5pt;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px 12px;
+      font-size: 10px;
+      margin-bottom: 6px;
     }
 
-    .detail-grid dt { color: #666; font-weight: 600; }
+    .vuln-meta-item { display: flex; gap: 4px; }
+    .vuln-meta-item .meta-label { color: var(--muted); min-width: 70px; }
+    .vuln-meta-item .meta-value { color: var(--text); word-break: break-all; }
 
-    .no-vulns {
-      text-align: center;
-      padding: 30pt;
-      color: #44aa00;
-      font-size: 13pt;
+    .fix-box {
+      background: #f0fdf4;
+      border: 1px solid #c8e6c9;
+      border-radius: 4px;
+      padding: 6px 8px;
     }
 
+    .fix-box p { color: var(--green) !important; font-size: 10px !important; }
+
+    /* ── No vulns ──────────────────── */
+    .no-vulns { text-align: center; padding: 30px 10px; }
+    .no-vulns .checkmark { font-size: 30px; margin-bottom: 6px; }
+    .no-vulns h3 { color: var(--green); font-size: 14px; margin-bottom: 4px; }
+    .no-vulns p { color: var(--muted); font-size: 10px; }
+
+    /* ── Footer ────────────────────── */
     .footer {
-      margin-top: 20pt;
-      padding-top: 8pt;
-      border-top: 1px solid #ccc;
-      font-size: 7.5pt;
-      color: #999;
+      margin-top: 20px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 8px;
       text-align: center;
     }
   </style>
 </head>
 <body>
+
   <div class="header">
-    <h1>🔴 RedSentinel XSS Report</h1>
-    <div class="date">{{generatedAt}}</div>
+    <span style="font-size:16px;">🔴</span>
+    <h1>RedSentinel Security Report</h1>
+  </div>
+  <p class="subtitle">Automated security scan results for <strong>{{target}}</strong></p>
+
+  <!-- Risk Banner -->
+  <div class="risk-banner risk-{{riskClass}}">
+    <div class="risk-label">Overall Risk Level</div>
+    <div class="risk-level">{{riskLevel}}</div>
+    <div class="risk-desc">{{riskSummary}}</div>
   </div>
 
-  <table class="meta-table">
-    <tr><td>Target URL</td><td>{{target}}</td></tr>
-    <tr><td>Scan ID</td><td>{{scanId}}</td></tr>
-    <tr><td>Status</td><td>{{status}}</td></tr>
-    <tr><td>Completed</td><td>{{completedAt}}</td></tr>
-    <tr><td>Duration</td><td>{{duration}}</td></tr>
-    <tr><td>Scan Depth</td><td>{{depth}}</td></tr>
-    <tr><td>Total Findings</td><td>{{vulnCount}}</td></tr>
-  </table>
+  <!-- Scan Details -->
+  <div class="scan-details">
+    <div class="detail-card">
+      <div class="label">Website Scanned</div>
+      <div class="value" style="font-size:9px;">{{target}}</div>
+    </div>
+    <div class="detail-card">
+      <div class="label">Scan Completed</div>
+      <div class="value" style="font-size:9px;">{{completedAt}}</div>
+    </div>
+    <div class="detail-card">
+      <div class="label">Duration</div>
+      <div class="value">{{duration}}</div>
+    </div>
+    <div class="detail-card">
+      <div class="label">Issues Found</div>
+      <div class="value">{{vulnCount}}</div>
+    </div>
+  </div>
 
-  <div class="summary">
-    <div class="summary-box critical">
-      <div class="num">{{counts.critical}}</div>
-      <div class="label">Critical</div>
+  <!-- Severity Counts -->
+  <div class="counts-bar">
+    <div class="count-chip critical">
+      <span class="num">{{counts.critical}}</span><span>Critical</span>
     </div>
-    <div class="summary-box high">
-      <div class="num">{{counts.high}}</div>
-      <div class="label">High</div>
+    <div class="count-chip high">
+      <span class="num">{{counts.high}}</span><span>High</span>
     </div>
-    <div class="summary-box medium">
-      <div class="num">{{counts.medium}}</div>
-      <div class="label">Medium</div>
+    <div class="count-chip medium">
+      <span class="num">{{counts.medium}}</span><span>Medium</span>
     </div>
-    <div class="summary-box low">
-      <div class="num">{{counts.low}}</div>
-      <div class="label">Low</div>
+    <div class="count-chip low">
+      <span class="num">{{counts.low}}</span><span>Low</span>
     </div>
   </div>
 
   {{#if hasVulns}}
-  <h2>Vulnerability Summary</h2>
-  <table class="vuln-table">
+
+  <!-- Affected Pages -->
+  <h2>Affected Pages <span class="count-tag">({{affectedPageCount}})</span></h2>
+  <p class="section-intro">These pages on your website have security issues:</p>
+  <ul class="affected-pages">
+    {{#each affectedPages}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+
+  <!-- Summary Table -->
+  <h2>Summary of Issues</h2>
+  <p class="section-intro">Each row is a confirmed security issue. "Confirmed" means malicious code actually ran in a test browser.</p>
+  <table>
     <thead>
       <tr>
         <th>#</th>
-        <th>Param</th>
-        <th>Type</th>
-        <th>Severity</th>
-        <th>Reflected</th>
-        <th>Executed</th>
-        <th>Payload</th>
+        <th>Page</th>
+        <th>Input</th>
+        <th>Risk</th>
+        <th>Code Ran?</th>
       </tr>
     </thead>
     <tbody>
       {{#each vulns}}
       <tr>
         <td>{{this.index}}</td>
-        <td>{{this.param}}</td>
-        <td>{{this.type}}</td>
+        <td style="word-break:break-all; max-width:180px;">{{this.url}}</td>
+        <td><strong>{{this.param}}</strong></td>
         <td class="sev-{{this.severityClass}}">{{this.severity}}</td>
-        <td>{{this.reflectedText}}</td>
-        <td>{{this.executedText}}</td>
-        <td class="payload-mono">{{this.payload}}</td>
+        <td>
+          {{#if this.confirmedDangerous}}
+            <span class="badge badge-yes">Yes</span>
+          {{else if this.executed}}
+            <span class="badge badge-yes">Yes</span>
+          {{else}}
+            <span class="badge badge-no">No</span>
+          {{/if}}
+        </td>
       </tr>
       {{/each}}
     </tbody>
   </table>
 
+  <!-- Detailed Findings -->
   <h2>Detailed Findings</h2>
+
   {{#each vulns}}
-  <div class="finding severity-{{this.severityClass}}">
-    <h3>#{{this.index}} — {{this.param}} ({{this.severity}})</h3>
-    <dl class="detail-grid">
-      <dt>Type</dt><dd>{{this.type}}</dd>
-      <dt>Parameter</dt><dd>{{this.param}}</dd>
-      <dt>Payload</dt><dd class="payload-mono">{{this.payload}}</dd>
-      <dt>Reflected</dt><dd>{{this.reflectedText}}</dd>
-      <dt>JS Executed</dt><dd>{{this.executedText}}</dd>
-      <dt>Position</dt><dd>{{this.evidence.reflectionPosition}}</dd>
-      <dt>HTTP Code</dt><dd>{{this.evidence.responseCode}}</dd>
-    </dl>
+  <div class="vuln-card severity-{{this.severityClass}}">
+    <div class="vuln-card-head">
+      <h3>#{{this.index}} — {{this.typeFriendly}}</h3>
+      <span class="sev-tag sev-{{this.severityClass}}">{{this.severity}}</span>
+    </div>
+
+    <div class="vuln-section">
+      <div class="vuln-section-title">What is this?</div>
+      <p>{{this.typeExplanation}}</p>
+    </div>
+
+    <div class="vuln-section">
+      <div class="vuln-section-title">What we found</div>
+      <p>{{this.whatHappened}}</p>
+    </div>
+
+    <div class="vuln-section">
+      <div class="vuln-section-title">Details</div>
+      <div class="vuln-meta">
+        <div class="vuln-meta-item">
+          <span class="meta-label">Page:</span>
+          <span class="meta-value">{{this.url}}</span>
+        </div>
+        <div class="vuln-meta-item">
+          <span class="meta-label">Input:</span>
+          <span class="meta-value">{{this.param}}</span>
+        </div>
+        <div class="vuln-meta-item">
+          <span class="meta-label">Risk:</span>
+          <span class="meta-value sev-{{this.severityClass}}">{{this.severity}}</span>
+        </div>
+        <div class="vuln-meta-item">
+          <span class="meta-label">Test code:</span>
+          <span class="meta-value"><span class="code-cell">{{this.payload}}</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vuln-section">
+      <div class="vuln-section-title">How to fix it</div>
+      <div class="fix-box">
+        <p>{{this.howToFix}}</p>
+      </div>
+    </div>
   </div>
   {{/each}}
 
   {{else}}
-  <div class="no-vulns">✅ No XSS vulnerabilities found.</div>
+
+  <div class="no-vulns">
+    <div class="checkmark">✅</div>
+    <h3>No Security Issues Found</h3>
+    <p>The scan did not detect any cross-site scripting vulnerabilities.<br/>
+    Consider running scans regularly and testing other vulnerability types.</p>
+  </div>
+
   {{/if}}
 
   <div class="footer">
-    RedSentinel v0.1.0 — Automated XSS Vulnerability Scanner — {{generatedAt}}
+    Generated by RedSentinel v0.1.0 — {{generatedAt}}
   </div>
 </body>
 </html>

@@ -22,23 +22,35 @@ interface TemplateData {
   depth: number;
   vulnCount: number;
   hasVulns: boolean;
+  riskLevel: string;
+  riskClass: string;
+  riskSummary: string;
   counts: { critical: number; high: number; medium: number; low: number };
+  affectedPages: string[];
+  affectedPageCount: number;
   vulns: TemplateVuln[];
 }
 
 interface TemplateVuln {
   index: number;
+  url: string;
   param: string;
   payload: string;
   type: string;
+  typeFriendly: string;
+  typeExplanation: string;
   severity: string;
   severityClass: string;
+  severityExplanation: string;
   reflected: boolean;
   executed: boolean;
+  confirmedDangerous: boolean;
   reflectedText: string;
   executedText: string;
   reflectedBadge: string;
   executedBadge: string;
+  whatHappened: string;
+  howToFix: string;
   evidence: {
     responseCode: number;
     reflectionPosition: string;
@@ -249,33 +261,166 @@ export class ReportService implements OnModuleDestroy {
       ? `${((scan.completedAt.getTime() - scan.createdAt.getTime()) / 1000).toFixed(1)}s`
       : 'N/A';
 
+    // Determine overall risk level
+    let riskLevel = 'None';
+    let riskClass = 'none';
+    let riskSummary = 'No vulnerabilities were found during this scan.';
+    if (counts.critical > 0) {
+      riskLevel = 'Critical';
+      riskClass = 'critical';
+      riskSummary = `Your website has ${counts.critical} critical security issue${counts.critical > 1 ? 's' : ''} that could allow attackers to steal user data or take over accounts. Immediate action is required.`;
+    } else if (counts.high > 0) {
+      riskLevel = 'High';
+      riskClass = 'high';
+      riskSummary = `Your website has ${counts.high} high-severity issue${counts.high > 1 ? 's' : ''} that could be exploited to run malicious code in visitors' browsers. These should be fixed as soon as possible.`;
+    } else if (counts.medium > 0) {
+      riskLevel = 'Medium';
+      riskClass = 'medium';
+      riskSummary = `Your website has ${counts.medium} medium-severity issue${counts.medium > 1 ? 's' : ''} where user input is reflected without proper safety measures. These should be addressed in your next update.`;
+    } else if (counts.low > 0) {
+      riskLevel = 'Low';
+      riskClass = 'low';
+      riskSummary = `Your website has ${counts.low} low-severity finding${counts.low > 1 ? 's' : ''}. While not immediately dangerous, fixing them will improve your overall security.`;
+    }
+
+    // Collect unique affected pages
+    const affectedPages = [...new Set(vulns.map((v) => v.url))];
+
     return {
       target: scan.url,
       scanId: scan.id,
       status: scan.status,
-      completedAt: scan.completedAt?.toISOString() ?? 'N/A',
-      generatedAt: new Date().toISOString(),
+      completedAt: scan.completedAt
+        ? scan.completedAt.toLocaleString('en-US', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })
+        : 'N/A',
+      generatedAt: new Date().toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
       duration,
       depth: scan.options.depth ?? 3,
       vulnCount: vulns.length,
       hasVulns: vulns.length > 0,
+      riskLevel,
+      riskClass,
+      riskSummary,
       counts,
+      affectedPages,
+      affectedPageCount: affectedPages.length,
       vulns: vulns.map((v, i) => ({
         index: i + 1,
+        url: v.url,
         param: v.param,
         payload: v.payload,
         type: v.type,
+        typeFriendly: this.friendlyType(v.type),
+        typeExplanation: this.typeExplanation(v.type),
         severity: v.severity,
         severityClass: v.severity.toLowerCase(),
+        severityExplanation: this.severityExplanation(v.severity),
         reflected: v.reflected,
         executed: v.executed,
+        confirmedDangerous: v.executed && v.evidence.browserAlertTriggered,
         reflectedText: v.reflected ? 'Yes' : 'No',
         executedText: v.executed ? 'Yes' : 'No',
         reflectedBadge: v.reflected ? 'badge-yes' : 'badge-no',
         executedBadge: v.executed ? 'badge-yes' : 'badge-no',
+        whatHappened: this.whatHappened(v),
+        howToFix: this.howToFix(v),
         evidence: v.evidence,
       })),
     };
+  }
+
+  private friendlyType(type: string): string {
+    switch (type) {
+      case VulnType.REFLECTED_XSS:
+        return 'Reflected Cross-Site Scripting (XSS)';
+      case VulnType.STORED_XSS:
+        return 'Stored Cross-Site Scripting (XSS)';
+      case VulnType.DOM_XSS:
+        return 'DOM-Based Cross-Site Scripting (XSS)';
+      default:
+        return 'Cross-Site Scripting (XSS)';
+    }
+  }
+
+  private typeExplanation(type: string): string {
+    switch (type) {
+      case VulnType.REFLECTED_XSS:
+        return 'The website takes input from the URL and displays it back on the page without cleaning it. An attacker can craft a malicious link that, when clicked by a user, runs harmful code in their browser.';
+      case VulnType.STORED_XSS:
+        return 'Malicious input submitted to the website gets saved (e.g. in a database) and later displayed to other users. Every visitor who views the affected page runs the attacker\'s code automatically.';
+      case VulnType.DOM_XSS:
+        return 'The page\'s JavaScript code reads data from the URL or user input and inserts it into the page unsafely. This allows an attacker to inject code that runs in the visitor\'s browser.';
+      default:
+        return 'The website does not properly clean user input before displaying it, allowing attackers to inject malicious code.';
+    }
+  }
+
+  private severityExplanation(severity: VulnSeverity): string {
+    switch (severity) {
+      case VulnSeverity.CRITICAL:
+        return 'Confirmed exploitable — an attacker can steal session cookies, passwords, or take over user accounts.';
+      case VulnSeverity.HIGH:
+        return 'Confirmed that malicious code executes in the browser. An attacker could steal information or perform actions on behalf of users.';
+      case VulnSeverity.MEDIUM:
+        return 'The input appears on the page but code execution was not fully confirmed. Still a risk if combined with other techniques.';
+      case VulnSeverity.LOW:
+        return 'Minor issue that could become exploitable under specific conditions.';
+      default:
+        return 'Informational finding.';
+    }
+  }
+
+  private whatHappened(v: Vuln): string {
+    const paramDesc = `the "${v.param}" field`;
+    if (v.executed && v.evidence.browserAlertTriggered) {
+      return `We sent test code through ${paramDesc} and the website ran it in a real browser. This proves an attacker could inject any script through this field.`;
+    }
+    if (v.executed) {
+      return `We sent test code through ${paramDesc} and detected that JavaScript executed. An attacker could use this to run malicious scripts on your users' browsers.`;
+    }
+    if (v.reflected) {
+      return `We sent test code through ${paramDesc} and the website displayed it back without removing the dangerous parts. This means an attacker's code could be injected into the page.`;
+    }
+    return `A potential injection point was found through ${paramDesc}.`;
+  }
+
+  private howToFix(v: Vuln): string {
+    const fixes: string[] = [];
+    switch (v.type) {
+      case VulnType.REFLECTED_XSS:
+        fixes.push(
+          'Encode all user input before displaying it on the page (use HTML entity encoding).',
+          'Implement a Content Security Policy (CSP) header to block inline scripts.',
+          `Validate and sanitize the "${v.param}" parameter on the server side before using it in HTML.`,
+        );
+        break;
+      case VulnType.STORED_XSS:
+        fixes.push(
+          'Sanitize all user-submitted content before storing it in the database.',
+          'Encode stored content when rendering it on the page.',
+          'Implement a Content Security Policy (CSP) header.',
+        );
+        break;
+      case VulnType.DOM_XSS:
+        fixes.push(
+          'Avoid using innerHTML, document.write(), or eval() with user-controlled data.',
+          'Use textContent or createElement() instead of innerHTML for inserting user data.',
+          'Implement a strict Content Security Policy (CSP).',
+        );
+        break;
+      default:
+        fixes.push(
+          'Encode all user input before displaying it.',
+          'Implement a Content Security Policy (CSP).',
+        );
+    }
+    return fixes.join(' ');
   }
 
   private mapType(raw: string): VulnType {

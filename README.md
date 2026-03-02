@@ -33,6 +33,7 @@ progress streaming.
 ```
 
 **Scan Pipeline** — 5 sequential phases per scan:
+
 1. **CRAWL** — Spider target, discover params, forms, DOM sinks, detect WAF
 2. **CONTEXT** — Probe injection, reflection analysis, AI context classification
 3. **PAYLOAD-GEN** — Select from 24K bank, mutate, obfuscate, rank
@@ -112,6 +113,7 @@ unless `API_KEY_SECRET` is unset (dev mode = open).
 | `GET`    | `/health`            | Aggregated health check        |
 
 **WebSocket Events** (socket.io on `:3000`):
+
 - `scan:progress` — phase, progress %, message
 - `scan:finding` — real-time vulnerability discovery
 - `scan:complete` — scan finished with summary
