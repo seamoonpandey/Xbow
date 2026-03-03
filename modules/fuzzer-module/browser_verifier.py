@@ -247,6 +247,218 @@ async def _count_injected_elements(page, payload: str) -> int:
         return 0
 
 
+async def verify_stored_form_payloads(
+    page_url: str,
+    payload_entries: list[dict],
+    form_fields: dict,
+    timeout_ms: int = 10000,
+    concurrency: int = 3,
+) -> list[VerifyResult]:
+    """
+    verify stored/dom-based xss by submitting form payloads via headless browser.
+    handles client-side storage (localStorage, cookies) that raw http cannot reach.
+    for each payload: navigate → clear storage → fill form → submit → detect dialog.
+    """
+    if not PLAYWRIGHT_AVAILABLE:
+        logger.warning("playwright unavailable, skipping stored form browser verification")
+        return [
+            VerifyResult(
+                payload=e.get("payload", ""),
+                target_param=e.get("target_param", ""),
+                executed=False,
+                dialog_triggered=False,
+                dialog_message="",
+                error="playwright not installed",
+            )
+            for e in payload_entries
+        ]
+
+    results: list[VerifyResult] = []
+    semaphore = asyncio.Semaphore(concurrency)
+
+    try:
+        async with async_playwright() as pw:
+            try:
+                browser = await pw.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--disable-extensions",
+                    ],
+                )
+            except Exception as e:
+                logger.warning(f"playwright launch failed (stored form): {e}")
+                return [
+                    VerifyResult(
+                        payload=e2.get("payload", ""),
+                        target_param=e2.get("target_param", ""),
+                        executed=False,
+                        dialog_triggered=False,
+                        dialog_message="",
+                        error=f"playwright launch failed: {e}",
+                    )
+                    for e2 in payload_entries
+                ]
+
+            try:
+                tasks = [
+                    _verify_stored_one(browser, semaphore, page_url, entry, form_fields, timeout_ms)
+                    for entry in payload_entries
+                ]
+                raw = await asyncio.gather(*tasks, return_exceptions=True)
+
+                for r in raw:
+                    if isinstance(r, VerifyResult):
+                        results.append(r)
+                    elif isinstance(r, Exception):
+                        logger.warning(f"stored form verify error: {r}")
+            finally:
+                await browser.close()
+    except Exception as e:
+        logger.warning(f"playwright init failed (stored form): {e}")
+        return [
+            VerifyResult(
+                payload=e2.get("payload", ""),
+                target_param=e2.get("target_param", ""),
+                executed=False,
+                dialog_triggered=False,
+                dialog_message="",
+                error=f"playwright init failed: {e}",
+            )
+            for e2 in payload_entries
+        ]
+
+    executed_count = sum(1 for r in results if r.executed)
+    logger.info(f"stored form verify: {executed_count}/{len(results)} executed")
+    return results
+
+
+async def _verify_stored_one(
+    browser,
+    semaphore: asyncio.Semaphore,
+    page_url: str,
+    entry: dict,
+    form_fields: dict,
+    timeout_ms: int,
+) -> VerifyResult:
+    """verify a single stored/dom payload by submitting a form in a fresh browser context"""
+    async with semaphore:
+        payload = entry.get("payload", "")
+        param = entry.get("target_param", "")
+        start = time.monotonic()
+
+        context = await browser.new_context(
+            ignore_https_errors=True,
+            java_script_enabled=True,
+            user_agent=DEFAULT_USER_AGENT,
+            extra_http_headers=DEFAULT_HEADERS,
+        )
+
+        page = await context.new_page()
+        dialog_info: dict = {"triggered": False, "message": ""}
+        nav_error: str | None = None
+
+        try:
+            async def handle_dialog(dialog: Dialog):
+                dialog_info["triggered"] = True
+                dialog_info["message"] = dialog.message
+                await dialog.dismiss()
+
+            page.on("dialog", handle_dialog)
+
+            # navigate to the page containing the form
+            try:
+                await page.goto(
+                    page_url,
+                    wait_until="domcontentloaded",
+                    timeout=timeout_ms,
+                )
+            except Exception as e:
+                nav_error = f"goto failed: {e}"
+
+            # wait for page scripts to initialise (localStorage, DB, etc.)
+            try:
+                await page.wait_for_load_state("networkidle", timeout=3000)
+            except Exception:
+                pass
+
+            # clear client-side storage so prior test runs don't interfere
+            await page.evaluate("""() => {
+                try { localStorage.clear(); } catch(e) {}
+                try { sessionStorage.clear(); } catch(e) {}
+            }""")
+
+            # fill non-target fields with their default values
+            for field_name, field_value in (form_fields or {}).items():
+                if field_name == param:
+                    continue
+                try:
+                    await page.fill(f'[name="{field_name}"]', str(field_value), timeout=1000)
+                except Exception:
+                    pass  # field may not be present or editable
+
+            # fill the target field with the xss payload
+            try:
+                await page.fill(f'[name="{param}"]', payload, timeout=2000)
+            except Exception as fill_err:
+                nav_error = f"fill failed: {fill_err}"
+
+            # submit the form: find the form containing the target field
+            # and click its submit button (triggers JS onsubmit handlers)
+            try:
+                submitted = await page.evaluate(f"""() => {{
+                    const el = document.querySelector('[name="{param}"]');
+                    if (!el) return false;
+                    const form = el.closest('form');
+                    if (!form) return false;
+                    const btn = form.querySelector('[type="submit"], button');
+                    if (btn) {{ btn.click(); return true; }}
+                    form.submit();
+                    return true;
+                }}""")
+                if not submitted:
+                    # fallback: press Enter on the field
+                    await page.keyboard.press("Enter")
+            except Exception as submit_err:
+                nav_error = f"submit failed: {submit_err}"
+
+            # wait for dialog to fire from immediate DOM re-render (e.g. innerHTML sink)
+            await page.wait_for_timeout(1200)
+
+            # also check for injected elements in the DOM
+            dom_mutations = await _count_injected_elements(page, payload)
+            elapsed = (time.monotonic() - start) * 1000
+            executed = dialog_info["triggered"] or dom_mutations > 0
+
+            return VerifyResult(
+                payload=payload,
+                target_param=param,
+                executed=executed,
+                dialog_triggered=dialog_info["triggered"],
+                dialog_message=dialog_info["message"],
+                dom_mutations=dom_mutations,
+                elapsed_ms=round(elapsed, 2),
+                error=nav_error,
+            )
+
+        except Exception as e:
+            elapsed = (time.monotonic() - start) * 1000
+            return VerifyResult(
+                payload=payload,
+                target_param=param,
+                executed=False,
+                dialog_triggered=dialog_info["triggered"],
+                dialog_message=dialog_info["message"],
+                elapsed_ms=round(elapsed, 2),
+                error=str(e),
+            )
+        finally:
+            await context.close()
+
+
 def _inject_param(url: str, param: str, value: str) -> str:
     """inject payload into url query parameter"""
     parsed = urlparse(url)

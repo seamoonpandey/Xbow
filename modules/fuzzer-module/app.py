@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from shared.schemas import FuzzRequest, FuzzResult, FuzzResponse
 from http_sender import send_payloads, send_stored_payloads, fetch_url
 from reflection_checker import check_reflection_batch
-from browser_verifier import verify_payloads
+from browser_verifier import verify_payloads, verify_stored_form_payloads
 from dom_xss_scanner import scan_response_body, findings_to_results
 from training_collector import collect_batch_training_samples, get_training_stats
 
@@ -181,6 +181,56 @@ async def test(request: FuzzRequest):
                     "context_snippet": r.get("context_snippet", ""),
                 },
             ))
+
+        # ── Browser-based stored form verification (DOM-based stored XSS) ──
+        # HTTP reflection check misses client-side storage (localStorage, cookies)
+        # e.g. XSS game level 2 stores via PostDB + renders via innerHTML.
+        # Run Playwright form submission to catch these cases.
+        if not final_results or not any(r.vuln for r in final_results):
+            # only bother if HTTP path found nothing (avoids duplicate results)
+            browser_entries = [
+                {"payload": p.get("payload", ""), "target_param": p.get("target_param", "")}
+                for p in payloads
+            ]
+            if browser_entries:
+                logger.info(
+                    f"stored form browser verify: {len(browser_entries)} payloads "
+                    f"on {display_url} (HTTP found nothing)"
+                )
+                browser_results = await verify_stored_form_payloads(
+                    page_url=display_url,
+                    payload_entries=browser_entries,
+                    form_fields=form_fields,
+                    timeout_ms=timeout_ms,
+                    concurrency=3,
+                )
+                seen_browser: set[str] = set()
+                for br in browser_results:
+                    if not br.executed:
+                        continue
+                    key = f"{br.payload}:{br.target_param}"
+                    if key in seen_browser:
+                        continue
+                    seen_browser.add(key)
+                    final_results.append(FuzzResult(
+                        payload=br.payload,
+                        target_param=br.target_param,
+                        reflected=False,
+                        executed=True,
+                        vuln=True,
+                        type="dom_stored_xss",
+                        evidence={
+                            "response_code": 0,
+                            "reflection_position": "dom",
+                            "browser_alert_triggered": br.dialog_triggered,
+                            "exact_match": False,
+                            "context_snippet": br.dialog_message or "",
+                        },
+                    ))
+                browser_vuln = sum(1 for br in browser_results if br.executed)
+                logger.info(
+                    f"stored form browser verify complete: {browser_vuln} executed"
+                )
 
         vuln_count = sum(1 for r in final_results if r.vuln)
         logger.info(

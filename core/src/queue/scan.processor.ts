@@ -482,12 +482,15 @@ export class ScanProcessor extends WorkerHost {
       // POST forms where action ≠ sourceUrl are stored XSS candidates.
       // The payload is submitted via form POST and appears on the source
       // page (or a related display page).
+      // NOTE: GET forms are also included — client-side JS storage (e.g.
+      // localStorage via PostDB) intercepts the submit and stores via DOM,
+      // bypassing traditional POST-based detection.  The browser-based
+      // form verifier handles these cases (DOM-based stored XSS).
       const SKIP_FIELDS = new Set([
         'csrf', '_csrf', 'token', '_token', 'captcha', '__RequestVerificationToken',
       ]);
       const storedForms = crawledForms.filter(
         (f) =>
-          f.method === 'POST' &&
           f.sourceUrl &&
           f.fields.length > 0,
       );
