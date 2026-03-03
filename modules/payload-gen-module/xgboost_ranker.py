@@ -16,8 +16,8 @@ from ranker import rank_payloads as heuristic_rank_payloads
 
 logger = logging.getLogger(__name__)
 
-# model path
-MODEL_DIR = Path(__file__).parent.parent.parent / "model" / "ranker"
+# model path — defaults to project root /model/ranker, overridable via env
+MODEL_DIR = Path(os.environ.get("RANKER_MODEL_DIR", str(Path(__file__).parent.parent.parent / "model" / "ranker")))
 MODEL_PATH = MODEL_DIR / "xgboost_ranker.json"
 
 # global model instance
