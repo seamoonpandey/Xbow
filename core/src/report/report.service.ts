@@ -63,15 +63,32 @@ interface TemplateVuln {
 export class ReportService implements OnModuleDestroy {
   private readonly logger = new Logger(ReportService.name);
   private readonly reportsDir = path.join(process.cwd(), 'reports');
-  private readonly templatesDir = path.join(
-    __dirname,
-    '..',
-    'report',
-    'templates',
-  );
+  private readonly templatesDir = this.resolveTemplatesDir();
   private htmlTemplate!: Handlebars.TemplateDelegate;
   private pdfTemplate!: Handlebars.TemplateDelegate;
   private browser: puppeteer.Browser | null = null;
+
+  /**
+   * Resolve the templates directory.  Works in both:
+   *   - dev  (ts-node): __dirname = src/report/  → templates at src/report/templates/
+   *   - prod (compiled): __dirname = dist/src/report/ → NestJS copies assets to dist/report/templates/
+   */
+  private resolveTemplatesDir(): string {
+    const candidates = [
+      path.join(__dirname, 'templates'),                       // dev: src/report/templates
+      path.join(__dirname, '..', 'report', 'templates'),       // dev alt
+      path.join(__dirname, '..', '..', 'report', 'templates'), // prod: dist/src/report/../../report/templates
+      path.join(process.cwd(), 'dist', 'report', 'templates'), // prod fallback (cwd-based)
+      path.join(process.cwd(), 'src', 'report', 'templates'),  // dev fallback (cwd-based)
+    ];
+    for (const dir of candidates) {
+      if (fs.existsSync(path.join(dir, 'report.html.hbs'))) {
+        return dir;
+      }
+    }
+    // Return first candidate so the warning message is meaningful
+    return candidates[0];
+  }
 
   constructor() {
     if (!fs.existsSync(this.reportsDir)) {
@@ -297,24 +314,39 @@ export class ReportService implements OnModuleDestroy {
     const htmlPath = path.join(this.templatesDir, 'report.html.hbs');
     const pdfPath = path.join(this.templatesDir, 'report.pdf.hbs');
 
+    this.logger.log(`looking for templates in ${this.templatesDir}`);
+
     if (fs.existsSync(htmlPath)) {
       this.htmlTemplate = Handlebars.compile(
         fs.readFileSync(htmlPath, 'utf-8'),
       );
+      this.logger.log(`html template loaded from ${htmlPath}`);
     } else {
       this.htmlTemplate = Handlebars.compile(
-        '<html><body><h1>Report</h1><pre>{{json}}</pre></body></html>',
+        `<!DOCTYPE html><html><head><title>Report — {{target}}</title></head><body>
+<h1>Security Report</h1>
+<p><strong>Target:</strong> {{target}}</p>
+<p><strong>Scan ID:</strong> {{scanId}}</p>
+<p><strong>Risk Level:</strong> {{riskLevel}}</p>
+<p><strong>Vulnerabilities:</strong> {{vulnCount}}</p>
+{{#each vulns}}<h3>#{{this.index}} — {{this.typeFriendly}} ({{this.severity}})</h3>
+<p>URL: {{this.url}} | Param: {{this.param}}</p>
+<p>{{this.whatHappened}}</p>
+<p><em>Fix: {{this.howToFix}}</em></p>{{/each}}
+<p style="color:gray;font-size:0.8em;">Generated {{generatedAt}} — template fallback (report.html.hbs not found at ${htmlPath})</p>
+</body></html>`,
       );
-      this.logger.warn(`html template not found at ${htmlPath}`);
+      this.logger.warn(`html template not found at ${htmlPath} — using inline fallback`);
     }
 
     if (fs.existsSync(pdfPath)) {
       this.pdfTemplate = Handlebars.compile(
         fs.readFileSync(pdfPath, 'utf-8'),
       );
+      this.logger.log(`pdf template loaded from ${pdfPath}`);
     } else {
       this.pdfTemplate = this.htmlTemplate;
-      this.logger.warn(`pdf template not found at ${pdfPath}, using html`);
+      this.logger.warn(`pdf template not found at ${pdfPath}, sharing html template`);
     }
   }
 
