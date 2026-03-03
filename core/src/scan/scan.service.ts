@@ -8,7 +8,7 @@ import {
   ScanStatus,
   ScanPhase,
 } from '../common/interfaces/scan.interface';
-import { Vuln, VulnType } from '../common/interfaces/vuln.interface';
+import { Vuln } from '../common/interfaces/vuln.interface';
 import {
   ScanNotFoundException,
   ScanAlreadyRunningException,
@@ -136,17 +136,28 @@ export class ScanService {
     seen.add(key);
     this.vulnKeys.set(scanId, seen);
 
+    // PostgreSQL rejects null bytes (\x00) in text columns.
+    // XSS payloads legitimately contain them (e.g. <\x00a …>) so strip
+    // before persisting rather than letting the INSERT fail.
+    const stripNullBytes = (s: string | undefined): string | undefined =>
+      s == null ? s : s.replace(/\x00/g, '');
+
+    const sanitizedEvidence =
+      vuln.evidence != null
+        ? JSON.parse(JSON.stringify(vuln.evidence).replace(/\\u0000/g, '').replace(/\x00/g, ''))
+        : vuln.evidence;
+
     const entity = this.vulnRepo.create({
       id: vuln.id ?? uuidv4(),
       scanId,
-      url: vuln.url,
-      param: vuln.param,
-      payload: vuln.payload,
+      url: stripNullBytes(vuln.url) ?? vuln.url,
+      param: stripNullBytes(vuln.param),
+      payload: stripNullBytes(vuln.payload) ?? vuln.payload,
       type: vuln.type,
       severity: vuln.severity,
       reflected: vuln.reflected,
       executed: vuln.executed,
-      evidence: vuln.evidence,
+      evidence: sanitizedEvidence,
       discoveredAt: vuln.discoveredAt ?? new Date(),
     });
     await this.vulnRepo.save(entity);
@@ -217,20 +228,10 @@ export class ScanService {
   }
 
   private buildVulnKey(v: Vuln): string {
-    const type = String(v.type ?? '').trim();
-    const url = this.normalizeUrlForDedup(String(v.url ?? '').trim());
-    const param = String(v.param ?? '').trim();
-    const payload = String(v.payload ?? '').trim();
-
-    if (type === VulnType.REFLECTED_XSS || type === VulnType.STORED_XSS) {
-      return `${type}|${url}|${param}`;
-    }
-
-    if (type === VulnType.DOM_XSS) {
-      return `${type}|${url}|${payload}`;
-    }
-
-    return `${type}|${url}|${param}|${payload}`;
+    const page = this.normalizeUrlForDedup(String(v.url ?? '').trim());
+    const source = String(v.evidence?.source ?? 'URLSearchParams').trim();
+    const sink = String(v.evidence?.sink ?? v.evidence?.reflectionPosition ?? 'attribute').trim();
+    return `${page}::${source}::${sink}`;
   }
 
   private normalizeUrlForDedup(rawUrl: string): string {
