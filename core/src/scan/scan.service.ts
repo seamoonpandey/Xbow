@@ -187,8 +187,10 @@ export class ScanService {
 
   async deleteAllScans(): Promise<number> {
     const count = await this.scanRepo.count();
-    await this.vulnRepo.clear();
-    await this.scanRepo.clear();
+    // Use DELETE (not TRUNCATE via .clear()) so PostgreSQL FK constraints are
+    // respected when the rows cascade-delete to dependents in one pass.
+    await this.vulnRepo.delete({});
+    await this.scanRepo.delete({});
     this.vulnKeys.clear();
     this.logger.warn(`all scans deleted (${count} scans removed)`);
     return count;

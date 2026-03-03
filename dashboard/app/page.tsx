@@ -14,6 +14,8 @@ export default function DashboardPage() {
   const [scans, setScans] = useState<Scan[]>([]);
   const [health, setHealth] = useState<HealthReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clearingAll, setClearingAll] = useState(false);
+  const [clearError, setClearError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -79,11 +81,15 @@ export default function DashboardPage() {
 
   const handleClearAll = async () => {
     if (!confirm("Delete ALL scans, results, and reports? This cannot be undone.")) return;
+    setClearingAll(true);
+    setClearError(null);
     try {
       await deleteAllScans();
       setScans([]);
-    } catch {
-      /* api may be unreachable */
+    } catch (err: unknown) {
+      setClearError(err instanceof Error ? err.message : "Failed to clear scans");
+    } finally {
+      setClearingAll(false);
     }
   };
 
@@ -172,13 +178,19 @@ export default function DashboardPage() {
           {scans.length > 0 && (
             <button
               onClick={handleClearAll}
-              className="inline-flex items-center gap-1.5 rounded-md bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30"
+              disabled={clearingAll}
+              className="inline-flex items-center gap-1.5 rounded-md bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Trash2 size={13} />
-              Clear All
+              <Trash2 size={13} className={clearingAll ? "animate-spin" : ""} />
+              {clearingAll ? "Clearing…" : "Clear All"}
             </button>
           )}
         </div>
+        {clearError && (
+          <p className="mb-3 rounded-md bg-red-900/30 px-3 py-2 text-xs text-red-400">
+            {clearError}
+          </p>
+        )}
         <ScanTable scans={scans} onDelete={(id) => setScans((prev) => prev.filter((s) => s.id !== id))} />
       </Card>
     </div>
