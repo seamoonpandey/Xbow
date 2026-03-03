@@ -24,10 +24,13 @@ for AI inference, context analysis, payload generation, and fuzzing.
 | Job Queue          | BullMQ + Redis           | Async scan pipeline, retries, concurrency   |
 | Crawler            | TypeScript (Playwright)  | Fast, type-safe, same language as core      |
 | AI / Security      | Python 3.11 + FastAPI    | ML ecosystem, transformers, Playwright      |
-| AI Model           | DistilBERT (HuggingFace) | Context classification, payload ranking     |
+| AI Model           | DistilBERT (HuggingFace) | Context classification                      |
+| Payload Ranking    | XGBoost                  | ML-powered payload prioritization           |
+| Severity Scoring   | Rule-based (4-axis)      | Deterministic, explainable vulnerability scoring |
 | Containerization   | Docker + Docker Compose  | Isolated services, reproducible deploys     |
 | Frontend           | Next.js (TypeScript)     | Same language as core, React-based          |
-| Database           | PostgreSQL + Redis       | Persistent scan results + job queue cache   |
+| Database           | PostgreSQL (TypeORM)     | Persistent scan results with migrations     |
+| Cache / Queue      | Redis                    | BullMQ job queue backend                    |
 
 ---
 
@@ -123,6 +126,8 @@ Phase 4: FUZZ           (Python — Fuzzer Module :5003)
          ▼
 Phase 5: REPORT         (NestJS — Report Service)
          │
+         │  Scores each finding via 4-axis severity matrix
+         │  Deduplicates by page::source::sink key
          │  Aggregates confirmed vulnerabilities
          │  Generates HTML / PDF / JSON report
          │  Pushes real-time updates via WebSocket
@@ -146,9 +151,31 @@ Phase 5: REPORT         (NestJS — Report Service)
 | `CrawlerModule`  | Spider target, discover params, detect WAF              |
 | `ModulesBridge`  | HTTP clients to all 3 Python microservices              |
 | `QueueModule`    | BullMQ producers/processors for async scan jobs         |
-| `ReportModule`   | Compile results, generate multi-format reports          |
+| `ReportModule`   | Compile results, score severity, generate reports       |
 | `AuthModule`     | API key guard for protected endpoints                   |
 | `WsGateway`      | WebSocket — push real-time scan progress to client      |
+
+**Severity Scoring Engine** (`common/utils/severity-scorer.ts`):
+
+A rule-based 4-axis scoring matrix applied to every confirmed finding:
+
+| Axis | Values | Score |
+|------|--------|-------|
+| Execution | executed → 3, reflected → 2, dom-only → 1 | 1-3 |
+| Shareability | url_param → 3, postMessage/e.data → 2, URLSearchParams/hash/document.cookie → 1 | 1-3 |
+| Sink danger | eval/document.write/location.assign/script → 3, innerHTML/html_body/comment/jQuery_html → 2, attribute → 1 | 1-3 |
+| Payload | document.cookie → 3, localStorage → 2, alert triggered → 1, WAF bypass (%) → 1 | 0-4+ |
+
+Total → Severity: 8+ CRITICAL, 6-7 HIGH, 4-5 MEDIUM, 0-3 LOW
+
+5 Override Rules:
+1. **HASH_SOURCE_LOW_CAP:** source=location.hash → max LOW
+2. **EVAL_SINK_MINIMUM_HIGH:** sink=eval → min HIGH
+3. **CONFIRMED_SENSITIVE_EXEC:** executed + document.cookie → CRITICAL
+4. **WAF_BYPASS_MEDIUM_MINIMUM:** reflected + encoded + exactMatch → min MEDIUM
+5. **POSTMESSAGE_MEDIUM_MINIMUM:** source=e.data/postMessage → min MEDIUM
+
+**Deduplication:** Composite key format `page::source::sink` prevents duplicate findings for the same injection point.
 
 ### 5.2 Context Module — Python :5001
 
@@ -183,7 +210,9 @@ Phase 5: REPORT         (NestJS — Report Service)
 | `selector.py`    | Filter payloads by context type                       |
 | `mutator.py`     | AI-driven payload mutation for novelty                |
 | `obfuscator.py`  | Encode payloads for WAF bypass (unicode, hex, etc.)   |
-| `ranker.py`      | Score payloads by execution probability               |
+| `ranker.py`      | Heuristic fallback: 5-component weighted scoring      |
+| `xgboost_ranker.py` | ML-powered payload ranking using XGBoost           |
+| `feature_extractor.py` | Converts payload+context into ~30 features for XGBoost |
 
 ### 5.4 Fuzzer Module — Python :5003
 
@@ -391,8 +420,12 @@ red-sentinel/
 │   │   ├── scan/
 │   │   │   ├── scan.module.ts
 │   │   │   ├── scan.controller.ts     # REST endpoints
-│   │   │   ├── scan.service.ts        # Pipeline orchestrator
+│   │   │   ├── scan.service.ts        # Pipeline orchestrator + vuln persistence
 │   │   │   ├── scan.gateway.ts        # WebSocket gateway
+│   │   │   ├── entities/
+│   │   │   │   ├── scan.entity.ts      # TypeORM entity — scans table
+│   │   │   │   └── vuln.entity.ts      # TypeORM entity — vulns table
+│   │   │   ├── migrations/            # TypeORM schema migrations
 │   │   │   └── dto/
 │   │   │       ├── create-scan.dto.ts
 │   │   │       └── scan-result.dto.ts
@@ -428,11 +461,14 @@ red-sentinel/
 │   │   └── common/
 │   │       ├── interfaces/
 │   │       │   ├── scan.interface.ts
-│   │       │   └── vuln.interface.ts
+│   │       │   ├── vuln.interface.ts
+│   │       │   └── crawler.interface.ts
 │   │       ├── exceptions/
 │   │       │   └── scan.exceptions.ts
 │   │       └── utils/
-│   │           └── url.utils.ts
+│   │           ├── url.utils.ts
+│   │           ├── severity-scorer.ts      # 4-axis scoring matrix + overrides
+│   │           └── severity-scorer.spec.ts # 62 unit tests
 │   │
 │   ├── test/
 │   ├── nest-cli.json
@@ -462,7 +498,9 @@ red-sentinel/
 │   │   ├── selector.py
 │   │   ├── mutator.py
 │   │   ├── obfuscator.py
-│   │   ├── ranker.py
+│   │   ├── ranker.py                  # Heuristic fallback scorer
+│   │   ├── xgboost_ranker.py          # ML-powered XGBoost ranker
+│   │   ├── feature_extractor.py       # ~30 features for XGBoost model
 │   │   ├── requirements.txt
 │   │   └── Dockerfile
 │   │

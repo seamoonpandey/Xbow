@@ -141,7 +141,7 @@ This separation was deliberate: NestJS excels at orchestration, routing, DI, and
 | Component | Version | Purpose |
 |---|---|---|
 | Redis | 7-alpine | BullMQ job queue backend + health check cache |
-| PostgreSQL | 16-alpine | Persistent storage (TypeORM dependency present; currently in-memory for dev speed) |
+| PostgreSQL | 16-alpine | Persistent storage — TypeORM entities for scans + vulns, auto-run migrations |
 | Docker Compose | — | 7-service orchestration with health checks, named volumes, restart policies |
 
 ---
@@ -273,7 +273,8 @@ Payloads → HTTP send → Reflection check → Browser verify → DOM scan
 Confirmed vulns → Dedup → Template render → HTML + JSON + PDF
 ```
 
-- Deduplicates vulnerabilities using composite keys (`type|url|param` for reflected, `type|url|payload` for DOM XSS)
+- Deduplicates vulnerabilities using composite key `page::source::sink` (normalizes URLs, derives source/sink from evidence)
+- Sanitizes null bytes from all string fields before PostgreSQL INSERT
 - **JSON report:** Raw structured data with all evidence fields
 - **HTML report:** Handlebars template with severity-colored cards, "what happened" + "how to fix" per vuln, risk level summary, affected page list
 - **PDF report:** Renders the HTML via Puppeteer's Chrome PDF API
@@ -292,7 +293,7 @@ AppModule
 ├── ThrottlerModule (100 req / 60s)
 ├── ScanModule
 │   ├── ScanController — REST endpoints
-│   ├── ScanService — in-memory scan storage (Map)
+│   ├── ScanService — PostgreSQL-backed persistent storage (TypeORM)
 │   ├── ScanGateway — WebSocket event emitter
 │   └── QueueModule
 │       ├── ScanProducer — enqueues BullMQ jobs
@@ -379,7 +380,14 @@ Key files:
 - `selector.py` — Context-to-label mapping, char filtering, round-robin, auto-trigger priority
 - `mutator.py` — 6 mutation strategies (tag/event/func swap, whitespace, case, null bytes)
 - `obfuscator.py` — 9 encoding strategies with WAF-specific preference ordering
-- `ranker.py` — 5-component weighted scoring with auto-trigger bonus
+- `ranker.py` — 5-component weighted scoring with auto-trigger bonus (heuristic fallback)
+- `xgboost_ranker.py` — ML-powered XGBoost binary classifier for payload ranking by execution probability
+- `feature_extractor.py` — Converts payload+context into ~30 features for the XGBoost model
+
+**Payload Ranking Strategy:**
+Two rankers work in tandem:
+1. **XGBoost Ranker** (primary): Loads a trained `xgboost_ranker.json` model, extracts ~30 features (payload length, encoding type, context class, WAF presence, char diversity, etc.), predicts execution probability. Payloads are sorted by predicted success probability.
+2. **Heuristic Ranker** (fallback): If the XGBoost model is not available, falls back to `ranker.py` which uses a 5-component weighted scorer: complexity, length penalty, context match, success rate, auto-trigger bonus.
 
 ### Fuzzer Module (:5003)
 
@@ -467,6 +475,25 @@ The trained model is loaded in `modules/context-module/ai_classifier.py`:
 3. Returns context label + confidence score
 4. **Confidence threshold ≥ 0.8** — below this, falls back to DOM/regex classification
 5. Rule-based fallback if model file is missing (graceful degradation)
+
+### XGBoost Payload Ranker
+
+The payload-gen module uses a separate XGBoost binary classifier (`modules/payload-gen-module/xgboost_ranker.py`) for pre-fuzzing payload prioritization.
+
+**Purpose:** Predict which payloads are most likely to execute successfully, so the fuzzer tests high-probability payloads first.
+
+**Architecture:**
+- Model: XGBoost binary classifier (`xgboost_ranker.json`)
+- Feature extraction: `feature_extractor.py` computes ~30 features per payload:
+  - Payload characteristics: length, char diversity, encoding type, tag/event/function presence
+  - Context features: context class, WAF presence, reflection type
+  - Structural features: nesting depth, attribute count, special char ratios
+- Output: probability of successful execution (0.0 → 1.0)
+- Payloads sorted by descending probability before fuzzing
+
+**Integration:** Called in `app.py` step 4 (ranking) after payload generation. Falls back to heuristic `ranker.py` if model file is unavailable.
+
+**Distinction from severity scoring:** XGBoost ranks payloads *before* fuzzing (pre-attack prioritization). The rule-based severity scorer in `core/` classifies findings *after* fuzzing confirms them (post-attack assessment).
 
 ### Calibration
 
@@ -659,6 +686,12 @@ cd core && npm run test:cov    # with coverage
 
 Test files: `*.spec.ts` co-located with source files.
 
+Key test suites:
+- `severity-scorer.spec.ts` — 62 tests covering the 4-axis scoring matrix, all 5 override rules, edge cases, and DOM XSS severity classification
+- `scan.service.spec.ts` — Scan CRUD, vuln persistence, dedup logic
+- `bridge-clients.spec.ts` — Module bridge HTTP client tests
+- `app.controller.spec.ts` — REST endpoint tests
+
 ### Integration Tests (Python — pytest)
 
 ```bash
@@ -752,7 +785,10 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 | **Hybrid TS + Python** | NestJS for orchestration, Python for AI/security | Best-of-both: NestJS DI/WS/queue + Python ML ecosystem | HTTP overhead between services (~1-5ms per call) |
 | **DistilBERT over BERT-base** | `distilbert-base-uncased` | 40% smaller, 60% faster, retains 97% accuracy | Slightly less nuanced understanding of complex contexts |
 | **Dual-head model** | Single encoder, two classification heads | One forward pass for both context + severity | Coupled training — poor context classification affects severity |
-| **In-memory scan storage** | `Map<string, ScanRecord>` | Fast iteration, no DB setup required | Data lost on restart; TypeORM dep ready for migration |
+| **PostgreSQL persistence** | TypeORM entities with auto-migrations | Persistent scan/vuln storage, survives restarts | Requires PostgreSQL; uses better-sqlite3 for tests |
+| **Rule-based severity scorer** | 4-axis scoring matrix with 5 override rules | Deterministic, explainable, fully testable (62 tests) | May miss edge cases that ML could catch; requires manual tuning |
+| **XGBoost payload ranker** | ML binary classifier for payload prioritization | Data-driven ranking, learns from fuzzing outcomes | Requires trained model file; falls back to heuristic if absent |
+| **Null byte sanitization** | Strip `\x00` from all vuln string fields | Prevents PostgreSQL INSERT crashes on malicious payloads | Slight data loss (null bytes removed from stored payloads) |
 | **BullMQ over direct execution** | Redis-backed job queue | Retry semantics, concurrency control, job persistence | Redis dependency; slight latency for job pickup |
 | **Playwright for crawling** | Headless Chromium | Handles JS-rendered SPAs, consistent API | ~200MB browser binary; 500ms+ startup time |
 | **Puppeteer for PDF** | Separate from Playwright | More mature PDF API, better page.pdf() | Two browser engines in the project |
@@ -772,13 +808,14 @@ majorproject/
 ├── core/                  # NestJS orchestration API
 │   ├── src/
 │   │   ├── auth/          # API key guard
-│   │   ├── common/        # Interfaces, exceptions
+│   │   ├── common/        # Interfaces, exceptions, utils (severity-scorer)
 │   │   ├── crawler/       # Playwright crawler, WAF detector, DOM analyzer
 │   │   ├── health/        # Health aggregation
 │   │   ├── modules-bridge/ # HTTP clients to Python microservices
 │   │   ├── queue/         # BullMQ processor + producer
 │   │   ├── report/        # Handlebars templates, HTML/JSON/PDF generation
 │   │   └── scan/          # REST controller, service, WebSocket gateway, DTOs
+│   │       └── entities/  # TypeORM entities: scan.entity.ts, vuln.entity.ts
 │   ├── reports/           # Generated report files
 │   └── test/              # E2E tests
 ├── dashboard/             # Next.js 16 frontend
@@ -795,7 +832,7 @@ majorproject/
 ├── modules/               # Python microservices
 │   ├── context-module/    # :5001 — reflection analysis + AI classification
 │   ├── fuzzer-module/     # :5003 — HTTP fuzzing + browser verification
-│   ├── payload-gen-module/ # :5002 — payload selection, mutation, obfuscation
+│   ├── payload-gen-module/ # :5002 — payload selection, mutation, obfuscation, XGBoost ranking
 │   └── shared/            # Pydantic schemas, constants
 ├── scripts/               # E2E smoke test
 ├── tests/                 # Cross-module integration tests
