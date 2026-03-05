@@ -26,6 +26,15 @@ for cmd in tmux node python3; do
   fi
 done
 
+# ── Increase inotify watch limit (needed by Next.js/Turbopack) ──
+INOTIFY_LIMIT=524288
+CURRENT_LIMIT=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null || echo 0)
+if [[ "$CURRENT_LIMIT" -lt "$INOTIFY_LIMIT" ]]; then
+  echo "  … Raising fs.inotify.max_user_watches to $INOTIFY_LIMIT (current: $CURRENT_LIMIT)..."
+  sudo sysctl -w fs.inotify.max_user_watches=$INOTIFY_LIMIT >/dev/null \
+    || echo "  ! Could not raise inotify limit — run: sudo sysctl -w fs.inotify.max_user_watches=$INOTIFY_LIMIT"
+fi
+
 # ── Ensure PostgreSQL & Redis are running ─────────────────────
 if ! pg_isready -h localhost -q 2>/dev/null; then
   echo "  … Starting PostgreSQL..."
