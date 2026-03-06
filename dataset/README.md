@@ -35,3 +35,14 @@ XSS payload data collected through automated analysis and machine learning-based
 
 This data is intended for authorized security research and defensive testing purposes only.
 Unauthorized use of this data for malicious activities is strictly prohibited. Always ensure compliance with legal and ethical guidelines when utilizing this dataset.
+
+## Download
+
+```bash
+cd dataset/raw \
+&& git clone https://github.com/s0md3v/AwesomeXSS \
+&& git clone https://github.com/swisskyrepo/PayloadsAllTheThings \
+&& git clone https://github.com/AnonKryptiQuz/XSSGAI \
+&& curl -sL https://portswigger.net/web-security/cross-site-scripting/cheat-sheet \
+-o portswigger_raw.html
+```
