@@ -552,6 +552,7 @@ export class ReportService implements OnModuleDestroy {
     if (raw === 'dom_xss') return VulnType.DOM_XSS;
     if (raw === 'open_redirect') return VulnType.DOM_XSS;
     if (raw === 'stored_xss') return VulnType.STORED_XSS;
+    if (raw === 'dom_stored_xss') return VulnType.STORED_XSS;
     return VulnType.REFLECTED_XSS;
   }
 }
