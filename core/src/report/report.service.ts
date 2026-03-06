@@ -468,6 +468,14 @@ export class ReportService implements OnModuleDestroy {
         return 'Stored Cross-Site Scripting (XSS)';
       case VulnType.DOM_XSS:
         return 'DOM-Based Cross-Site Scripting (XSS)';
+      case VulnType.MUTATION_XSS:
+        return 'Mutation XSS (mXSS)';
+      case VulnType.BLIND_XSS:
+        return 'Blind XSS';
+      case VulnType.TEMPLATE_INJECTION:
+        return 'Template Injection';
+      case VulnType.SVG_XSS:
+        return 'SVG/Polyglot XSS';
       default:
         return 'Cross-Site Scripting (XSS)';
     }
@@ -481,6 +489,14 @@ export class ReportService implements OnModuleDestroy {
         return 'Malicious input submitted to the website gets saved (e.g. in a database) and later displayed to other users. Every visitor who views the affected page runs the attacker\'s code automatically.';
       case VulnType.DOM_XSS:
         return 'The page\'s JavaScript code reads data from the URL or user input and inserts it into the page unsafely. This allows an attacker to inject code that runs in the visitor\'s browser.';
+      case VulnType.MUTATION_XSS:
+        return 'The website attempts to sanitize user input, but the browser\'s HTML parser re-interprets the content differently. This allows an attacker to bypass the sanitizer using browser-specific parsing tricks (e.g., nested contexts in SVG/MathML).';
+      case VulnType.BLIND_XSS:
+        return 'Malicious input is stored on the server but never displayed to the attacker. Instead, it may appear in admin panels, logs, or notification emails viewed by other users. The attacker cannot directly verify execution but the payload still reaches the target.';
+      case VulnType.TEMPLATE_INJECTION:
+        return 'The website processes user input as template expressions (e.g., AngularJS {{}}). An attacker can break out of the template context and execute arbitrary JavaScript code.';
+      case VulnType.SVG_XSS:
+        return 'SVG content is rendered with user-controlled data, allowing injection of SVG namespace events (onload, onerror) or nested script tags. SVG parsers have their own security context separate from HTML.';
       default:
         return 'The website does not properly clean user input before displaying it, allowing attackers to inject malicious code.';
     }
@@ -539,6 +555,37 @@ export class ReportService implements OnModuleDestroy {
           'Implement a strict Content Security Policy (CSP).',
         );
         break;
+      case VulnType.MUTATION_XSS:
+        fixes.push(
+          'Use a robust HTML sanitizer library (DOMPurify, bleach) that understands namespace context.',
+          'Test your sanitizer against known mXSS vectors (SVG, MathML, HTML5 shortcuts).',
+          'Implement and enforce a Content Security Policy (CSP) to prevent inline script execution.',
+        );
+        break;
+      case VulnType.BLIND_XSS:
+        fixes.push(
+          'Sanitize and encode all user input at the point of storage.',
+          'Never trust data from user forms, even if it doesn\'t appear on the user-facing page.',
+          'Secure admin panels and backend logs — these are common Blind XSS targets.',
+          'Use alerting/monitoring for suspicious payload patterns in logs.',
+        );
+        break;
+      case VulnType.TEMPLATE_INJECTION:
+        fixes.push(
+          'Never render user input as template code — use templating engine sandboxes.',
+          'If using AngularJS, disable dangerous expressions in user data or use strict contextual escaping.',
+          'Prefer template engines with auto-escaping enabled by default (Jinja2, Handlebars).',
+          'Keep template engines updated to latest versions.',
+        );
+        break;
+      case VulnType.SVG_XSS:
+        fixes.push(
+          'If accepting user-provided SVG, parse and validate it strictly (whitelist allowed elements/attributes).',
+          'Serve SVG files with content-type application/svg+xml, not text/html.',
+          'Never render unsanitized SVG data directly via innerHTML or in HTML context.',
+          'Sanitize SVG using a library like svg-sanitizer or DOMPurify.',
+        );
+        break;
       default:
         fixes.push(
           'Encode all user input before displaying it.',
@@ -553,6 +600,10 @@ export class ReportService implements OnModuleDestroy {
     if (raw === 'open_redirect') return VulnType.DOM_XSS;
     if (raw === 'stored_xss') return VulnType.STORED_XSS;
     if (raw === 'dom_stored_xss') return VulnType.STORED_XSS;
+    if (raw === 'mutation_xss') return VulnType.MUTATION_XSS;
+    if (raw === 'blind_xss') return VulnType.BLIND_XSS;
+    if (raw === 'template_injection') return VulnType.TEMPLATE_INJECTION;
+    if (raw === 'svg_xss') return VulnType.SVG_XSS;
     return VulnType.REFLECTED_XSS;
   }
 }

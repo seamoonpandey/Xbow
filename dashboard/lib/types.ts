@@ -51,6 +51,10 @@ export enum VulnType {
   REFLECTED_XSS = "reflected_xss",
   STORED_XSS = "stored_xss",
   DOM_XSS = "dom_xss",
+  MUTATION_XSS = "mutation_xss",
+  BLIND_XSS = "blind_xss",
+  TEMPLATE_INJECTION = "template_injection",
+  SVG_XSS = "svg_xss",
   OPEN_REDIRECT = "open_redirect",
 }
 

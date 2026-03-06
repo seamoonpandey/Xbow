@@ -139,6 +139,10 @@ function friendlyType(type) {
     case 'reflected_xss': return 'Reflected Cross-Site Scripting (XSS)';
     case 'stored_xss':    return 'Stored Cross-Site Scripting (XSS)';
     case 'dom_xss':       return 'DOM-Based Cross-Site Scripting (XSS)';
+    case 'mutation_xss':  return 'Mutation XSS (mXSS)';
+    case 'blind_xss':     return 'Blind XSS';
+    case 'template_injection': return 'Template Injection';
+    case 'svg_xss':       return 'SVG/Polyglot XSS';
     default:              return 'Cross-Site Scripting (XSS)';
   }
 }
@@ -151,6 +155,14 @@ function typeExplanation(type) {
       return "Malicious input submitted to the website gets saved (e.g. in a database) and later displayed to other users. Every visitor who views the affected page runs the attacker's code automatically.";
     case 'dom_xss':
       return "The page's JavaScript code reads data from the URL or user input and inserts it into the page unsafely. This allows an attacker to inject code that runs in the visitor's browser.";
+    case 'mutation_xss':
+      return 'The website attempts to sanitize user input, but the browser\'s HTML parser re-interprets the content differently. This allows an attacker to bypass the sanitizer using browser-specific parsing tricks (e.g., nested contexts in SVG/MathML).';
+    case 'blind_xss':
+      return 'Malicious input is stored on the server but never displayed to the attacker. Instead, it may appear in admin panels, logs, or notification emails viewed by other users. The attacker cannot directly verify execution but the payload still reaches the target.';
+    case 'template_injection':
+      return 'The website processes user input as template expressions (e.g., AngularJS {{}}). An attacker can break out of the template context and execute arbitrary JavaScript code.';
+    case 'svg_xss':
+      return 'SVG content is rendered with user-controlled data, allowing injection of SVG namespace events (onload, onerror) or nested script tags. SVG parsers have their own security context separate from HTML.';
     default:
       return 'The website does not properly clean user input before displaying it, allowing attackers to inject malicious code.';
   }
@@ -193,6 +205,26 @@ function howToFix(v) {
       'Avoid using innerHTML, document.write(), or eval() with user-controlled data.',
       'Use textContent or createElement() instead of innerHTML for inserting user data.',
       'Implement a strict Content Security Policy (CSP).',
+    ].join(' ');
+    case 'mutation_xss': return [
+      'Use a robust HTML sanitizer library (DOMPurify, bleach) that understands namespace context.',
+      'Test your sanitizer against known mXSS vectors (SVG, MathML, HTML5 shortcuts).',
+      'Implement and enforce a Content Security Policy (CSP) to prevent inline script execution.',
+    ].join(' ');
+    case 'blind_xss': return [
+      'Sanitize and encode all user input at the point of storage.',
+      'Never trust data from user forms, even if it doesn\'t appear on the user-facing page.',
+      'Secure admin panels and backend logs — these are common Blind XSS targets.',
+    ].join(' ');
+    case 'template_injection': return [
+      'Never render user input as template code — use templating engine sandboxes.',
+      'If using AngularJS, disable dangerous expressions in user data or use strict contextual escaping.',
+      'Prefer template engines with auto-escaping enabled by default.',
+    ].join(' ');
+    case 'svg_xss': return [
+      'If accepting user-provided SVG, parse and validate it strictly (whitelist allowed elements).',
+      'Serve SVG files with content-type application/svg+xml, not text/html.',
+      'Never render unsanitized SVG data directly via innerHTML or in HTML context.',
     ].join(' ');
     default: return [
       'Encode all user input before displaying it.',

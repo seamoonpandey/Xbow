@@ -28,6 +28,52 @@ logger = logging.getLogger("fuzzer")
 
 PORT = int(os.environ.get("PORT", "5003"))
 
+
+def detect_advanced_xss_type(payload: str, position: str, response_body: str, is_exact: bool, executed: bool) -> str:
+    """
+    detect advanced XSS types beyond basic reflected/stored/dom.
+    returns vuln_type string.
+    """
+    import re
+    
+    # Template Injection — detect AngularJS, Jinja, etc patterns
+    template_patterns = [
+        r'\{\{.*?\}\}',          # AngularJS {{ }}
+        r'\$\{.*?\}',             # Jinja {{ }}
+        r'<%.*?%>',               # ERB style
+        r'\[%.*?%\]',            # Thymeleaf
+    ]
+    for pattern in template_patterns:
+        if re.search(pattern, payload) and position in ("html_body", "attribute"):
+            # Extra validation: response should contain template-like content
+            if any(p in response_body for p in ['{{', '${', '<%', '[%']):
+                return "template_injection"
+    
+    # SVG XSS — look for SVG-specific contexts or SVG tags in response
+    svg_patterns = [r'<svg', r'<SVG', r'onload=', r'onerror=']
+    if 'svg' in position.lower() or any(p.lower() in response_body.lower() for p in svg_patterns):
+        if '<svg' in response_body.lower():
+            return "svg_xss"
+    
+    # Mutation XSS — decoded-only reflection in dangerous context
+    # This happens when: payload is encoded but browser re-parses it
+    html_entity_patterns = [
+        ('&lt;', '<'), ('&gt;', '>'), ('&quot;', '"'), ('&#x', '&#x'),
+        ('&#', '&#'), ('&amp;', '&'),
+    ]
+    decoded_body = response_body
+    for entity, char in html_entity_patterns:
+        decoded_body = decoded_body.replace(entity, char)
+    
+    if not is_exact and payload.lower() in decoded_body.lower():
+        # Payload is HTML-encoded in response but can be decoded
+        if position in ("html_body", "attribute"):
+            return "mutation_xss"
+    
+    # Default: treat as reflected XSS
+    return "reflected_xss"
+
+
 app = FastAPI(
     title="RedSentinel Fuzzer Module",
     version="0.1.0",
@@ -165,6 +211,13 @@ async def test(request: FuzzRequest):
             if not is_vuln and is_reflected and not is_exact and position in DANGEROUS_POSITIONS:
                 is_vuln = True
                 vuln_type = "stored_xss"
+
+            # Detect advanced XSS types for stored payloads
+            if is_vuln and vuln_type == "stored_xss":
+                response_body = r.get("response_body", "")
+                vuln_type = detect_advanced_xss_type(
+                    payload, position, response_body, is_exact, False  # stored doesn't execute
+                )
 
             final_results.append(FuzzResult(
                 payload=payload,
@@ -391,6 +444,17 @@ async def test(request: FuzzRequest):
         if not is_vuln and (not verify_execution or verify_unavailable) and is_reflected:
             is_vuln = True
             vuln_type = "reflected_xss"
+
+        # Detect advanced XSS types (mutation, template injection, SVG)
+        if is_vuln and vuln_type == "reflected_xss":
+            response_body = next(
+                (s.response_body for s in send_batch.results 
+                 if s.payload == payload and s.target_param == param),
+                ""
+            )
+            vuln_type = detect_advanced_xss_type(
+                payload, position, response_body, is_exact, is_executed
+            )
 
         final_results.append(FuzzResult(
             payload=payload,

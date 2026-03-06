@@ -5,7 +5,10 @@ import { VulnType } from "@/lib/types";
 import { SeverityBadge } from "@/components/ui";
 
 const isDomXss = (v: Vuln) =>
-  v.type === VulnType.DOM_XSS || v.type === VulnType.OPEN_REDIRECT;
+  v.type === VulnType.DOM_XSS || 
+  v.type === VulnType.OPEN_REDIRECT ||
+  v.type === VulnType.MUTATION_XSS ||
+  v.type === VulnType.SVG_XSS;
 
 export function VulnList({ vulns }: { vulns: Vuln[] }) {
   if (vulns.length === 0) {
