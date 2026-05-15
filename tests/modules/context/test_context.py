@@ -4,22 +4,24 @@ uses httpx async client with fastapi testclient pattern.
 mocks heavy dependencies (ai classifier, probe injector, char fuzzer).
 """
 
-import sys
-import os
 import importlib.util
+import sys
+from pathlib import Path
 from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-# load local app.py under a unique module name to avoid cache collisions
-_dir = os.path.dirname(__file__)
-_spec = importlib.util.spec_from_file_location("context_app", os.path.join(_dir, "app.py"))
+ROOT = Path(__file__).resolve().parents[3]
+MODULE_DIR = ROOT / "modules" / "context-module"
+
+# load module app.py under a unique module name to avoid cache collisions
+_spec = importlib.util.spec_from_file_location("context_app", MODULE_DIR / "app.py")
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["context_app"] = _mod
 # allow app.py's own relative imports to resolve
-if _dir not in sys.path:
-    sys.path.insert(0, _dir)
+if str(MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(MODULE_DIR))
 _spec.loader.exec_module(_mod)
 app = _mod.app
 

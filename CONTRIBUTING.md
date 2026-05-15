@@ -34,7 +34,7 @@ npm run build
 For Python module changes:
 
 ```bash
-pytest modules/ -v
+pytest tests/modules -v
 pytest tests/ -v
 ```
 

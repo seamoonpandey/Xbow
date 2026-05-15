@@ -188,13 +188,13 @@ npm run test:watch
 ### Python Modules
 
 ```bash
-# from project root with venv active — run all unit tests together
-pytest modules/ -v
+# from project root with venv active
+pytest tests/modules -v
 
 # or individually
-cd modules/context-module && python -m pytest test_context.py -v
-cd modules/payload-gen-module && python -m pytest test_payload_gen.py -v
-cd modules/fuzzer-module && python -m pytest test_fuzzer.py -v
+pytest tests/modules/context -v
+pytest tests/modules/payload_gen -v
+pytest tests/modules/fuzzer -v
 ```
 
 ### Integration Tests

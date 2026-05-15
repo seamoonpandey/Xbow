@@ -3,25 +3,26 @@ tests for the fuzzer module fastapi app.
 mocks heavy dependencies (http_sender, reflection_checker, browser_verifier, dom_xss_scanner).
 """
 
-import sys
-import os
 import importlib.util
+import sys
+from pathlib import Path
 from unittest.mock import patch, AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-# load local app.py under a unique module name to avoid cache collisions
-_dir = os.path.dirname(__file__)
-_spec = importlib.util.spec_from_file_location("fuzzer_app", os.path.join(_dir, "app.py"))
+ROOT = Path(__file__).resolve().parents[3]
+MODULE_DIR = ROOT / "modules" / "fuzzer-module"
+MODULES_DIR = ROOT / "modules"
+
+# load module app.py under a unique module name to avoid cache collisions
+_spec = importlib.util.spec_from_file_location("fuzzer_app", MODULE_DIR / "app.py")
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["fuzzer_app"] = _mod
 # allow app.py's own relative imports to resolve
-if _dir not in sys.path:
-    sys.path.insert(0, _dir)
-parent = os.path.dirname(_dir)
-if parent not in sys.path:
-    sys.path.insert(0, parent)
+for path in (MODULE_DIR, MODULES_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 _spec.loader.exec_module(_mod)
 app = _mod.app
 

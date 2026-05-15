@@ -16,7 +16,6 @@ import type {
 import { ScanStatus } from "@/lib/types";
 import { StatusBadge, ProgressBar, Card, StatCard } from "@/components/ui";
 import { VulnList } from "@/components/vuln-list";
-import { ScannerLogViewer } from "@/components/scanner-log-viewer";
 import { useScanSocket } from "@/hooks/use-scan-socket";
 import {
   ArrowLeft,
@@ -29,6 +28,7 @@ import {
   RefreshCw,
   ListTodo,
 } from "lucide-react";
+import { ScannerLogViewer } from "@/components/scanner-log/scanner-log-viewer";
 
 function formatDuration(ms: number) {
   if (ms < 1000) return `${ms}ms`;
