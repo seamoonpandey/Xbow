@@ -7,7 +7,6 @@ import { Spinner } from "@/components/ui";
 import {
   ChevronDown,
   ChevronRight,
-  ExternalLink,
   Clock,
   Link2,
   Bug,
@@ -135,25 +134,21 @@ function EntryRow({
   const cfg = getPhaseConfig(entry.phase);
   const details = entry.details;
   const hasDetails = details != null && Object.keys(details).length > 0;
-  const [expanded, setExpanded] = useState(false);
-
-  // Auto-expand entries with rich details
-  useEffect(() => {
-    if (hasDetails && (details?.targets || details?.allUrls || details?.forms || details?.formCount != null)) {
-      setExpanded(true);
-    }
-  }, [hasDetails, details?.targets, details?.allUrls, details?.forms, details?.formCount]);
+  const [expanded, setExpanded] = useState(
+    hasDetails &&
+      (details?.targets || details?.allUrls || details?.forms || details?.formCount != null),
+  );
 
   return (
     <div className="relative pl-10 pb-3 group">
       {/* Timeline connector line */}
       {!isLast && (
-        <div className="absolute left-[17px] top-6 bottom-0 w-px bg-slate-200 group-hover:bg-slate-300 transition-colors" />
+        <div className="absolute left-4.25 top-6 bottom-0 w-px bg-slate-200 group-hover:bg-slate-300 transition-colors" />
       )}
 
       {/* Dot */}
       <div
-        className={`absolute left-3 top-[5px] size-[9px] rounded-full ring-2 ring-white ${cfg.dot}`}
+        className={`absolute left-3 top-1.25 size-2.25 rounded-full ring-2 ring-white ${cfg.dot}`}
       />
 
       {/* Entry content */}
@@ -416,8 +411,6 @@ function PhaseGroup({
   );
   const formCount = entries.filter((e) => e.details?.sourceUrl).length;
 
-  // Find last entry index for timeline connector
-  const lastEntryIdx = allEntries.indexOf(entries[entries.length - 1]);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
