@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Generate dataset evaluation tables (Table 6.1 and Table 6.2).
 
-Writes output to `docs/6.3_dataset_evaluation.md`.
+Writes output to `docs/evaluation/6.3_dataset_evaluation.md`.
 """
 from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 SPLITS_DIR = ROOT / "dataset" / "splits"
-OUT_MD = ROOT / "docs" / "6.3_dataset_evaluation.md"
+OUT_MD = ROOT / "docs" / "evaluation" / "6.3_dataset_evaluation.md"
 
 
 def load_splits():

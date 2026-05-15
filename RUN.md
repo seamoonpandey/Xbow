@@ -130,6 +130,7 @@ cd ..
 ```
 
 To see which migrations have been applied:
+
 ```bash
 cd core && DATABASE_URL=postgresql://rs:rs@localhost:5432/redsentinel npm run migration:show
 ```
@@ -192,6 +193,7 @@ python app.py
 ```
 
 You should see:
+
 ```
 INFO:     Uvicorn running on http://0.0.0.0:5001
 ```
@@ -207,6 +209,7 @@ python app.py
 ```
 
 You should see:
+
 ```
 INFO:     Uvicorn running on http://0.0.0.0:5002
 ```
@@ -222,6 +225,7 @@ python app.py
 ```
 
 You should see:
+
 ```
 INFO:     Uvicorn running on http://0.0.0.0:5003
 ```
@@ -241,6 +245,7 @@ npx nest build && node dist/main.js
 ```
 
 You should see:
+
 ```
 [Nest] LOG [NestApplication] Nest application successfully started
 ```
@@ -254,7 +259,7 @@ cd dashboard
 npx next dev -p 8080
 ```
 
-Open: http://localhost:8080
+Open: <http://localhost:8080>
 
 ### Terminal 7 (optional) — Vulnerable Test Site (port 9090)
 
@@ -264,7 +269,7 @@ cd exploitable
 python app.py
 ```
 
-Open: http://localhost:9090
+Open: <http://localhost:9090>
 
 ---
 
@@ -286,11 +291,13 @@ curl http://localhost:3000/scan/<SCAN_ID>
 ```
 
 When status is `DONE`, view the report:
-- **HTML**: http://localhost:3000/reports/`<SCAN_ID>`/download?format=html
-- **JSON**: http://localhost:3000/reports/`<SCAN_ID>`/download?format=json
-- **PDF**: http://localhost:3000/reports/`<SCAN_ID>`/download?format=pdf
+
+- **HTML**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=html
+- **JSON**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=json
+- **PDF**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=pdf
 
 Or regenerate it:
+
 ```bash
 curl "http://localhost:3000/reports/<SCAN_ID>/regenerate?formats=html,json,pdf"
 ```
@@ -315,35 +322,44 @@ curl "http://localhost:3000/reports/<SCAN_ID>/regenerate?formats=html,json,pdf"
 ## Troubleshooting
 
 ### "Address already in use"
+
 Something is already running on that port. Kill it:
+
 ```bash
 # Find and kill process on a port (e.g. 3000)
 kill $(lsof -t -i:3000)
 ```
 
 ### Redis version warning
+
 ```
 It is highly recommended to use a minimum Redis version of 6.2.0
 ```
+
 This is a BullMQ warning — it still works fine with Redis 6.0. Ignore it or upgrade Redis.
 
 ### Playwright browser not found
+
 ```bash
 python3 -m playwright install chromium
 python3 -m playwright install-deps chromium
 ```
 
 ### Context module says "ai model not loaded"
+
 The AI model checkpoint (`model/checkpoints/best.pt`) may be missing. The context module falls back to rule-based classification automatically — this is fine for testing.
 
 To train the model:
+
 ```bash
 cd ai/training
 python3 train.py
 ```
 
 ### PostgreSQL auth failure
+
 Make sure the `rs` role exists:
+
 ```bash
 sudo -u postgres psql -c "CREATE ROLE rs WITH LOGIN PASSWORD 'rs';"
 sudo -u postgres psql -c "CREATE DATABASE redsentinel OWNER rs;"

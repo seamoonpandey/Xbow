@@ -6,7 +6,7 @@ Briefly evaluate context classification, payload ranking, vulnerability detectio
 
 ## 6.2 Experimental Setup
 
-See project `RUN.md` and `docs/STARTUP.md` for exact environment and targets used in benchmarks.
+See project `RUN.md` for exact environment and targets used in benchmarks.
 
 ## 6.3 Dataset Evaluation
 
@@ -26,7 +26,6 @@ See project `RUN.md` and `docs/STARTUP.md` for exact environment and targets use
 | script_injection | 1774 (70.0%) | 380 (15.0%) | 381 (15.0%) | 2535 |
 | tag_injection | 16210 (70.0%) | 3473 (15.0%) | 3474 (15.0%) | 23157 |
 | template_injection | 855 (70.0%) | 183 (15.0%) | 183 (15.0%) | 1221 |
-
 
 **Table 6.2: Payload Dataset Distribution**
 
@@ -90,7 +89,6 @@ See project `RUN.md` and `docs/STARTUP.md` for exact environment and targets use
 | low | 10087 | 17.1% |
 | high | 9179 | 15.5% |
 
-
 ## 6.4 AI Context Classification Results
 
 **Experiment 1: DistilBERT Context Classification**
@@ -113,14 +111,14 @@ See project `RUN.md` and `docs/STARTUP.md` for exact environment and targets use
 Context labels order: script_injection, event_handler, js_uri, tag_injection, template_injection, dom_sink, attribute_escape, generic
 
 ```
-	292 0 0 0 0 0 0 0
-	0 2253 0 4 0 1 1 0
-	0 1 165 0 0 0 0 0
-	0 2 0 448 0 0 0 1
-	0 0 0 0 7 0 1 0
-	0 0 0 0 0 75 0 1
-	0 0 0 0 0 0 279 1
-	1 0 0 0 1 2 0 96
+ 292 0 0 0 0 0 0 0
+ 0 2253 0 4 0 1 1 0
+ 0 1 165 0 0 0 0 0
+ 0 2 0 448 0 0 0 1
+ 0 0 0 0 7 0 1 0
+ 0 0 0 0 0 75 0 1
+ 0 0 0 0 0 0 279 1
+ 1 0 0 0 1 2 0 96
 ```
 
 ## 6.5 Payload Ranking Results

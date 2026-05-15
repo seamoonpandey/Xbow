@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate full evaluation report in evaluation/ using available metrics and benchmark HTML."""
+"""Generate full evaluation report in docs/evaluation/ using available metrics."""
 from pathlib import Path
 import json
 import re
 import math
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "evaluation"
+OUT_DIR = ROOT / "docs" / "evaluation"
 OUT_MD = OUT_DIR / "Evaluation_and_Results.md"
 
 def load_json(p):
@@ -57,7 +57,7 @@ def main():
     OUT_DIR.mkdir(exist_ok=True)
 
     # load existing 6.3 if present
-    six3 = ROOT / "docs" / "6.3_dataset_evaluation.md"
+    six3 = ROOT / "docs" / "evaluation" / "6.3_dataset_evaluation.md"
     six3_text = six3.read_text() if six3.exists() else ""
 
     # load model test results
@@ -110,7 +110,7 @@ def main():
     md.append("")
     md.append("## 6.2 Experimental Setup")
     md.append("")
-    md.append("See project `RUN.md` and `docs/STARTUP.md` for exact environment and targets used in benchmarks.")
+    md.append("See project `RUN.md` for exact environment and targets used in benchmarks.")
     md.append("")
     md.append("## 6.3 Dataset Evaluation")
     md.append("")

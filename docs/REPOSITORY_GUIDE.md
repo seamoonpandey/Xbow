@@ -8,8 +8,8 @@ documents are authoritative.
 - `README.md` is the project entry point: architecture summary, quick start,
   API surface, testing, environment variables, and top-level structure.
 - `RUN.md` is the step-by-step local setup/run guide.
-- `docs/ARCHITECTURE.md` and `docs/PROJECT.md` hold deeper architecture and
-  design rationale.
+- `docs/ARCHITECTURE.md` holds deeper architecture and design rationale.
+- `docs/ML_GUIDE.md` is the canonical short guide for model/data ownership.
 - Service-local READMEs explain how to work inside `core/`, `dashboard/`,
   `dataset/`, `exploitable/`, and `tools/`.
 
@@ -29,7 +29,7 @@ tools/         Offline inference, inspection, calibration, export utilities
 exploitable/   Local vulnerable target app for scanner validation
 scripts/       Project-level automation
 tests/         Cross-module Python integration/regression tests
-docs/          Architecture, guides, progress logs, and problem registry
+docs/          Active guides plus archived historical notes
 outputs/       Local generated tool outputs; ignored except `.gitkeep`
 ```
 

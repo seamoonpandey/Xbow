@@ -1,25 +1,21 @@
 # RedSentinel Docs
 
-Start here when you need project context beyond the root README.
+Read these in order when onboarding:
 
-## Core References
+1. `../README.md` — project overview, quick start, API, test commands.
+2. `../RUN.md` — full local setup and run guide.
+3. `ARCHITECTURE.md` — service responsibilities and scan pipeline.
+4. `REPOSITORY_GUIDE.md` — directory ownership, artifact policy, dependency policy.
+5. `SCAN_PARAMETERS_GUIDE.md` — scan tuning behavior.
+6. `ML_GUIDE.md` — concise ML/data/model maintenance guide.
 
-- `ARCHITECTURE.md` — system architecture, service responsibilities, data flow.
-- `PROJECT.md` — fuller project narrative, stack rationale, pipeline details.
-- `REPOSITORY_GUIDE.md` — directory ownership, artifact policy, dependency policy.
-- `STARTUP.md` — fresh-machine setup guide.
-- `SCAN_PARAMETERS_GUIDE.md` — scan option behavior and tuning guidance.
+## Secondary References
 
-## Operational Notes
+- `evaluation/` — dataset and model evaluation reports, including generated charts.
+- `archive/` — historical plans, progress notes, bug investigations, and older
+  deep dives. These are preserved for context, but they are not canonical.
 
-- `progress/` — progress reports and test-result snapshots.
-- `problems/` — bug/problem registry with root causes and fixes.
-- `CHANGELOG/CHANGELOG.md` — project changelog.
-- `charts/` — generated evaluation charts and interactive visualizations.
+## Rule
 
-## ML And Evaluation
-
-- `ML_IMPLEMENTATION_TECHNICAL.md` — model implementation details.
-- `ML_IMPROVEMENT_ROADMAP.md` — ML improvement backlog and direction.
-- `xss_game_bottleneck_analysis.md` — analysis of XSS game scanner limits.
-- `../evaluation/` — dataset and evaluation writeups.
+If a new document is not part of the main onboarding path, put it under
+`archive/` or a clearly named subdirectory with a short index.
