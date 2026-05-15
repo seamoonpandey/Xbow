@@ -24,10 +24,10 @@ export function NavBar() {
           <div className="flex size-11 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm shadow-slate-200/60">
             <img src="/logo.png" alt="RedSentinel logo" className="block h-full w-full object-contain" />
           </div>
-          <div className="leading-tight">
+          {/* <div className="leading-tight">
             <div className="text-sm font-semibold tracking-wide text-slate-900">RedSentinel</div>
             <div className="text-xs text-slate-500">Security Console</div>
-          </div>
+          </div> */}
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 md:flex">
