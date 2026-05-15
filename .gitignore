@@ -33,7 +33,8 @@ ai/model/checkpoints/logs/
 dataset/raw/
 
 # ─── Generated inference outputs ──────────────────────────
-outputs/preds.csv
+outputs/*
+!outputs/.gitkeep
 
 # ─── Environment / secrets ────────────────────────────────
 .env
@@ -71,12 +72,13 @@ core/coverage/
 core/coverage-e2e/
 
 
-# reports
+# ─── Runtime service artifacts ─────────────────────────────
 reports/
+core/reports/
+core/scanner-logs/
 
 .setup.log
 
 # redis dump file
 dump.rdb
-#  logs
-scanner-logs
+scanner-logs/

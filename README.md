@@ -36,7 +36,7 @@ progress streaming.
 
 1. **CRAWL** — Spider target, discover params, forms, DOM sinks, detect WAF
 2. **CONTEXT** — Probe injection, reflection analysis, AI context classification
-3. **PAYLOAD-GEN** — Select from 24K bank, mutate, obfuscate, rank
+3. **PAYLOAD-GEN** — Select from 59K+ bank, mutate, obfuscate, rank
 4. **FUZZ** — HTTP injection, reflection check, headless browser verification
 5. **REPORT** — Generate HTML / PDF / JSON reports
 
@@ -119,7 +119,7 @@ unless `API_KEY_SECRET` is unset (dev mode = open).
 - `scan:complete` — scan finished with summary
 - `scan:error` — scan failed
 
-**Swagger docs**: `http://localhost:3000/api`
+**Swagger docs**: `http://localhost:3000/docs`
 
 ---
 
@@ -145,15 +145,23 @@ red-sentinel/
 │   └── app/
 │       ├── page.tsx         # home — stats, new scan, scan table
 │       └── scan/[id]/       # detail — live progress, vulns, reports
-├── dataset/                 # 24K labeled XSS payload dataset
+├── dataset/                 # 59K+ labeled XSS payload dataset
 ├── model/                   # DistilBERT training + checkpoints
 ├── ai/                      # AI model artifacts
 ├── tools/                   # inference, export utilities
 ├── scripts/                 # e2e smoke test
+├── CONTRIBUTING.md          # contribution and local-check workflow
 ├── docker-compose.yml       # production compose
 ├── docker-compose.dev.yml   # dev override (hot reload)
-└── docs/ARCHITECTURE.md     # full architecture document
+└── docs/                    # architecture, guides, problem registry
 ```
+
+**Repository policy:** source code, docs, migrations, curated datasets, and
+small evaluation artifacts are tracked. Runtime reports, scanner logs,
+calibration outputs, raw cloned datasets, virtualenvs, local package installs,
+and large model checkpoints stay out of Git; regenerate or mount them locally.
+See `docs/README.md` for the docs index and `docs/REPOSITORY_GUIDE.md` for
+the full ownership and artifact policy.
 
 ---
 

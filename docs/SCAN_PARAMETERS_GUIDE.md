@@ -296,7 +296,7 @@ Coverage: Maximum
 ### Via API Request
 
 ```bash
-curl -X POST http://localhost:3000/api/scan \
+curl -X POST http://localhost:3000/scan \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com",
@@ -332,4 +332,3 @@ DEFAULT_MAX_PAYLOADS=50
 - Too many params + too few payloads = miss vulnerabilities
 - Too few params + too many payloads = waste resources on incomplete coverage
 - **Balance is key** for optimal scan results
-

@@ -722,8 +722,8 @@ Same services but with:
 
 `setup.sh` (207 lines) automates the complete environment setup:
 1. System packages (build-essential, curl, etc.)
-2. Node.js 20+ (via nvm or system)
-3. Python 3.10+ with venv
+2. Node.js 22+ (via nvm or system)
+3. Python 3.11+ with venv
 4. PostgreSQL (creates role `rs`, database `redsentinel`)
 5. Redis server
 6. Python dependencies (`pip install -r requirements.txt`)

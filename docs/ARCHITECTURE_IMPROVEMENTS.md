@@ -196,7 +196,7 @@ python ai/training/prepare_enriched_training_data.py \
 # Run scans as normal - training data collected automatically
 python -m modules.fuzzer-module &
 # Run scanner on test labs
-curl -X POST http://localhost:3000/api/scan -d '...'
+curl -X POST http://localhost:3000/scan -d '...'
 ```
 
 ### Step 2: Prepare Training Data
@@ -305,7 +305,7 @@ Report (Reflected, Stored, DOM, or Complex)
 python -m modules.fuzzer-module &
 python -m core.main &
 
-curl -X POST http://localhost:3000/api/scan \
+curl -X POST http://localhost:3000/scan \
   -H "Content-Type: application/json" \
   -d '{"url":"https://portswigger.net/web-security/.../lab"}'
 ```

@@ -9,8 +9,8 @@ Everything you need to get RedSentinel running on a brand-new machine from zero.
 1. [What Is RedSentinel?](#1-what-is-redsentinel)
 2. [System Requirements](#2-system-requirements)
 3. [Install System Packages](#3-install-system-packages)
-4. [Install Node.js 20+](#4-install-nodejs-20)
-5. [Install Python 3.10+](#5-install-python-310)
+4. [Install Node.js 22+](#4-install-nodejs-22)
+5. [Install Python 3.11+](#5-install-python-311)
 6. [Clone the Repository](#6-clone-the-repository)
 7. [Python Virtual Environment & Dependencies](#7-python-virtual-environment--dependencies)
 8. [Install Playwright Browsers](#8-install-playwright-browsers)
@@ -88,14 +88,14 @@ sudo apt install -y \
 
 ---
 
-## 4. Install Node.js 20+
+## 4. Install Node.js 22+
 
-The project requires Node.js **v20 or higher**.
+The project requires Node.js **v22 or higher**.
 
 ### Option A — NodeSource (recommended)
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
@@ -116,15 +116,15 @@ nvm alias default 20
 ### Verify
 
 ```bash
-node -v   # should print v20.x.x or higher
+node -v   # should print v22.x.x or higher
 npm -v    # should print 10.x.x or higher
 ```
 
 ---
 
-## 5. Install Python 3.10+
+## 5. Install Python 3.11+
 
-Ubuntu 22.04 ships with Python 3.10 by default. Check your version:
+Use Python 3.11 or newer for local development. Check your version:
 
 ```bash
 python3 --version
@@ -767,10 +767,10 @@ python train.py --batch_size 16
 
 ### `npm install` fails in `core/` or `dashboard/`
 
-Make sure Node.js ≥ 20 is active:
+Make sure Node.js >= 22 is active:
 
 ```bash
-node -v      # must be v20+
+node -v      # must be v22+
 npm cache clean --force
 npm install
 ```
@@ -814,8 +814,8 @@ sudo apt update && sudo apt install -y git curl tmux build-essential \
   redis-server postgresql postgresql-contrib \
   python3 python3-pip python3-venv python3-dev libpq-dev
 
-# 2. Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# 2. Node.js 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # 3. Clone

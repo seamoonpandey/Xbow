@@ -12,7 +12,7 @@ Quick overview:
 Defaults:
 - checkpoint: model/checkpoints/best.pt
 - tokenizer: model/tokenizer
-- splits: ai/splits/{train,val,test}.csv
+- splits: dataset/splits/{train,val,test}.csv
 - outputs: outputs/
 
 Install:
@@ -25,17 +25,16 @@ Examples:
 python tools/inference/infer.py --payload "<script>alert(1)</script>" --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer
 
 # Batch
-python tools/inference/infer.py --input ai/splits/test.csv --output outputs/preds.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer
+python tools/inference/infer.py --input dataset/splits/test.csv --output outputs/preds.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer
 
 # Misclassifications (test CSV must contain payload, context_label, severity_label)
-python tools/inference/inspector.py --test_csv ai/splits/test.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/misclassified.csv
+python tools/inference/inspector.py --test_csv dataset/splits/test.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/misclassified.csv
 
 # Calibration
-python tools/inference/calibration.py --val_csv ai/splits/val.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/temps.json
+python tools/inference/calibration.py --val_csv dataset/splits/val.csv --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/temps.json
 
 # Export TorchScript
 python tools/inference/export/export_torchscript.py --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/traced_model.pt
 
 # Export ONNX (with quick test)
 python tools/inference/export/export_onnx.py --checkpoint model/checkpoints/best.pt --tokenizer model/tokenizer --out outputs/model.onnx --test
-

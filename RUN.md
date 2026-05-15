@@ -8,8 +8,8 @@ Everything you need to set up and run the project from scratch on a fresh Ubuntu
 
 | Tool | Version | Install |
 |------|---------|---------|
-| **Node.js** | 20+ | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo -E bash - && sudo apt install -y nodejs` |
-| **Python** | 3.10+ | `sudo apt install -y python3 python3-pip` |
+| **Node.js** | 22+ | `curl -fsSL https://deb.nodesource.com/setup_22.x \| sudo -E bash - && sudo apt install -y nodejs` |
+| **Python** | 3.11+ | `sudo apt install -y python3 python3-pip python3-venv` |
 | **PostgreSQL** | 14+ | `sudo apt install -y postgresql postgresql-contrib` |
 | **Redis** | 6.0+ | `sudo apt install -y redis-server` |
 | **tmux** | any | `sudo apt install -y tmux` |

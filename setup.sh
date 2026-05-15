@@ -48,34 +48,34 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════════
-#  2. Node.js (v20+)
+#  2. Node.js (v22+)
 # ══════════════════════════════════════════════════════════════
 info "Checking Node.js..."
 
 if command -v node &>/dev/null; then
   NODE_VER=$(node -v | sed 's/v//' | cut -d. -f1)
-  if (( NODE_VER >= 20 )); then
+  if (( NODE_VER >= 22 )); then
     ok "Node.js $(node -v) found"
   else
-    warn "Node.js $(node -v) is too old — need v20+"
-    info "Install Node 20: https://nodejs.org or use nvm"
-    fail "Node.js >= 20 required"
+    warn "Node.js $(node -v) is too old — need v22+"
+    info "Install Node 22: https://nodejs.org or use nvm"
+    fail "Node.js >= 22 required"
   fi
 else
-  fail "Node.js not found — install v20+ from https://nodejs.org"
+  fail "Node.js not found — install v22+ from https://nodejs.org"
 fi
 
 # ══════════════════════════════════════════════════════════════
-#  3. Python 3.10+
+#  3. Python 3.11+
 # ══════════════════════════════════════════════════════════════
 info "Checking Python..."
 
 if command -v python3 &>/dev/null; then
   PY_VER=$(python3 -c 'import sys; print(sys.version_info.minor)')
-  if (( PY_VER >= 10 )); then
+  if (( PY_VER >= 11 )); then
     ok "Python $(python3 --version) found"
   else
-    fail "Python 3.10+ required (found 3.$PY_VER)"
+    fail "Python 3.11+ required (found 3.$PY_VER)"
   fi
 else
   fail "python3 not found"

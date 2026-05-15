@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RedSentinel Dashboard
 
-## Getting Started
+Next.js dashboard for starting scans, watching live progress, reviewing
+findings, downloading reports, and inspecting scanner logs.
 
-First, run the development server:
+## Runtime
+
+- Node.js 22+
+- Next.js 16 / React 19
+- Tailwind CSS 4
+- Socket.io client
+
+## Local Development
+
+From the repository root, install dependencies once:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd dashboard
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the dashboard on the project-standard port:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3000 npm run dev -- --port 8080
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `http://localhost:8080`.
 
-## Learn More
+## API Routing
 
-To learn more about Next.js, take a look at the following resources:
+The dashboard calls relative `/api/*` paths. `next.config.ts` rewrites those
+requests to `NEXT_PUBLIC_API_URL`, which should point at the NestJS core API.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+WebSocket connections default to `ws://localhost:3000` in development. Set
+`NEXT_PUBLIC_WS_URL` only when the socket endpoint differs from the core API
+host.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Structure
 
-## Deploy on Vercel
+```text
+app/                  App Router pages
+app/scan/[id]/        Live scan detail view
+components/           Reusable dashboard UI
+context/              Auth context
+hooks/                Socket and client-side hooks
+lib/                  API client and shared TypeScript types
+public/               Static assets
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Checks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```
