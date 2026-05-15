@@ -76,4 +76,7 @@ reports/
 
 .setup.log
 
+# redis dump file
 dump.rdb
+#  logs
+scanner-logs
