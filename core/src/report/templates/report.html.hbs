@@ -6,26 +6,29 @@
   <title>Security Report — {{target}}</title>
   <style>
     :root {
-      --bg: #0d0d0d;
-      --surface: #141414;
-      --surface2: #1a1a1a;
-      --border: #2a2a2a;
-      --text: #e0e0e0;
-      --text-soft: #b0b0b0;
-      --muted: #888;
-      --red: #ff4455;
-      --orange: #ffaa00;
-      --green: #88cc00;
-      --cyan: #44ccff;
-      --blue: #4488ff;
-      --accent: #ff4455;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-soft: #475569;
+      --muted: #64748b;
+      --red: #dc2626;
+      --orange: #d97706;
+      --green: #059669;
+      --cyan: #0891b2;
+      --blue: #2563eb;
+      --accent: #db2777;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(219,39,119,0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(8,145,178,0.08), transparent 22%),
+        var(--bg);
       color: var(--text);
       line-height: 1.7;
       padding: 2rem 3rem;
@@ -43,7 +46,7 @@
       border-bottom: 2px solid var(--accent);
     }
 
-    .header h1 { color: var(--accent); font-size: 1.8rem; font-weight: 700; }
+    .header h1 { color: var(--text); font-size: 1.8rem; font-weight: 700; }
     .header .logo {
       width: 2rem;
       height: 2rem;
@@ -60,11 +63,11 @@
       border: 1px solid var(--border);
     }
 
-    .risk-banner.risk-critical { background: linear-gradient(135deg, #2a0a0e, #1a0a0e); border-color: #ff445566; }
-    .risk-banner.risk-high     { background: linear-gradient(135deg, #2a150a, #1a100a); border-color: #ff664466; }
-    .risk-banner.risk-medium   { background: linear-gradient(135deg, #2a200a, #1a170a); border-color: #ffaa0066; }
-    .risk-banner.risk-low      { background: linear-gradient(135deg, #0a2a0e, #0a1a0e); border-color: #88cc0066; }
-    .risk-banner.risk-none     { background: linear-gradient(135deg, #0a1a0e, #0a1a0a); border-color: #88cc0066; }
+    .risk-banner.risk-critical { background: linear-gradient(135deg, #fef2f2, #fff1f2); border-color: rgba(220,38,38,0.25); }
+    .risk-banner.risk-high     { background: linear-gradient(135deg, #fff7ed, #fff1e6); border-color: rgba(217,119,6,0.25); }
+    .risk-banner.risk-medium   { background: linear-gradient(135deg, #fffbeb, #fff7db); border-color: rgba(245,158,11,0.25); }
+    .risk-banner.risk-low      { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-color: rgba(5,150,105,0.25); }
+    .risk-banner.risk-none     { background: linear-gradient(135deg, #f0fdf4, #ecfeff); border-color: rgba(8,145,178,0.22); }
 
     .risk-banner .risk-label {
       font-size: 0.75rem;
@@ -81,7 +84,7 @@
     }
 
     .risk-banner.risk-critical .risk-level { color: var(--red); }
-    .risk-banner.risk-high .risk-level     { color: #ff6644; }
+    .risk-banner.risk-high .risk-level     { color: #ea580c; }
     .risk-banner.risk-medium .risk-level   { color: var(--orange); }
     .risk-banner.risk-low .risk-level      { color: var(--green); }
     .risk-banner.risk-none .risk-level     { color: var(--green); }
@@ -105,6 +108,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 1rem 1.2rem;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
     }
 
     .detail-card .label {
@@ -137,6 +141,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
     }
 
     .count-chip .num { font-size: 1.4rem; font-weight: 700; }
@@ -203,10 +208,10 @@
       vertical-align: top;
     }
 
-    tr:hover td { background: rgba(255,68,85,0.03); }
+    tr:hover td { background: rgba(219,39,119,0.03); }
 
     .sev-critical { color: var(--red); font-weight: 700; }
-    .sev-high     { color: #ff6644; font-weight: 700; }
+    .sev-high     { color: #ea580c; font-weight: 700; }
     .sev-medium   { color: var(--orange); font-weight: 600; }
     .sev-low      { color: var(--green); }
 
@@ -230,19 +235,20 @@
     }
 
     .badge-yes { background: rgba(136,204,0,0.15); color: var(--green); }
-    .badge-no  { background: rgba(255,68,85,0.1); color: #ff6666; }
+    .badge-no  { background: rgba(220,38,38,0.1); color: var(--red); }
 
     /* ── Vuln cards ────────────────── */
     .vuln-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--red);
+      border-left: 4px solid var(--accent);
       border-radius: 8px;
       padding: 1.5rem;
       margin-bottom: 1.2rem;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
     }
 
-    .vuln-card.severity-high    { border-left-color: #ff6644; }
+    .vuln-card.severity-high    { border-left-color: #ea580c; }
     .vuln-card.severity-medium  { border-left-color: var(--orange); }
     .vuln-card.severity-low     { border-left-color: var(--green); }
 
@@ -263,10 +269,10 @@
       white-space: nowrap;
     }
 
-    .sev-tag.sev-critical { background: rgba(255,68,85,0.15); color: var(--red); }
-    .sev-tag.sev-high     { background: rgba(255,102,68,0.15); color: #ff6644; }
-    .sev-tag.sev-medium   { background: rgba(255,170,0,0.15); color: var(--orange); }
-    .sev-tag.sev-low      { background: rgba(136,204,0,0.15); color: var(--green); }
+    .sev-tag.sev-critical { background: rgba(220,38,38,0.12); color: var(--red); }
+    .sev-tag.sev-high     { background: rgba(234,88,12,0.12); color: #ea580c; }
+    .sev-tag.sev-medium   { background: rgba(217,119,6,0.12); color: var(--orange); }
+    .sev-tag.sev-low      { background: rgba(5,150,105,0.12); color: var(--green); }
 
     .vuln-section {
       margin-bottom: 1rem;
@@ -303,8 +309,8 @@
     .vuln-meta-item .meta-value { color: var(--text); word-break: break-all; }
 
     .fix-box {
-      background: rgba(136,204,0,0.05);
-      border: 1px solid rgba(136,204,0,0.15);
+      background: rgba(5,150,105,0.05);
+      border: 1px solid rgba(5,150,105,0.15);
       border-radius: 6px;
       padding: 1rem;
     }

@@ -38,7 +38,6 @@ function formatDuration(ms: number) {
 
 export default function ScanDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const scanId = params.id as string;
 
   const [scan, setScan] = useState<Scan | null>(null);
