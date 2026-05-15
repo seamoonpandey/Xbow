@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Bell, ChevronRight, LogIn, LogOut, User } from "lucide-react";
 
 export function NavBar() {
+  const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+
+  const tabClass = (href: string) =>
+    `rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+      pathname === href
+        ? "bg-white text-slate-900 shadow-sm"
+        : "text-slate-500 hover:text-slate-900 hover:bg-white/70"
+    }`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/75 backdrop-blur-xl">
@@ -16,24 +24,25 @@ export function NavBar() {
           <div className="flex size-11 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm shadow-slate-200/60">
             <img src="/logo.png" alt="RedSentinel logo" className="block h-full w-full object-contain" />
           </div>
-          {/* <div className="leading-tight">
+          <div className="leading-tight">
             <div className="text-sm font-semibold tracking-wide text-slate-900">RedSentinel</div>
             <div className="text-xs text-slate-500">Security Console</div>
-          </div> */}
+          </div>
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 md:flex">
-          <Link href="/" className="rounded-full bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm">
+          <Link href="/" className={tabClass("/")}>
             Dashboard
           </Link>
-          <span className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-500">
+          <Link href="/activity" className={tabClass("/activity")}>
             Activity
-            <ChevronRight size={14} className="text-slate-300" />
+          </Link>
+          <Link href="/scans" className={tabClass("/scans")}>
             Scans
-          </span>
-          <span className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-500">
+          </Link>
+          <Link href="/network" className={tabClass("/network")}>
             Network
-          </span>
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
