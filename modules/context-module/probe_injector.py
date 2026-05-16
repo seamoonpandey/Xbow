@@ -37,6 +37,7 @@ async def inject_probes(
     url: str,
     params: list[str],
     timeout: float = 10.0,
+    cookie_header: str | None = None,
 ) -> dict[str, dict]:
     """
     inject probe markers into each param and fetch the response.
@@ -48,8 +49,10 @@ async def inject_probes(
     """
     results: dict[str, dict] = {}
     post_globally_supported: bool | None = None
+    headers = {"Cookie": cookie_header} if cookie_header else None
 
     async with httpx.AsyncClient(
+        headers=headers,
         timeout=timeout,
         follow_redirects=True,
         verify=False,
