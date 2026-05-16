@@ -2,6 +2,8 @@
 shared pydantic schemas for inter-service communication
 """
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -14,6 +16,7 @@ class AnalyzeRequest(BaseModel):
     form_method: str = "GET"  # GET or POST
     form_fields: list[str] = Field(default_factory=list)  # all required field names
     display_url: str = ""  # page where stored output appears (for stored XSS)
+    cookie_header: str | None = None  # forwarded target-site auth cookies, if available
 
 
 class ParamContext(BaseModel):
@@ -71,6 +74,9 @@ class FuzzRequest(BaseModel):
     context: str | None = None  # context label (e.g., 'script_injection')
     waf: str | None = None  # waf type detected (e.g., 'cloudflare')
     allowed_chars: list[str] | None = None  # allowed special characters
+    # target-site auth data forwarded by Core when authenticated scanning is enabled
+    auth_cookie_header: str | None = None
+    auth_storage_state: dict[str, Any] | None = None
 
 
 class FuzzResult(BaseModel):
