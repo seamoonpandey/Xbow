@@ -696,11 +696,15 @@ export class ScanProcessor extends WorkerHost {
         ];
         for (const [paramName, ctx] of Object.entries(contexts)) {
           const ctxObj = ctx as { reflects_in: string };
-          if (paramName === FRAGMENT_PARAM && ctxObj.reflects_in === 'none') {
+          // The context module can never detect fragment reflection (server never
+          // sees the hash), so always upgrade __fragment__ to 'attribute' context.
+          // This ensures payload-gen targets attribute-breakout payloads instead
+          // of html_body payloads that can't exploit template-wrap scenarios.
+          if (paramName === FRAGMENT_PARAM) {
             (ctx as Record<string, unknown>).reflects_in = 'attribute';
             (ctx as Record<string, unknown>).allowed_chars =
               DEFAULT_FRAGMENT_CHARS;
-            (ctx as Record<string, unknown>).context_confidence = 0.75;
+            (ctx as Record<string, unknown>).context_confidence = 0.85;
           }
         }
 

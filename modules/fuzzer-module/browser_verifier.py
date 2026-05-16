@@ -236,12 +236,27 @@ async def _verify_one(
             except Exception:
                 pass  # non-fatal — DOMContentLoaded is enough for XSS detection
 
+            # trigger window.onload handlers by dispatching a synthetic load
+            # event.  Waiting for the real load event is too slow (up to 5 s
+            # per payload for images/analytics) and causes the fuzzer to hit
+            # its HTTP timeout.  Dispatching the event directly is ~200 ms and
+            # achieves the same result — many apps (e.g. XSS Game Level 3)
+            # create vulnerable DOM content in window.onload using jQuery
+            # .html() which we need to exist before we force-dispatch events.
+            try:
+                await page.evaluate("() => window.dispatchEvent(new Event('load'))")
+                await page.wait_for_timeout(200)
+            except Exception:
+                pass
+
             # actively trigger user-driven vectors (onclick/onfocus/javascript: links)
             # so click-dependent payloads can be confirmed.
             await _attempt_user_interactions(page, payload, param)
 
-            # brief wait for any delayed js execution
-            await page.wait_for_timeout(300)
+            # brief wait for any delayed js execution (force-dispatched events
+            # in _attempt_user_interactions are synchronous inside the JS
+            # evaluate context, so a short wait is sufficient)
+            await page.wait_for_timeout(800)
 
             # check execution flags
             try:
