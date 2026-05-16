@@ -15,13 +15,13 @@ When documentation and implementation disagree, use this order:
 
 ## Canonical Documents
 
-- `README.md` is the project entry point: implemented architecture summary, quick start, API surface, runtime artifacts, dataset/ML caveats, and test commands.
-- `RUN.md` is the step-by-step local setup/run guide.
-- `docs/ARCHITECTURE.md` holds deeper architecture, service contracts, report behavior, and design rationale.
-- `docs/SCAN_PARAMETERS_GUIDE.md` documents scan-tuning options from the implemented DTO.
-- `docs/ML_GUIDE.md` is the canonical short guide for model/data ownership.
-- `dataset/README.md` documents dataset sources and generated dataset structure.
-- `docs/DOCS_CODE_ALIGNMENT_AUDIT.md` records documentation/code mismatches and fixes.
+- `README.md` is the project entry point: concise overview, quick start, implemented endpoint summary, and links to deeper docs.
+- `RUN.md` is the step-by-step local setup/run guide with operational commands.
+- `docs/ARCHITECTURE.md` is the detailed architecture and API-contract source: service responsibilities, Core API, Python microservice contracts, report behavior, health behavior, and severity model.
+- `docs/SCAN_PARAMETERS_GUIDE.md` documents scan-tuning options from the implemented Core DTO.
+- `docs/ML_GUIDE.md` documents model/data/ranker ownership, fallback behavior, and ML taxonomy guidance.
+- `dataset/README.md` documents dataset sources, generated dataset layout, dataset runtime use, and raw-source download notes.
+- `docs/DOCS_CODE_ALIGNMENT_AUDIT.md` records documentation/code mismatches, cleanup passes, and known remaining code-level inconsistencies.
 
 When canonical docs disagree, update the narrower document and the higher-level source in the same change.
 
