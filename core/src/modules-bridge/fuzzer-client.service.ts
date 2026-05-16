@@ -20,11 +20,15 @@ export interface TestRequest {
   waf?: string;
   allowedChars?: string[];
   /**
-   * When provided, the fuzzer module will inject these cookies into every
-   * browser page and HTTP request it makes, enabling authenticated fuzzing.
+   * Optional flat cookie header forwarded to the Python fuzzer. The current
+   * Python HTTP sender can use this for HTTP-level authenticated requests.
    */
   authCookieHeader?: string;
-  /** Full Playwright storageState for browser-level auth */
+  /**
+   * Optional Playwright storageState forwarded for compatibility with the
+   * Python request schema. Browser-level storage-state consumption must be
+   * implemented in the Python verifier before documenting it as active.
+   */
   authStorageState?: import('../common/interfaces/auth.interface').PlaywrightStorageState;
 }
 
@@ -73,8 +77,8 @@ export class FuzzerClientService {
 
   /**
    * Run fuzzing against `req.url`.
-   * When `authSession` is provided the session cookies are forwarded to the
-   * Python fuzzer module for both HTTP-level and browser-level requests.
+   * When `authSession` is provided, session cookies are forwarded to the
+   * Python fuzzer request schema for HTTP-level authenticated fuzzing.
    */
   async test(
     req: TestRequest,
@@ -96,14 +100,15 @@ export class FuzzerClientService {
         allowed_chars: req.allowedChars ?? null,
       };
 
-      // Forward auth cookies — prefer explicit field, fall back to session
+      // Forward auth cookies — prefer explicit field, fall back to session.
       const cookieHeader = req.authCookieHeader ?? authSession?.cookieHeader;
       if (cookieHeader) {
         body.auth_cookie_header = cookieHeader;
         this.logger.debug(`fuzzer forwarding auth cookies for ${req.url}`);
       }
 
-      // Forward full storage state for browser-level auth
+      // Forward storage state for schema compatibility. The Python verifier
+      // currently treats this as optional future browser-auth input.
       const storageState = req.authStorageState ?? authSession?.storageState;
       if (storageState) {
         body.auth_storage_state = storageState;
