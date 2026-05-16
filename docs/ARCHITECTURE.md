@@ -1,44 +1,72 @@
 # RedSentinel — Architecture Document
 
----
-
-## 1. Project Overview
-
-RedSentinel is an AI-powered XSS vulnerability scanner built on a hybrid
-microservices architecture. It combines a NestJS TypeScript core for
-orchestration and real-time communication with Python FastAPI microservices
-for AI inference, context analysis, payload generation, and fuzzing.
-
-**Core Philosophy:**
-> NestJS does what it's best at — orchestration, routing, queuing, WebSockets.
-> Python does what it's best at — AI inference, security analysis, payload logic.
+This document describes the implementation currently present in the repository. Application code, DTOs, schemas, Docker Compose, and tests are the source of truth.
 
 ---
 
-## 2. Technology Stack
+## 1. Overview
 
-| Layer              | Technology               | Reason                                      |
-|--------------------|--------------------------|---------------------------------------------|
-| Core / API         | NestJS (TypeScript)      | Native modules, DI, guards, interceptors    |
-| Real-time          | WebSocket (NestJS Gateway) | Built-in, no extra setup                  |
-| Job Queue          | BullMQ + Redis           | Async scan pipeline, retries, concurrency   |
-| Crawler            | TypeScript (Playwright)  | Fast, type-safe, same language as core      |
-| AI / Security      | Python 3.11 + FastAPI    | ML ecosystem, transformers, Playwright      |
-| AI Model           | DistilBERT (HuggingFace) | Context classification                      |
-| Payload Ranking    | XGBoost                  | ML-powered payload prioritization           |
-| Severity Scoring   | Rule-based (4-axis)      | Deterministic, explainable vulnerability scoring |
-| Containerization   | Docker + Docker Compose  | Isolated services, reproducible deploys     |
-| Frontend           | Next.js (TypeScript)     | Same language as core, React-based          |
-| Database           | PostgreSQL (TypeORM)     | Persistent scan results with migrations     |
-| Cache / Queue      | Redis                    | BullMQ job queue backend                    |
+RedSentinel is an XSS scanner built from:
+
+- **NestJS Core** on port `3000` for REST APIs, WebSockets, scan orchestration, queue workers, crawling, persistence, reports, health checks, and authentication.
+- **Next.js Dashboard** on port `8080` for the browser UI.
+- **Python FastAPI microservices** for context analysis, payload generation, and fuzzing.
+- **Redis/BullMQ** for asynchronous scan jobs.
+- **PostgreSQL/TypeORM** for scan and vulnerability persistence.
 
 ---
 
-## 3. Database Schema
+## 2. Runtime Services
 
-The application persists domain data in two tables only: `scans` and `vulns`.
-TypeORM also maintains its own migration ledger in `typeorm_migrations`, but
-that table is framework metadata rather than a product model.
+| Service | Port | Implementation | Main responsibilities |
+|---|---:|---|---|
+| Core | 3000 | NestJS / TypeScript | Scan API, queue, crawler, report generation, health, WebSocket progress, auth, persistence |
+| Dashboard | 8080 | Next.js | Browser UI |
+| Context module | 5001 | FastAPI / Python | Reflection probing, context classification, allowed character fuzzing |
+| Payload-gen module | 5002 | FastAPI / Python | Payload bank loading, context-aware selection, mutation, obfuscation, ranking |
+| Fuzzer module | 5003 | FastAPI / Python | Payload sending, reflection checks, browser verification, DOM-XSS scanning, training data collection |
+| Redis | 6379 | Redis | BullMQ backend |
+| PostgreSQL | 5432 | PostgreSQL | Persistent `scans`, `vulns`, and migration metadata |
+
+Docker Compose mounts:
+
+| Mount/volume | Purpose |
+|---|---|
+| `./model:/app/model:ro` | Context classifier artifacts and metadata |
+| `./dataset/splits:/app/dataset/splits:ro` | Payload bank splits for payload-gen |
+| `./model/ranker:/app/model/ranker:ro` | XGBoost ranker artifacts |
+| `training_data:/app/training_data` | Fuzzer-collected training samples |
+| `reports:/app/reports` | Generated report files |
+| `pgdata:/var/lib/postgresql/data` | PostgreSQL data |
+
+---
+
+## 3. High-Level Architecture
+
+```text
+Browser / CLI
+    │ REST / Socket.IO
+    ▼
+Dashboard (Next.js :8080) ───────► Core (NestJS :3000)
+                                      │
+                                      ├─ ScanController / ReportController / HealthController
+                                      ├─ ScanGateway for live progress
+                                      ├─ BullMQ queue via Redis
+                                      ├─ TypeORM persistence in PostgreSQL
+                                      ├─ Crawler service
+                                      ├─ Report service
+                                      └─ ModulesBridge HTTP clients
+                                             │
+                                             ├─ Context module :5001 /analyze
+                                             ├─ Payload-gen module :5002 /generate, /ranker/info
+                                             └─ Fuzzer module :5003 /test
+```
+
+---
+
+## 4. Database Model
+
+The product domain persists scan state and findings in `scans` and `vulns`. TypeORM also maintains migration metadata in `typeorm_migrations`.
 
 ```mermaid
 erDiagram
@@ -72,306 +100,221 @@ erDiagram
   SCANS ||--o{ VULNS : contains
 ```
 
-### Domain Notes
+---
 
-| Table | Purpose |
-|-------|---------|
-| `scans` | Scan lifecycle state, progress, config, and terminal outcome |
-| `vulns` | Findings discovered during a scan, keyed back to a scan |
+## 5. Scan Pipeline
 
-`ScanStatus`, `ScanPhase`, `VulnType`, and `VulnSeverity` are enum-like application values stored as `varchar` columns.
+The queue processor orchestrates the scan in these phases:
+
+1. **AUTH** — optional target-site login when `scan.options.auth.enabled` is true.
+2. **CRAWL** — discover URLs, query parameters, forms, DOM signals, and WAF information. `singlePage` skips crawling and scans only the canonical submitted URL.
+3. **CONTEXT** — call the context module for each target URL/parameter set.
+4. **PAYLOAD-GEN** — call payload-gen with context data and `max_payloads` derived from `maxPayloadsPerParam`.
+5. **FUZZ** — call the fuzzer `/test` endpoint for reflected, stored, form, fragment, and DOM-oriented checks as supported by the queue logic and fuzzer implementation.
+6. **REPORT** — score findings, persist vulnerabilities, and generate requested report formats.
 
 ---
 
-## 4. High-Level Architecture
+## 6. Core Modules
 
-```diagram
+| Module/folder | Implemented role |
+|---|---|
+| `scan/` | Scan lifecycle controller, service, DTOs, gateway, entities, and audit access |
+| `crawler/` | URL/form/parameter discovery, DOM analysis, WAF detection |
+| `queue/` | BullMQ producer and scan processor |
+| `modules-bridge/` | HTTP clients for context, payload-gen, and fuzzer services |
+| `report/` | Report controller, service, templates, and generated file handling |
+| `health/` | Aggregate health checks for Python services |
+| `userauth/` | Dashboard/user JWT/cookie auth used by guarded scan/report routes |
+| `auth/` | API-key auth components for machine-client style auth where wired |
+| `scanner-log/` | Scanner/audit log support |
+| `common/` | Interfaces, exceptions, URL helpers, severity scorer |
 
-┌──────────────────────────────────────────────────────────────┐
-│                   CLIENT (Browser / CLI)                      │
-└──────────────────────────┬───────────────────────────────────┘
-                           │  REST / WebSocket
-                           ▼
-┌──────────────────────────────────────────────────────────────┐
-│                 CORE — NestJS (TypeScript)  :3000             │
-│                                                              │
-│   ┌──────────┐   ┌──────────────┐   ┌──────────────────┐    │
-│   │ REST API │   │  WebSocket   │   │   Job Queue      │    │
-│   │ Gateway  │   │  Gateway     │   │  (BullMQ/Redis)  │    │
-│   └────┬─────┘   └──────┬───────┘   └────────┬─────────┘    │
-│        └────────────────┼────────────────────┘              │
-│                         │                                    │
-│                 ┌────────▼────────┐                          │
-│                 │  ORCHESTRATOR   │                          │
-│                 │  Scan Pipeline  │                          │
-│                 └────────┬────────┘                          │
-│                          │                                   │
-│         ┌────────────────┼────────────────┐                  │
-│         │                │                │                  │
-│   ┌─────▼──────┐  ┌──────▼──────┐  ┌─────▼──────────┐      │
-│   │  Crawler   │  │  Scan Mgr   │  │  Report Mgr    │      │
-│   │  Service   │  │  Service    │  │  Service       │      │
-│   │  (TS)      │  │  (TS)       │  │  (TS)          │      │
-│   └─────┬──────┘  └──────┬──────┘  └─────┬──────────┘      │
-│         │                │               │                  │
-└─────────┼────────────────┼───────────────┼──────────────────┘
-          │                │               │
-          │     Internal HTTP/JSON         │
-          │                │               │
-┌─────────┼────────────────┼───────────────┼──────────────────┐
-│         ▼                ▼               ▼                  │
-│  ┌─────────────┐  ┌────────────┐  ┌───────────────┐        │
-│  │   CONTEXT   │  │ PAYLOAD-GEN│  │    FUZZER     │        │
-│  │   MODULE    │  │   MODULE   │  │    MODULE     │        │
-│  │  (Python)   │  │  (Python)  │  │   (Python)   │        │
-│  │  FastAPI    │  │  FastAPI   │  │   FastAPI    │        │
-│  │   :5001     │  │   :5002    │  │    :5003     │        │
-│  └─────────────┘  └────────────┘  └───────────────┘        │
-│                                                              │
-│              PYTHON MICROSERVICES (AI + Security)            │
-└──────────────────────────────────────────────────────────────┘
-          │                │               │
-          └────────────────┼───────────────┘
-                           │
-                    ┌──────▼──────┐
-                    │  PostgreSQL │
-                    │  + Redis    │
-                    └─────────────┘
-
-```
+`ScanController` and `ReportController` are guarded by `JwtAuthGuard`. `/health` is public.
 
 ---
 
-## 5. Scan Pipeline — 5 Phases
+## 7. Core REST API Reference
 
-Every scan flows through exactly 5 sequential phases, all orchestrated by NestJS Core.
+### Scan routes
 
-```text
+| Method | Endpoint | Response/behavior |
+|---|---|---|
+| `POST` | `/scan` | Creates a scan, enqueues it, returns the scan record. |
+| `GET` | `/scan/:id` | Returns scan data plus `vulns`. |
+| `GET` | `/scans?page=&limit=` | Returns a paginated array of scan records plus `vulns`. |
+| `GET` | `/scan/:id/audit` | Returns `{ scanId, logs }`. |
+| `GET` | `/scan/:id/report` | Returns `{ reportUrl: "/reports/<id>.html" }` only. It does not directly download HTML/PDF/JSON. |
+| `DELETE` | `/scan/:id` | Cancels an active scan. |
+| `DELETE` | `/scans/:id` | Permanently deletes a scan and its results. |
+| `DELETE` | `/scans` | Deletes all scans/results/reports and returns `{ deleted }`. |
 
-Phase 1: CRAWL          (NestJS — Crawler Service)
-         │
-         │  Discovers all URLs, params, forms, DOM sinks
-         │  Fingerprints WAF (Cloudflare, Akamai, etc.)
-         ▼
-Phase 2: CONTEXT        (Python — Context Module :5001)
-         │
-         │  Injects probes, checks reflection points
-         │  Classifies context via DistilBERT
-         │  Output: { param → { reflects_in, allowed_chars } }
-         ▼
-Phase 3: PAYLOAD-GEN    (Python — Payload-Gen Module :5002)
-         │
-         │  Selects from 59K+ payload bank by context
-         │  Mutates + obfuscates for WAF bypass
-         │  Ranks by success probability
-         │  Output: [ { payload, confidence, target_param } ]
-         ▼
-Phase 4: FUZZ           (Python — Fuzzer Module :5003)
-         │
-         │  Sends HTTP requests with payloads
-         │  Checks HTTP + DOM reflection
-         │  Verifies JS execution via Playwright (headless)
-         │  Output: [ { payload, reflected, executed, vuln } ]
-         ▼
-Phase 5: REPORT         (NestJS — Report Service)
-         │
-         │  Scores each finding via 4-axis severity matrix
-         │  Deduplicates by page::source::sink key
-         │  Aggregates confirmed vulnerabilities
-         │  Generates HTML / PDF / JSON report
-         │  Pushes real-time updates via WebSocket
-         ▼
-        DONE
+### Report routes
 
-```
+| Method | Endpoint | Response/behavior |
+|---|---|---|
+| `GET` | `/reports/:scanId` | Returns available formats, broken formats, and download links. |
+| `GET` | `/reports/:scanId/download?format=html\|json\|pdf` | Sends an existing report file if present. |
+| `GET` | `/reports/:scanId/regenerate?formats=html,json,pdf` | Regenerates selected formats and returns `{ scanId, reportUrl, formats }`. |
 
----
+### Health route
 
-## 6. Service Responsibilities
+| Method | Endpoint | Response/behavior |
+|---|---|---|
+| `GET` | `/health` | Returns `{ status, uptime, timestamp, services }` where `services` contains context, payload-gen, and fuzzer status. |
 
-### 6.1 NestJS Core — The Brain
+### `POST /scan` request body
 
-**Role:** Orchestration, routing, state, real-time communication
-**Port:** 3000
+Implemented DTO fields use camelCase:
 
-| Module           | Responsibility                                          |
-|------------------|---------------------------------------------------------|
-| `ScanModule`     | Scan lifecycle — create, track, cancel, retrieve        |
-| `CrawlerModule`  | Spider target, discover params, detect WAF              |
-| `ModulesBridge`  | HTTP clients to all 3 Python microservices              |
-| `QueueModule`    | BullMQ producers/processors for async scan jobs         |
-| `ReportModule`   | Compile results, score severity, generate reports       |
-| `AuthModule`     | API key guard for protected endpoints                   |
-| `WsGateway`      | WebSocket — push real-time scan progress to client      |
-
-**Severity Scoring Engine** (`common/utils/severity-scorer.ts`):
-
-A rule-based 4-axis scoring matrix applied to every confirmed finding:
-
-| Axis | Values | Score |
-|------|--------|-------|
-| Execution | executed → 3, reflected → 2, dom-only → 1 | 1-3 |
-| Shareability | url_param → 3, postMessage/e.data → 2, URLSearchParams/hash/document.cookie → 1 | 1-3 |
-| Sink danger | eval/document.write/location.assign/script → 3, innerHTML/html_body/comment/jQuery_html → 2, attribute → 1 | 1-3 |
-| Payload | document.cookie → 3, localStorage → 2, alert triggered → 1, WAF bypass (%) → 1 | 0-4+ |
-
-Total → Severity: 8+ CRITICAL, 6-7 HIGH, 4-5 MEDIUM, 0-3 LOW
-
-5 Override Rules:
-1. **HASH_SOURCE_LOW_CAP:** source=location.hash → max LOW
-2. **EVAL_SINK_MINIMUM_HIGH:** sink=eval → min HIGH
-3. **CONFIRMED_SENSITIVE_EXEC:** executed + document.cookie → CRITICAL
-4. **WAF_BYPASS_MEDIUM_MINIMUM:** reflected + encoded + exactMatch → min MEDIUM
-5. **POSTMESSAGE_MEDIUM_MINIMUM:** source=e.data/postMessage → min MEDIUM
-
-**Deduplication:** Composite key format `page::source::sink` prevents duplicate findings for the same injection point.
-
-### 6.2 Context Module — Python :5001
-
-**Role:** Determine where and how input is reflected
-**Model:** DistilBERT (fine-tuned XSS context classifier)
-
-| File                     | Purpose                                           |
-|--------------------------|---------------------------------------------------|
-| `probe_injector.py`      | Inject unique markers into params                 |
-| `reflection_analyzer.py` | Parse response for marker reflection              |
-| `char_fuzzer.py`         | Test which special chars survive sanitization     |
-| `html_parser.py`         | Identify exact DOM position of reflection         |
-| `ai_classifier.py`       | DistilBERT inference — classify context type      |
-
-**Context Types Classified:**
-
-- `html_body` — reflected raw in HTML
-- `attribute` — reflected inside an HTML attribute
-- `js_string` — reflected inside a JavaScript string
-- `js_block` — reflected inside a script block
-- `url` — reflected in a `href` or `src`
-- `none` — not reflected / filtered
-
-### 6.3 Payload-Gen Module — Python :5002
-
-**Role:** Select and mutate payloads based on context + WAF
-**Payload Bank:** 59,000+ curated + synthetic XSS payloads
-
-| File             | Purpose                                               |
-|------------------|-------------------------------------------------------|
-| `bank.py`        | Load + query the 59K+ payload database                |
-| `selector.py`    | Filter payloads by context type                       |
-| `mutator.py`     | AI-driven payload mutation for novelty                |
-| `obfuscator.py`  | Encode payloads for WAF bypass (unicode, hex, etc.)   |
-| `ranker.py`      | Heuristic fallback: 5-component weighted scoring      |
-| `xgboost_ranker.py` | ML-powered payload ranking using XGBoost           |
-| `feature_extractor.py` | Converts payload+context into ~30 features for XGBoost |
-
-### 6.4 Fuzzer Module — Python :5003
-
-**Role:** Execute payloads and confirm vulnerabilities
-**Browser Engine:** Playwright (Chromium headless)
-
-| File                   | Purpose                                           |
-|------------------------|---------------------------------------------------|
-| `http_sender.py`       | Send HTTP requests with injected payloads         |
-| `reflection_checker.py`| Verify payload appears in response body           |
-| `browser_verifier.py`  | Headless browser — confirm JS execution           |
-| `dom_xss_scanner.py`   | Scan for DOM-based XSS sinks                      |
-
----
-
-## 7. API Contracts (Inter-Service)
-
-### 7.1 Core → Context Module
-
-```bash
-
-POST <http://context:5001/analyze>
-
-Request:
+```json
 {
-  "url": "<https://target.com/search?q=test>",
-  "params": ["q", "search", "id"],
-  "waf": "cloudflare"
+  "url": "https://target.example",
+  "options": {
+    "depth": 3,
+    "maxParams": 100,
+    "verifyExecution": true,
+    "wafBypass": true,
+    "maxPayloadsPerParam": 50,
+    "timeout": 60000,
+    "reportFormat": ["html", "json"],
+    "singlePage": false,
+    "auth": {
+      "enabled": true,
+      "loginUrl": "https://target.example/login",
+      "username": "alice",
+      "password": "secret",
+      "usernameSelector": "input[name=\"username\"]",
+      "passwordSelector": "input[name=\"password\"]",
+      "submitSelector": "button[type=\"submit\"]",
+      "postLoginWaitMs": 3000,
+      "successUrlContains": "/dashboard"
+    }
+  }
 }
+```
 
-Response:
+`options.auth` is target application authentication for the scanner. It is separate from RedSentinel API authentication.
+
+---
+
+## 8. Python Microservice Contracts
+
+The shared schema file is used by payload-gen and fuzzer, but the context module also defines local request/response models. Keep this duplication in mind when changing contracts.
+
+### 8.1 Context module — `POST /analyze`
+
+Implemented local request model:
+
+```json
+{
+  "url": "https://target.example/search?q=test",
+  "params": ["q"],
+  "waf": "none"
+}
+```
+
+Implemented response is a bare parameter map:
+
+```json
 {
   "q": {
-    "reflects_in": "attribute",
-    "allowed_chars": ["<", ">", "\""],
-    "context_confidence": 0.97
-  },
-  "search": {
     "reflects_in": "html_body",
-    "allowed_chars": ["<", ">", "\"", "'"],
+    "allowed_chars": ["<", ">", "\""],
     "context_confidence": 0.94
   }
 }
-
 ```
 
-### 7.2 Core → Payload-Gen Module
+`GET /health` returns:
 
-```bash
+```json
+{
+  "status": "ok",
+  "service": "context-module",
+  "ai_model_loaded": true
+}
+```
 
-POST <http://payload-gen:5002/generate>
+### 8.2 Payload-gen module — `POST /generate`
 
-Request:
+Implemented shared request model:
+
+```json
 {
   "contexts": {
-    "q": { "reflects_in": "attribute", "allowed_chars": [...] },
-    "search": { "reflects_in": "html_body", "allowed_chars": [...] }
+    "q": {
+      "reflects_in": "html_body",
+      "allowed_chars": ["<", ">"],
+      "context_confidence": 0.94
+    }
   },
-  "waf": "cloudflare",
+  "waf": "none",
   "max_payloads": 50
 }
+```
 
-Response:
+Implemented response model:
+
+```json
 {
   "payloads": [
     {
-      "payload": "\" onmouseover=alert(1) x=\"",
-      "target_param": "q",
-      "context": "attribute",
-      "confidence": 0.92,
-      "waf_bypass": true
-    },
-    {
       "payload": "<img src=x onerror=alert(1)>",
-      "target_param": "search",
+      "target_param": "q",
       "context": "html_body",
-      "confidence": 0.88,
-      "waf_bypass": false
+      "confidence": 0.91,
+      "waf_bypass": false,
+      "technique": "original",
+      "severity": "medium"
     }
   ]
 }
-
 ```
 
-### 7.3 Core → Fuzzer Module
+`GET /health` returns payload-bank and ranker state. `GET /ranker/info` returns ranker status and feature importance.
 
-```bash
+Payload ranking uses XGBoost only when the ranker model is available; otherwise it falls back to heuristic scoring.
 
-POST <http://fuzzer:5003/test>
+### 8.3 Fuzzer module — `POST /test`
 
-Request:
+There is no implemented `/fuzz` endpoint.
+
+Implemented shared request model:
+
+```json
 {
-  "url": "<https://target.com/search>",
+  "url": "https://target.example/search",
   "payloads": [
     {
       "payload": "<img src=x onerror=alert(1)>",
-      "target_param": "search",
-      "confidence": 0.88
+      "target_param": "q",
+      "confidence": 0.91,
+      "technique": "original",
+      "severity": "medium",
+      "context": "html_body"
     }
   ],
   "verify_execution": true,
-  "timeout": 10000
+  "timeout": 10000,
+  "stored_mode": false,
+  "display_url": "",
+  "form_method": "GET",
+  "form_fields": {},
+  "context": "html_body",
+  "waf": "none",
+  "allowed_chars": ["<", ">"]
 }
+```
 
-Response:
+Implemented response model:
+
+```json
 {
   "results": [
     {
       "payload": "<img src=x onerror=alert(1)>",
-      "target_param": "search",
+      "target_param": "q",
       "reflected": true,
       "executed": true,
       "vuln": true,
@@ -384,365 +327,120 @@ Response:
     }
   ]
 }
-
 ```
 
-### 7.4 WebSocket Events (Core → Client)
-
-```c
-
-Event: scan:progress
-{
-  "scanId": "abc-123",
-  "phase": "FUZZ",
-  "progress": 67,
-  "message": "Testing payload 34/50 on param: search"
-}
-
-Event: scan:finding
-{
-  "scanId": "abc-123",
-  "vuln": {
-    "param": "search",
-    "payload": "<img src=x onerror=alert(1)>",
-    "type": "reflected_xss",
-    "severity": "HIGH"
-  }
-}
-
-Event: scan:complete
-{
-  "scanId": "abc-123",
-  "summary": {
-    "total_params": 12,
-    "params_tested": 12,
-    "vulns_found": 3,
-    "duration_ms": 42300
-  },
-  "reportUrl": "/reports/abc-123.html"
-}
-
-```
+`GET /health` returns training sample counts and success rate. `GET /training/stats` returns detailed fuzzer training-data collection statistics.
 
 ---
 
-## 8. REST API Reference (NestJS Core)
+## 9. Context and Finding Taxonomies
 
-| Method | Endpoint              | Description                         |
-|--------|-----------------------|-------------------------------------|
-| POST   | `/scan`               | Start a new scan                    |
-| GET    | `/scan/:id`           | Get scan status + results           |
-| DELETE | `/scan/:id`           | Cancel an active scan               |
-| GET    | `/scan/:id/report`    | Download report (HTML/PDF/JSON)     |
-| GET    | `/scans`              | List all scans (paginated)          |
-| GET    | `/health`             | Health check (all services)         |
+Do not describe the project as having one universal six-class taxonomy.
 
-### POST /scan — Request Body
+Runtime reflection contexts include values produced by the context module and DOM/parser heuristics, such as:
 
-```json
-{
-  "url": "https://target.com",
-  "options": {
-    "depth": 3,
-    "max_params": 100,
-    "verify_execution": true,
-    "waf_bypass": true,
-    "max_payloads_per_param": 50,
-    "timeout": 60000,
-    "report_format": ["html", "json"]
-  }
-}
-```
+- `html_body`
+- `attribute`
+- `js_string`
+- `js_block`
+- `url`
+- `none`
+
+Fuzzer/vulnerability finding types are separate labels and may include:
+
+- `reflected_xss`
+- `stored_xss`
+- `dom_xss`
+- `dom_stored_xss`
+- `template_injection`
+- `svg_xss`
+- `mutation_xss`
+
+Training/evaluation labels may use narrower label sets depending on the specific dataset or script.
 
 ---
 
-## 9. Folder Structure
+## 10. Severity Scoring
 
-```bash
+Severity is implemented as a deterministic rule-based scorer in `core/src/common/utils/severity-scorer.ts`. It is not a CVSS implementation and does not calculate ALE or expected monetary loss.
+
+Scoring axes:
+
+| Axis | Examples | Score range |
+|---|---|---:|
+| Execution | executed, reflected, DOM-only | 1-3 |
+| Shareability | URL param, postMessage/e.data, URLSearchParams/hash/document.cookie | 1-3 |
+| Sink danger | eval/script/document.write/location.assign, innerHTML/html_body/comment/jQuery_html, attribute/href | 1-3 |
+| Payload impact | `document.cookie`, `localStorage`, alert triggered, `%` encoding | 0+ |
+
+Thresholds:
+
+| Total score | Severity |
+|---:|---|
+| 8+ | CRITICAL |
+| 6-7 | HIGH |
+| 4-5 | MEDIUM |
+| 0-3 | LOW |
+
+Override rules:
+
+1. `HASH_SOURCE_MEDIUM_CAP`: `location.hash`/`hash` source is capped at MEDIUM.
+2. `EVAL_SINK_MINIMUM_HIGH`: `eval` sink is at least HIGH.
+3. `CONFIRMED_SENSITIVE_EXEC`: executed payload containing `document.cookie` is CRITICAL.
+4. `WAF_BYPASS_MEDIUM_MINIMUM`: reflected exact-match payload containing `%` is at least MEDIUM.
+5. `POSTMESSAGE_MEDIUM_MINIMUM`: `postMessage`/`e.data` source is at least MEDIUM.
+
+---
+
+## 11. Reports
+
+The report module supports available-format discovery, direct file download, and regeneration through `/reports/:scanId` routes.
+
+`/scan/:id/report` is a convenience pointer that returns `{ reportUrl: "/reports/<id>.html" }`; it is not the file-download endpoint.
+
+Generated formats depend on `reportFormat` in scan options or explicit `formats` passed to regenerate. A download succeeds only if the file exists.
+
+---
+
+## 12. Dataset and ML Claims
+
+Use “approximately 59K+” for the payload bank unless an exact count is proven by a currently tracked artifact or script output.
+
+Dataset sources documented in `dataset/README.md` are:
+
+- AwesomeXSS
+- PayloadsAllTheThings
+- XSSGAI
+- PortSwigger XSS cheat sheet content
+
+The context classifier may use model artifacts under `model/`; missing large checkpoint binaries should be treated as a supported local/deployment artifact condition rather than a repository error. Payload ranking uses XGBoost when `model/ranker/` loads successfully and heuristic ranking otherwise.
+
+---
+
+## 13. Folder Structure
+
+```text
 red-sentinel/
-│
-├── core/                              # NestJS (TypeScript) — Port 3000
-│   ├── src/
-│   │   ├── app.module.ts
-│   │   ├── main.ts
-│   │   │
-│   │   ├── scan/
-│   │   │   ├── scan.module.ts
-│   │   │   ├── scan.controller.ts     # REST endpoints
-│   │   │   ├── scan.service.ts        # Pipeline orchestrator + vuln persistence
-│   │   │   ├── scan.gateway.ts        # WebSocket gateway
-│   │   │   ├── entities/
-│   │   │   │   ├── scan.entity.ts      # TypeORM entity — scans table
-│   │   │   │   └── vuln.entity.ts      # TypeORM entity — vulns table
-│   │   │   ├── migrations/            # TypeORM schema migrations
-│   │   │   └── dto/
-│   │   │       ├── create-scan.dto.ts
-│   │   │       └── scan-result.dto.ts
-│   │   │
-│   │   ├── crawler/
-│   │   │   ├── crawler.module.ts
-│   │   │   ├── crawler.service.ts     # Spider + param discovery
-│   │   │   ├── waf-detector.service.ts
-│   │   │   └── dom-analyzer.service.ts
-│   │   │
-│   │   ├── modules-bridge/
-│   │   │   ├── bridge.module.ts
-│   │   │   ├── context-client.service.ts   # → :5001
-│   │   │   ├── payload-client.service.ts   # → :5002
-│   │   │   └── fuzzer-client.service.ts    # → :5003
-│   │   │
-│   │   ├── queue/
-│   │   │   ├── queue.module.ts
-│   │   │   ├── scan.producer.ts
-│   │   │   └── scan.processor.ts
-│   │   │
-│   │   ├── report/
-│   │   │   ├── report.module.ts
-│   │   │   ├── report.service.ts
-│   │   │   └── templates/
-│   │   │       ├── report.html.hbs
-│   │   │       └── report.pdf.hbs
-│   │   │
-│   │   ├── auth/
-│   │   │   ├── auth.module.ts
-│   │   │   └── api-key.guard.ts
-│   │   │
-│   │   └── common/
-│   │       ├── interfaces/
-│   │       │   ├── scan.interface.ts
-│   │       │   ├── vuln.interface.ts
-│   │       │   └── crawler.interface.ts
-│   │       ├── exceptions/
-│   │       │   └── scan.exceptions.ts
-│   │       └── utils/
-│   │           ├── url.utils.ts
-│   │           ├── severity-scorer.ts      # 4-axis scoring matrix + overrides
-│   │           └── severity-scorer.spec.ts # 62 unit tests
-│   │
-│   ├── test/
-│   ├── nest-cli.json
-│   ├── tsconfig.json
-│   ├── package.json
-│   ├── Dockerfile
-│   └── .env
-│
+├── core/                    NestJS API, queue, crawler, reports, auth, health, migrations
+├── dashboard/               Next.js dashboard
 ├── modules/
-│   │
-│   ├── context-module/                # Python FastAPI — Port 5001
-│   │   ├── app.py
-│   │   ├── probe_injector.py
-│   │   ├── reflection_analyzer.py
-│   │   ├── char_fuzzer.py
-│   │   ├── html_parser.py
-│   │   ├── ai_classifier.py
-│   │   ├── model/
-│   │   │   ├── checkpoints/
-│   │   │   └── tokenizer/
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   │
-│   ├── payload-gen-module/            # Python FastAPI — Port 5002
-│   │   ├── app.py
-│   │   ├── bank.py
-│   │   ├── selector.py
-│   │   ├── mutator.py
-│   │   ├── obfuscator.py
-│   │   ├── ranker.py                  # Heuristic fallback scorer
-│   │   ├── xgboost_ranker.py          # ML-powered XGBoost ranker
-│   │   ├── feature_extractor.py       # ~30 features for XGBoost model
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   │
-│   ├── fuzzer-module/                 # Python FastAPI — Port 5003
-│   │   ├── app.py
-│   │   ├── http_sender.py
-│   │   ├── reflection_checker.py
-│   │   ├── browser_verifier.py
-│   │   ├── dom_xss_scanner.py
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   │
-│   └── shared/                        # Shared Python utilities
-│       ├── schemas.py                 # Pydantic models (shared DTOs)
-│       └── constants.py
-│
-├── ai/                                # AI training pipeline
-│   ├── dataset/
-│   │   ├── payloads_24k.json
-│   │   └── labeled_contexts.csv
-│   ├── model/
-│   │   ├── distilbert-base/
-│   │   └── tokenizer/
-│   └── training/
-│       ├── train.py
-│       ├── evaluate.py
-│       └── config.yaml
-│
-├── dashboard/                         # Next.js frontend — Port 8080
-│   ├── app/
-│   ├── components/
-│   ├── package.json
-│   └── Dockerfile
-│
-├── docker-compose.yml
-├── docker-compose.dev.yml
-├── .env.example
-├── README.md
-└── cli.ts                             # Standalone CLI tool
+│   ├── context-module/      FastAPI context/reflection analysis service
+│   ├── payload-gen-module/  FastAPI payload generation/ranking service
+│   ├── fuzzer-module/       FastAPI payload execution/verification service
+│   └── shared/              Shared Python Pydantic schemas used by services
+├── dataset/                 Curated/processed/split payload data and ignored raw sources
+├── model/                   Tokenizer, ranker artifacts, small metadata, local checkpoints
+├── ai/                      Training scripts
+├── tools/                   Offline inference/maintenance utilities
+├── scripts/                 Project automation and smoke tests
+├── tests/                   Python integration/regression tests
+├── docs/                    Canonical docs plus archived historical notes
+├── docker-compose.yml       Runtime service composition
+└── RUN.md                   Manual run guide
 ```
 
 ---
 
-## 10. Docker Compose
+## 14. Test Claims
 
-```yaml
-version: '3.8'
-
-services:
-
-  core:
-    build: ./core
-    container_name: redsentinel-core
-    ports:
-      - "3000:3000"
-    depends_on:
-      - redis
-      - postgres
-      - context
-      - payload-gen
-      - fuzzer
-    environment:
-      - NODE_ENV=production
-      - CONTEXT_URL=http://context:5001
-      - PAYLOAD_GEN_URL=http://payload-gen:5002
-      - FUZZER_URL=http://fuzzer:5003
-      - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://rs:rs@postgres:5432/redsentinel
-    restart: unless-stopped
-
-  context:
-    build: ./modules/context-module
-    container_name: redsentinel-context
-    ports:
-      - "5001:5001"
-    volumes:
-      - ./ai/model:/app/model
-    restart: unless-stopped
-
-  payload-gen:
-    build: ./modules/payload-gen-module
-    container_name: redsentinel-payload-gen
-    ports:
-      - "5002:5002"
-    volumes:
-      - ./ai/dataset:/app/data
-    restart: unless-stopped
-
-  fuzzer:
-    build: ./modules/fuzzer-module
-    container_name: redsentinel-fuzzer
-    ports:
-      - "5003:5003"
-    restart: unless-stopped
-
-  dashboard:
-    build: ./dashboard
-    container_name: redsentinel-dashboard
-    ports:
-      - "8080:8080"
-    depends_on:
-      - core
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-      - NEXT_PUBLIC_WS_URL=ws://localhost:3000
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: redsentinel-redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: redsentinel-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=rs
-      - POSTGRES_PASSWORD=rs
-      - POSTGRES_DB=redsentinel
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
-
-volumes:
-  pgdata:
-```
-
----
-
-## 11. Development Roadmap
-
-| Phase | Days   | Stack           | Deliverable                                    | Status   |
-|-------|--------|-----------------|------------------------------------------------|----------|
-| 1     | 1–2    | Python          | 59K+ XSS payload dataset built + labeled (59,122 samples) | ✅ DONE  |
-| 2     | 3      | Python          | DistilBERT model setup + tokenizer configured  | ✅ DONE  |
-| 3     | 4–5    | Python          | AI context classifier trained + evaluated      | ✅ DONE  |
-| 4     | 6–7    | NestJS          | Core scaffold: scan pipeline, queue, WebSocket | ✅ DONE  |
-| 5     | 8–9    | TypeScript      | Crawler: spider, param discovery, WAF detect   | ✅ DONE  |
-| 6     | 10–11  | Python          | Context Module: probe, reflect, AI classify    | ✅ DONE  |
-| 7     | 12–13  | Python          | Payload-Gen Module: select, mutate, obfuscate  | ✅ DONE  |
-| 8     | 14–15  | Python          | Fuzzer Module: send, reflect-check, browser    | ✅ DONE  |
-| 9     | 16     | TypeScript      | Report engine: HTML / PDF / JSON output        | ✅ DONE  |
-| 10    | 17–18  | Docker Compose  | Full integration + end-to-end test             | ✅ DONE  |
-| 11    | 19–20  | Next.js         | Dashboard: scan UI, results, reports           | ✅ DONE  |
-| 12    | 21     | All             | Tests, docs, CLI polish, release               | ✅ DONE  |
-
----
-
-## 12. Key Design Decisions
-
-| Decision                     | Choice                  | Rationale                                          |
-|------------------------------|-------------------------|----------------------------------------------------|
-| Core language                | TypeScript / NestJS     | Type safety, native DI, WebSocket, BullMQ          |
-| AI / security language       | Python                  | HuggingFace, transformers, Playwright ecosystem    |
-| Inter-service protocol       | HTTP/JSON               | Simple, debuggable, REST-compatible                |
-| Queue system                 | BullMQ + Redis          | Reliable async jobs, retry logic, concurrency      |
-| Browser automation           | Playwright              | Best-in-class headless XSS verification            |
-| AI model                     | DistilBERT              | Fast inference, small size, high accuracy          |
-| Report formats               | HTML + PDF + JSON       | Human-readable + machine-parseable                 |
-| Frontend                     | Next.js                 | Same TS ecosystem as core, React-based             |
-
----
-
-## 13. Environment Variables
-
-```bash
-# Core (NestJS)
-NODE_ENV=production
-PORT=3000
-
-# Python service URLs
-CONTEXT_URL=http://context:5001
-PAYLOAD_GEN_URL=http://payload-gen:5002
-FUZZER_URL=http://fuzzer:5003
-
-# Infrastructure
-REDIS_URL=redis://redis:6379
-DATABASE_URL=postgresql://rs:rs@postgres:5432/redsentinel
-
-# Auth
-API_KEY_SECRET=your-secret-here
-
-# Scan defaults
-DEFAULT_SCAN_DEPTH=3
-DEFAULT_MAX_PAYLOADS=50
-DEFAULT_TIMEOUT_MS=60000
-```
-
----
-
-*RedSentinel v2.0 — NestJS Core + Python AI Microservices*
-*Architecture locked. Ready to build.*
+The repository includes test suites and npm/pytest commands, but this document does not claim current pass counts. Record actual command results in release notes or audit logs when tests are run.
