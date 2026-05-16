@@ -59,6 +59,10 @@ class AnalyzeRequest(BaseModel):
     url: str
     params: list[str]
     waf: str = "none"
+    form_method: str = "GET"
+    form_fields: list[str] = Field(default_factory=list)
+    display_url: str = ""
+    cookie_header: str | None = None
 
 
 class ParamContext(BaseModel):
@@ -89,7 +93,11 @@ async def analyze(req: AnalyzeRequest) -> dict[str, ParamContext]:
     logger.info(f"analyzing url={req.url} params={req.params} waf={req.waf}")
 
     # step 1: inject probe markers into all params
-    probe_results = await inject_probes(req.url, req.params)
+    probe_results = await inject_probes(
+        req.url,
+        req.params,
+        cookie_header=req.cookie_header,
+    )
 
     results: dict[str, ParamContext] = {}
 
@@ -134,8 +142,8 @@ async def analyze(req: AnalyzeRequest) -> dict[str, ParamContext]:
         ai_confidence = ai_result["confidence"]
 
         # step 4: consensus — prefer ai if confident, else dom, else regex
-        # Exception: DOM-based js_string and url contexts are highly specific and structurally 
-        # accurate (e.g. from event handlers like onload). Never let AI override them to a 
+        # Exception: DOM-based js_string and url contexts are highly specific and structurally
+        # accurate (e.g. from event handlers like onload). Never let AI override them to a
         # generic "attribute".
         if dom_context in ("js_string", "url") and ai_context == "attribute":
             final_context = dom_context
@@ -165,7 +173,11 @@ async def analyze(req: AnalyzeRequest) -> dict[str, ParamContext]:
         if param == FRAGMENT_PARAM:
             allowed_chars = DEFAULT_FRAGMENT_ALLOWED_CHARS
         else:
-            allowed_chars = await fuzz_chars(req.url, param)
+            allowed_chars = await fuzz_chars(
+                req.url,
+                param,
+                cookie_header=req.cookie_header,
+            )
 
         results[param] = ParamContext(
             reflects_in=final_context,
