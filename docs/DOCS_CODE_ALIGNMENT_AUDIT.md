@@ -40,6 +40,7 @@ To reduce redundancy and avoid conflicting claims, each topic has one primary ho
 | Context taxonomy | `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_GUIDE.md`, `dataset/README.md` | Risk of presenting one six-class taxonomy as universal | Context app, fuzzer app, shared schemas | Runtime reflection contexts, training labels, and vulnerability labels differ | Separated runtime reflection contexts from vulnerability/finding labels and training labels | Medium |
 | Testing claims | `README.md`, `docs/ARCHITECTURE.md` | Specific pass/test counts such as unit/e2e totals | `core/package.json`, test folders/configs | Counts should not be claimed unless tests are run now | Removed pass-count claims; documented available test suites and commands only | Medium |
 | Documentation hierarchy | `docs/README.md`, `docs/REPOSITORY_GUIDE.md`, `README.md` | Canonical docs and archive status needed stronger wording; README duplicated detailed schemas | Current docs layout | Historical files can conflict with current implementation; duplicated schemas can drift | Added source-of-truth order, marked `docs/archive/` historical/non-canonical, and reduced README to an entry point with links to detailed canonical docs | Medium |
+| Micro-level ownership wording | `docs/README.md`, `docs/REPOSITORY_GUIDE.md` | Some descriptions still implied older README responsibilities after redundancy cleanup | Current canonical doc layout | Index/ownership wording could mislead future maintainers about where details belong | Tightened document descriptions so detailed API contracts live in `ARCHITECTURE.md`, scan tuning in `SCAN_PARAMETERS_GUIDE.md`, dataset details in `dataset/README.md`, and README remains the entry point | Medium |
 
 ## Redundancy cleanup pass
 
@@ -51,6 +52,17 @@ A second cleanup pass reduced duplication after the initial alignment:
 - `docs/ARCHITECTURE.md` remains the detailed implementation/API contract document.
 - `docs/SCAN_PARAMETERS_GUIDE.md` remains focused on DTO option names, ranges, and tuning behavior.
 - `docs/ML_GUIDE.md` and `dataset/README.md` share consistent dataset/ranker wording, with dataset source detail anchored in `dataset/README.md`.
+
+## Micro-detail cleanup pass
+
+A third pass checked smaller wording and mapping issues after redundancy cleanup:
+
+- `docs/README.md` now describes each canonical doc by its precise current responsibility.
+- `docs/REPOSITORY_GUIDE.md` now matches the same ownership model as `docs/README.md`.
+- README responsibility wording was narrowed from detailed runtime/API ownership to entry-point and summary ownership.
+- Architecture wording remains the single home for detailed Core/Python API contracts.
+- Scan-parameters wording remains the single home for DTO option ranges and tuning explanations.
+- Dataset and ML docs remain split by source/layout (`dataset/README.md`) versus model/ranker/fallback ownership (`docs/ML_GUIDE.md`).
 
 ## Remaining code-level inconsistencies to clean up later
 
@@ -86,5 +98,6 @@ Snake_case names such as `verify_execution` and `max_payloads` remain accurate w
 - Inspected Core scan controller, create-scan DTO, report controller, health controller/service, module bridge clients, severity scorer, Docker Compose, Python FastAPI apps, shared schemas, package scripts, and canonical docs.
 - Updated canonical documentation to match code behavior.
 - Reduced README-level duplication so detailed contracts have a single primary home.
+- Tightened canonical-document ownership wording in `docs/README.md` and `docs/REPOSITORY_GUIDE.md`.
 - Ran GitHub repository searches for stale/suspicious terms through the connected GitHub search tool.
 - Tests and markdown lint were not run in this environment. The repository includes test commands, but this audit does not claim passing results.
