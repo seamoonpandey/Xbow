@@ -206,6 +206,7 @@ class DomXssFinding:
     script_url: str
     confidence: str = "high"  # high, medium, low
     suggested_payload: str = "" # Best-guess payload to test this sink
+    fragment_dependent: bool = False  # whether the source involves URL fragment/hash
 
 
 @dataclass
@@ -320,6 +321,127 @@ def _line_uses_var(line: str, var_name: str) -> bool:
     return bool(pat.search(cleaned))
 
 
+def _get_function_definition(lines: list[str], func_name: str) -> list[str] | None:
+    """
+    find a named function definition and extract its parameter names.
+    supports standard function declarations and function expressions.
+    returns list of param names or None if function not found.
+    """
+    func_escaped = re.escape(func_name)
+    for line in lines:
+        # Pattern: function funcName(param1, param2, ...) {
+        m = re.search(
+            r'function\s+' + func_escaped + r'\s*\(([^)]*)\)',
+            line,
+        )
+        if m:
+            params = [p.strip() for p in m.group(1).split(',') if p.strip()]
+            if params:
+                return params
+        # Pattern: funcName = function(param1, param2, ...) {
+        m = re.search(
+            r'\b' + func_escaped + r'\s*=\s*function\s*\(([^)]*)\)',
+            line,
+        )
+        if m:
+            params = [p.strip() for p in m.group(1).split(',') if p.strip()]
+            if params:
+                return params
+        # Pattern: const|var|let funcName = (param1, param2, ...) =>
+        m = re.search(
+            r'(?:const|var|let)\s+' + func_escaped + r'\s*=\s*\(([^)]*)\)\s*=>',
+            line,
+        )
+        if m:
+            params = [p.strip() for p in m.group(1).split(',') if p.strip()]
+            if params:
+                return params
+    return None
+
+
+def _is_function_call_with_tainted_arg(
+    line: str,
+    tainted_source_match: re.Match,
+) -> tuple[str | None, str | None]:
+    """
+    check if a tainted source match appears inside a function call argument.
+    returns (function_name, argument_text) or (None, None).
+    
+    e.g., chooseTab(unescape(self.location.hash.substr(1)))
+    → returns ("chooseTab", "unescape(self.location.hash.substr(1))")
+    """
+    src_start = tainted_source_match.start()
+    src_end = tainted_source_match.end()
+    
+    # Walk backward from the tainted source to find the nearest function call
+    # Find the outermost non-utility function call wrapping the tainted source.
+    # Walk outward through nested function calls (e.g. chooseTab(unescape(location.hash)))
+    # to find the user-defined function that receives tainted data.
+    
+    # First, collect all function call parens on the line and find which ones
+    # contain the tainted source position.
+    paren_stacks: list[tuple[int, int, str, int, int]] = []  # (open_pos, close_pos, func_name, name_start, name_end)
+    
+    # Find all function calls (word followed by '(') on this line
+    for m in re.finditer(r'([\w$.]+)\s*\(', line):
+        func_name = m.group(1)
+        open_pos = m.end() - 1  # position of the '('
+        
+        # Find matching closing paren
+        depth = 1
+        for k in range(open_pos + 1, len(line)):
+            if line[k] == '(':
+                depth += 1
+            elif line[k] == ')':
+                depth -= 1
+                if depth == 0:
+                    paren_stacks.append((open_pos, k, func_name, m.start(1), m.end(1)))
+                    break
+    
+    if not paren_stacks:
+        return None, None
+    
+    # Find the function call that contains the tainted source
+    # Walk from innermost to outermost, but skip utility/helper functions
+    def _is_utility_func(name: str) -> bool:
+        """Check if this is a common utility function that passes through taint."""
+        if name in _FUNC_CALL_THROUGH:
+            return True
+        # Method calls on well-known objects that just pass data through
+        return any(name.startswith(p) for p in ('Math.', 'JSON.', 'console.', 'Array.', 'Object.',))
+    
+    # Find all calls whose args span the tainted source position
+    containing_calls = []
+    for open_pos, close_pos, func_name, _, _ in paren_stacks:
+        if open_pos < src_start < close_pos:
+            arg_text = line[open_pos + 1:close_pos]
+            containing_calls.append((func_name, arg_text, open_pos, close_pos))
+    
+    if not containing_calls:
+        return None, None
+    
+    # Pick the outermost non-utility function (first from outermost = widest span)
+    containing_calls.sort(key=lambda x: x[2])  # sort by open_pos (outermost first)
+    
+    for func_name, arg_text, open_pos, close_pos in containing_calls:
+        if not _is_utility_func(func_name):
+            return func_name, arg_text
+    
+    # All containing functions are utilities; return the outermost one anyway
+    # (the parameter of utility functions still carries taint)
+    func_name, arg_text, _, _ = containing_calls[-1]
+    return func_name, arg_text
+
+
+# Common utility/helper functions that don't directly use DOM APIs.
+# When a tainted source is passed to these, the parameter is still tainted.
+_FUNC_CALL_THROUGH = {
+    'unescape', 'decodeURI', 'decodeURIComponent', 'encodeURI',
+    'encodeURIComponent', 'String', 'toString', 'escape', 'parseInt',
+    'parseFloat', 'Number', 'Boolean', 'atob', 'btoa',
+}
+
+
 def _build_taint_set(lines: list[str]) -> tuple[set[str], str]:
     """
     multi-hop taint propagation across all lines of a script.
@@ -329,6 +451,7 @@ def _build_taint_set(lines: list[str]) -> tuple[set[str], str]:
     - method calls: var x = params.get(...) 
     - object property access: var x = obj.prop
     - bracket notation: var x = dict[key]
+    - function call arguments: chooseTab(location.hash) → seeds 'num' tainted
 
     returns (set of tainted variable names, original source name)
     """
@@ -354,6 +477,19 @@ def _build_taint_set(lines: list[str]) -> tuple[set[str], str]:
         if var:
             tainted.add(var)
             tainted_objects[var] = src.group(0)
+        
+        # Also check if the tainted source is in a function call argument.
+        # e.g., chooseTab(unescape(self.location.hash.substr(1)))
+        # This seeds the function's parameter as tainted, enabling
+        # cross-function taint propagation.
+        func_name, _ = _is_function_call_with_tainted_arg(line, src)
+        if func_name and func_name not in _FUNC_CALL_THROUGH:
+            params = _get_function_definition(lines, func_name)
+            if params:
+                for param in params:
+                    if param not in tainted:
+                        tainted.add(param)
+                        tainted_objects[param] = src.group(0)
 
     # pass 2: propagate taint through variable assignments (up to 4 hops for better coverage)
     # e.g. params = URLSearchParams → name = params.get() → elem = name → ...
@@ -500,6 +636,16 @@ def _scan_single_script(content: str, script_url: str) -> list[DomXssFinding]:
                 if not has_source:
                     continue
 
+                # Determine if this finding is fragment-dependent
+                # (source involves location.hash, document.URL, etc.)
+                FRAGMENT_PATTERNS = [
+                    "location.hash", "document.url", "document.documenturi",
+                    "window.location.hash",
+                ]
+                fragment_dependent = any(
+                    pat in source_name.lower() for pat in FRAGMENT_PATTERNS
+                ) if source_name else False
+
                 # Determine suggested payload based on sink name (more explicit)
                 suggested_payload = SUGGESTED_PAYLOADS.get(sink_name)
                 if not suggested_payload:
@@ -524,6 +670,7 @@ def _scan_single_script(content: str, script_url: str) -> list[DomXssFinding]:
                     script_url=script_url,
                     confidence=confidence,
                     suggested_payload=suggested_payload,
+                    fragment_dependent=fragment_dependent,
                 ))
 
     return findings
@@ -582,6 +729,7 @@ def findings_to_results(
                 "confidence": f.confidence,
                 "script_url": f.script_url,
                 "dataflow": dataflow_desc,  # explicit data flow description
+                "fragment_dependent": f.fragment_dependent,  # auto-generate __fragment__ payloads
             },
         })
 

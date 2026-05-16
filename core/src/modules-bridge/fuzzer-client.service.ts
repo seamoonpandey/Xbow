@@ -45,6 +45,10 @@ export interface FuzzResult {
     line?: number;
     snippet?: string;
     script_url?: string;
+    severity?: string;
+    confidence?: string;
+    dataflow?: string;
+    fragment_dependent?: boolean;
   };
 }
 
@@ -61,7 +65,10 @@ export class FuzzerClientService {
     private readonly http: HttpService,
     private readonly config: ConfigService,
   ) {
-    this.baseUrl = this.config.get<string>('FUZZER_URL', 'http://localhost:5003');
+    this.baseUrl = this.config.get<string>(
+      'FUZZER_URL',
+      'http://localhost:5003',
+    );
   }
 
   /**
@@ -69,7 +76,10 @@ export class FuzzerClientService {
    * When `authSession` is provided the session cookies are forwarded to the
    * Python fuzzer module for both HTTP-level and browser-level requests.
    */
-  async test(req: TestRequest, authSession?: AuthSession): Promise<TestResponse> {
+  async test(
+    req: TestRequest,
+    authSession?: AuthSession,
+  ): Promise<TestResponse> {
     try {
       const axiosTimeoutMs = Math.max(req.timeout + 90_000, 120_000);
 
