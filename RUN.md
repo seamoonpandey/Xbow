@@ -1,6 +1,6 @@
 # Red Sentinel — Run Guide
 
-Everything you need to set up and run the project from scratch on a fresh Ubuntu/Debian machine.
+Everything needed to set up and run the project on a fresh Ubuntu/Debian machine.
 
 ---
 
@@ -10,8 +10,8 @@ Everything you need to set up and run the project from scratch on a fresh Ubuntu
 |------|---------|---------|
 | **Node.js** | 22+ | `curl -fsSL https://deb.nodesource.com/setup_22.x \| sudo -E bash - && sudo apt install -y nodejs` |
 | **Python** | 3.11+ | `sudo apt install -y python3 python3-pip python3-venv` |
-| **PostgreSQL** | 14+ | `sudo apt install -y postgresql postgresql-contrib` |
-| **Redis** | 6.0+ | `sudo apt install -y redis-server` |
+| **PostgreSQL** | 14+ locally / 16 in Docker Compose | `sudo apt install -y postgresql postgresql-contrib` |
+| **Redis** | 6.2+ recommended / Redis 7 in Docker Compose | `sudo apt install -y redis-server` |
 | **tmux** | any | `sudo apt install -y tmux` |
 | **Git** | any | `sudo apt install -y git` |
 
@@ -20,17 +20,12 @@ Everything you need to set up and run the project from scratch on a fresh Ubuntu
 ## Quick Start (automated)
 
 ```bash
-# 1. First-time setup — installs everything
 ./setup.sh
-
-# 2. Start all services in tmux
 ./start.sh
-
-# 3. Stop everything
 ./stop.sh
 ```
 
-That's it. The rest of this document is for **running things manually one by one**.
+The remainder of this document explains the manual service-by-service workflow.
 
 ---
 
@@ -53,21 +48,15 @@ sudo apt install -y redis-server postgresql postgresql-contrib tmux curl lsof
 ### 3. PostgreSQL — create role and database
 
 ```bash
-# Start Postgres if not running
 sudo systemctl start postgresql
-
-# Create the role and database
 sudo -u postgres psql -c "CREATE ROLE rs WITH LOGIN PASSWORD 'rs';"
 sudo -u postgres psql -c "CREATE DATABASE redsentinel OWNER rs;"
-
-# Verify
 psql -h localhost -U rs -d redsentinel -c "SELECT 1;"
-# (password: rs)
 ```
 
 ### 4. Python dependencies
 
-All Python services share a **single virtual environment** at the project root:
+The local scripts use one virtual environment at the project root:
 
 ```bash
 python3 -m venv venv
@@ -79,7 +68,7 @@ deactivate
 
 ### 5. Playwright browser
 
-The fuzzer uses Playwright to launch a real browser for XSS verification:
+The fuzzer uses Playwright/Chromium for browser verification:
 
 ```bash
 source venv/bin/activate
@@ -91,18 +80,12 @@ deactivate
 ### 6. Node.js dependencies
 
 ```bash
-# Core API (NestJS)
-cd core
-npm install
-
-# Dashboard (Next.js)
-cd ../dashboard
-npm install
-
+cd core && npm install
+cd ../dashboard && npm install
 cd ..
 ```
 
-### 7. Puppeteer browser (for PDF reports)
+### 7. Puppeteer browser for PDF report generation
 
 ```bash
 cd core
@@ -120,50 +103,34 @@ cd ..
 
 ### 8b. Run database migrations
 
-Migrations apply the schema to the PostgreSQL database. This step is
-idempotent — safe to run multiple times.
-
 ```bash
 cd core
 DATABASE_URL=postgresql://rs:rs@localhost:5432/redsentinel npm run migration:run
 cd ..
 ```
 
-To see which migrations have been applied:
-
-```bash
-cd core && DATABASE_URL=postgresql://rs:rs@localhost:5432/redsentinel npm run migration:show
-```
-
-> **Note:** The NestJS app is configured with `migrationsRun: true`, so
-> pending migrations also run automatically when the server starts.
-> Running them manually here catches any SQL errors before the first boot.
+The NestJS app is also configured to run pending migrations on startup.
 
 ### 9. Environment variables
 
 ```bash
-# Create .env from the example
 cp .env.example .env
 ```
 
-Edit `.env` and change the Docker hostnames to `localhost`:
+For local, non-Docker service execution, use localhost service URLs:
 
 ```dotenv
-# ── core (nestjs) ────────────────────────────────────────────
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=*
 
-# ── python microservice urls ─────────────────────────────────
 CONTEXT_URL=http://localhost:5001
 PAYLOAD_GEN_URL=http://localhost:5002
 FUZZER_URL=http://localhost:5003
 
-# ── redis ────────────────────────────────────────────────────
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# ── postgres ─────────────────────────────────────────────────
 POSTGRES_USER=rs
 POSTGRES_PASSWORD=rs
 POSTGRES_DB=redsentinel
@@ -172,9 +139,9 @@ DATABASE_URL=postgresql://rs:rs@localhost:5432/redsentinel
 
 ---
 
-## Running Services Manually (one by one)
+## Running Services Manually
 
-Open **6 separate terminals** (or use tmux panes). Start them in this order:
+Open separate terminals or tmux panes. Start services in this order.
 
 ### Terminal 1 — Redis
 
@@ -182,7 +149,7 @@ Open **6 separate terminals** (or use tmux panes). Start them in this order:
 redis-server
 ```
 
-Verify: `redis-cli ping` → should print `PONG`
+Verify: `redis-cli ping` → `PONG`
 
 ### Terminal 2 — Context Module (port 5001)
 
@@ -192,29 +159,49 @@ cd modules/context-module
 python app.py
 ```
 
-You should see:
-
-```
-INFO:     Uvicorn running on http://0.0.0.0:5001
-```
-
 Verify: `curl http://localhost:5001/health`
+
+Response shape:
+
+```json
+{
+  "status": "ok",
+  "service": "context-module",
+  "ai_model_loaded": true
+}
+```
+
+`ai_model_loaded` may be false when model artifacts are missing; the classifier code is expected to fall back rather than making the service unavailable.
 
 ### Terminal 3 — Payload Generator (port 5002)
 
 ```bash
 source venv/bin/activate
 cd modules/payload-gen-module
-python app.py
-```
-
-You should see:
-
-```
-INFO:     Uvicorn running on http://0.0.0.0:5002
+DATASET_DIR=../../dataset/splits RANKER_MODEL_DIR=../../model/ranker python app.py
 ```
 
 Verify: `curl http://localhost:5002/health`
+
+Response shape:
+
+```json
+{
+  "status": "ok",
+  "service": "payload-gen",
+  "bank_loaded": true,
+  "bank_size": 0,
+  "ranker": "heuristic"
+}
+```
+
+The `ranker` value is `xgboost` when the ranker model is available and `heuristic` otherwise. `/generate` returns 503 if the payload bank is empty or unavailable.
+
+Optional ranker inspection:
+
+```bash
+curl http://localhost:5002/ranker/info
+```
 
 ### Terminal 4 — Fuzzer (port 5003)
 
@@ -224,33 +211,37 @@ cd modules/fuzzer-module
 python app.py
 ```
 
-You should see:
-
-```
-INFO:     Uvicorn running on http://0.0.0.0:5003
-```
-
 Verify: `curl http://localhost:5003/health`
+
+Response shape:
+
+```json
+{
+  "status": "ok",
+  "service": "fuzzer",
+  "training_samples": 0,
+  "training_success_rate": 0
+}
+```
+
+Detailed training-data stats are available from `GET /training/stats`.
 
 ### Terminal 5 — Core API (port 3000)
 
 ```bash
 cd core
-
-# Option A: dev mode (auto-reload on changes)
 npm run start:dev
-
-# Option B: production mode
+# or
 npx nest build && node dist/main.js
 ```
 
-You should see:
+Verify:
 
-```
-[Nest] LOG [NestApplication] Nest application successfully started
+```bash
+curl http://localhost:3000/health
 ```
 
-Verify: `curl http://localhost:3000/docs` (Swagger UI)
+Swagger UI is mounted at `http://localhost:3000/docs`.
 
 ### Terminal 6 — Dashboard (port 8080)
 
@@ -275,32 +266,88 @@ Open: <http://localhost:9090>
 
 ## Running a Scan
 
-Once all services are up:
+The scan and report routes are implemented behind the Core JWT guard. In normal use, start scans from the dashboard after logging in. For CLI/API use, include a valid bearer token when your local auth configuration requires it.
 
 ```bash
-# Start a scan against the vulnerable test site
 curl -X POST http://localhost:3000/scan \
   -H 'Content-Type: application/json' \
-  -d '{"url": "http://localhost:9090"}'
+  -H 'Authorization: Bearer <JWT>' \
+  -d '{
+    "url": "http://localhost:9090",
+    "options": {
+      "depth": 3,
+      "maxParams": 100,
+      "verifyExecution": true,
+      "wafBypass": true,
+      "maxPayloadsPerParam": 50,
+      "timeout": 60000,
+      "reportFormat": ["html", "json"],
+      "singlePage": false
+    }
+  }'
 ```
 
-This returns a scan ID. Check progress:
+Check progress/status:
 
 ```bash
-curl http://localhost:3000/scan/<SCAN_ID>
+curl -H 'Authorization: Bearer <JWT>' http://localhost:3000/scan/<SCAN_ID>
 ```
 
-When status is `DONE`, view the report:
-
-- **HTML**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=html
-- **JSON**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=json
-- **PDF**: <http://localhost:3000/reports/`><SCAN_ID>`/download?format=pdf
-
-Or regenerate it:
+Get audit logs:
 
 ```bash
-curl "http://localhost:3000/reports/<SCAN_ID>/regenerate?formats=html,json,pdf"
+curl -H 'Authorization: Bearer <JWT>' http://localhost:3000/scan/<SCAN_ID>/audit
 ```
+
+### Reports
+
+`GET /scan/<SCAN_ID>/report` returns only a pointer:
+
+```json
+{ "reportUrl": "/reports/<SCAN_ID>.html" }
+```
+
+Use the report controller endpoints for available formats and file downloads:
+
+```bash
+curl -H 'Authorization: Bearer <JWT>' \
+  http://localhost:3000/reports/<SCAN_ID>
+
+curl -H 'Authorization: Bearer <JWT>' \
+  "http://localhost:3000/reports/<SCAN_ID>/download?format=html"
+
+curl -H 'Authorization: Bearer <JWT>' \
+  "http://localhost:3000/reports/<SCAN_ID>/regenerate?formats=html,json,pdf"
+```
+
+A download succeeds only when that report format exists or has been regenerated successfully.
+
+---
+
+## Target-Site Authentication During Scanning
+
+Target application login is configured in the scan request body under `options.auth`. This is separate from authentication used to call the RedSentinel API.
+
+```json
+{
+  "url": "https://target.example",
+  "options": {
+    "auth": {
+      "enabled": true,
+      "loginUrl": "https://target.example/login",
+      "username": "alice",
+      "password": "secret",
+      "usernameSelector": "input[name=\"username\"]",
+      "passwordSelector": "input[name=\"password\"]",
+      "submitSelector": "button[type=\"submit\"]",
+      "postLoginWaitMs": 3000,
+      "successUrlContains": "/dashboard"
+    }
+  }
+}
+```
+
+When login succeeds, Core captures cookies/storage state and passes the authenticated session into crawling, context probing, and fuzzing where supported by the bridge clients. If login fails, the current processor logs the failure and continues unauthenticated.
 
 ---
 
@@ -308,35 +355,39 @@ curl "http://localhost:3000/reports/<SCAN_ID>/regenerate?formats=html,json,pdf"
 
 | Service | Port | Tech |
 |---------|------|------|
-| Redis | 6379 | Redis 6+ |
-| PostgreSQL | 5432 | PostgreSQL 14+ |
+| Redis | 6379 | Redis |
+| PostgreSQL | 5432 | PostgreSQL |
 | Context Analyzer | 5001 | Python / FastAPI |
 | Payload Generator | 5002 | Python / FastAPI |
 | Fuzzer | 5003 | Python / FastAPI / Playwright |
 | Core API | 3000 | Node.js / NestJS |
 | Dashboard | 8080 | Node.js / Next.js |
-| Vuln Test Site | 9090 | Python / Flask |
+| Vulnerable Test Site | 9090 | Python / Flask |
+
+---
+
+## Docker Runtime Mounts
+
+Docker Compose mounts the following important runtime artifacts:
+
+| Mount | Purpose |
+|---|---|
+| `./model:/app/model:ro` | Context model/tokenizer/checkpoint metadata. |
+| `./dataset/splits:/app/dataset/splits:ro` | Payload bank input for payload-gen. |
+| `./model/ranker:/app/model/ranker:ro` | XGBoost ranker artifacts. Missing model falls back to heuristic ranking. |
+| `training_data:/app/training_data` | Fuzzer-collected ranker training samples. |
+| `reports:/app/reports` | Core-generated report files. |
+| `pgdata:/var/lib/postgresql/data` | PostgreSQL data. |
 
 ---
 
 ## Troubleshooting
 
-### "Address already in use"
-
-Something is already running on that port. Kill it:
+### Address already in use
 
 ```bash
-# Find and kill process on a port (e.g. 3000)
 kill $(lsof -t -i:3000)
 ```
-
-### Redis version warning
-
-```
-It is highly recommended to use a minimum Redis version of 6.2.0
-```
-
-This is a BullMQ warning — it still works fine with Redis 6.0. Ignore it or upgrade Redis.
 
 ### Playwright browser not found
 
@@ -345,20 +396,19 @@ python3 -m playwright install chromium
 python3 -m playwright install-deps chromium
 ```
 
-### Context module says "ai model not loaded"
+### Context module says `ai_model_loaded` is false
 
-The AI model checkpoint (`model/checkpoints/best.pt`) may be missing. The context module falls back to rule-based classification automatically — this is fine for testing.
+The context model checkpoint or tokenizer may be missing. This does not necessarily prevent the service from running; classifier fallback behavior is used when possible.
 
-To train the model:
+### Payload generator has an empty bank
 
-```bash
-cd ai/training
-python3 train.py
-```
+Ensure `DATASET_DIR` points to the generated split files, for example `dataset/splits/`, or use Docker Compose where this directory is mounted into `/app/dataset/splits`.
+
+### Ranker is `heuristic`
+
+The XGBoost ranker artifact was not loaded from `model/ranker/`. The service remains usable and ranks payloads with heuristic scoring.
 
 ### PostgreSQL auth failure
-
-Make sure the `rs` role exists:
 
 ```bash
 sudo -u postgres psql -c "CREATE ROLE rs WITH LOGIN PASSWORD 'rs';"
@@ -371,11 +421,11 @@ sudo -u postgres psql -c "CREATE DATABASE redsentinel OWNER rs;"
 
 | Script | Description |
 |--------|-------------|
-| `./setup.sh` | One-time install of all packages, deps, databases, browsers, migrations |
-| `./start.sh` | Launch everything in a tmux session (`rs`) |
-| `./start.sh --detach` | Same but don't attach to tmux |
-| `./stop.sh` | Kill the tmux session and orphaned processes |
-| `cd core && npm run migration:run` | Apply pending database migrations |
-| `cd core && npm run migration:revert` | Roll back the last migration |
-| `cd core && npm run migration:show` | List all migrations and their status |
-| `cd core && npm run migration:generate -- src/migrations/Name` | Auto-generate a migration from entity changes |
+| `./setup.sh` | One-time install of packages, dependencies, database setup, browsers, and migrations. |
+| `./start.sh` | Launch services in a tmux session. |
+| `./start.sh --detach` | Launch services without attaching to tmux. |
+| `./stop.sh` | Stop the tmux session and orphaned processes. |
+| `cd core && npm run migration:run` | Apply pending database migrations. |
+| `cd core && npm run migration:revert` | Roll back the last migration. |
+| `cd core && npm run migration:show` | List migrations and status. |
+| `cd core && npm run migration:generate -- src/migrations/Name` | Generate a migration from entity changes. |
