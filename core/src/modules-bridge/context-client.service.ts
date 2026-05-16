@@ -47,23 +47,19 @@ export class ContextClientService {
         waf: req.waf,
       };
 
-      // Forward cookies so the Python module can probe auth-gated endpoints
+      // Forward cookies so the Python module can probe auth-gated endpoints.
       const cookieHeader = req.cookieHeader ?? authSession?.cookieHeader;
       if (cookieHeader) {
         payload.cookie_header = cookieHeader;
         this.logger.debug(`context analyze forwarding auth cookies for ${req.url}`);
       }
 
-      // The Python FastAPI /analyze endpoint returns AnalyzeResponse:
-      //   { results: { param: { reflects_in, allowed_chars, context_confidence } },
-      //     engine_version: "1.0.0",
-      //     waf: "..." }
-      // The Python /analyze endpoint returns the ContextMap directly,
-      // NOT wrapped in { results: ... }.
       const { data } = await firstValueFrom(
         this.http.post<ContextMap>(`${this.baseUrl}/analyze`, payload),
       );
-      // Support both wire formats: bare map or { results: map }
+
+      // Current context-module returns a bare ContextMap. Keep compatibility
+      // with an older wrapped shape if a legacy module is deployed.
       const raw = data as Record<string, unknown>;
       const contextMap: ContextMap = (raw && typeof raw === 'object' && 'results' in raw
         ? (raw.results as unknown as ContextMap)
