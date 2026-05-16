@@ -58,11 +58,16 @@ export class ContextClientService {
       //   { results: { param: { reflects_in, allowed_chars, context_confidence } },
       //     engine_version: "1.0.0",
       //     waf: "..." }
-      // We MUST unwrap data.results to get the ContextMap.
+      // The Python /analyze endpoint returns the ContextMap directly,
+      // NOT wrapped in { results: ... }.
       const { data } = await firstValueFrom(
-        this.http.post<{ results: ContextMap }>(`${this.baseUrl}/analyze`, payload),
+        this.http.post<ContextMap>(`${this.baseUrl}/analyze`, payload),
       );
-      const contextMap: ContextMap = data.results ?? {};
+      // Support both wire formats: bare map or { results: map }
+      const raw = data as Record<string, unknown>;
+      const contextMap: ContextMap = (raw && typeof raw === 'object' && 'results' in raw
+        ? (raw.results as unknown as ContextMap)
+        : (data as ContextMap)) ?? {};
       if (!contextMap || Object.keys(contextMap).length === 0) {
         this.logger.warn(`context module returned empty results for ${req.url}`);
       } else {

