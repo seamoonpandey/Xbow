@@ -2,14 +2,14 @@
 
 These documents are the canonical documentation set for the current implementation:
 
-1. `../README.md` — project overview, implemented service/API summary, runtime artifacts, and test commands.
-2. `../RUN.md` — full local setup and run guide.
-3. `ARCHITECTURE.md` — detailed architecture, API contracts, service responsibilities, report behavior, and scoring model.
-4. `REPOSITORY_GUIDE.md` — directory ownership, artifact policy, dependency policy, and documentation ownership.
-5. `SCAN_PARAMETERS_GUIDE.md` — scan-tuning behavior for implemented scan options.
-6. `ML_GUIDE.md` — concise ML/data/model maintenance guide.
-7. `../dataset/README.md` — dataset sources and generated dataset structure.
-8. `DOCS_CODE_ALIGNMENT_AUDIT.md` — latest documentation/code alignment audit and fixes applied.
+1. `../README.md` — project entry point: concise overview, quick start, implemented endpoint summary, and links to deeper docs.
+2. `../RUN.md` — full local setup and run guide with operational commands.
+3. `ARCHITECTURE.md` — detailed architecture, Core API reference, Python microservice contracts, report behavior, health behavior, and severity model.
+4. `SCAN_PARAMETERS_GUIDE.md` — implemented Core scan option names, ranges, target-site auth options, and tuning behavior.
+5. `ML_GUIDE.md` — model/data/ranker ownership, ML fallback behavior, and taxonomy guidance.
+6. `../dataset/README.md` — dataset sources, generated dataset layout, dataset runtime use, and raw-source download notes.
+7. `REPOSITORY_GUIDE.md` — directory ownership, artifact policy, dependency policy, and documentation hygiene rules.
+8. `DOCS_CODE_ALIGNMENT_AUDIT.md` — documentation/code alignment audit, cleanup record, and known remaining code-level inconsistencies.
 
 ## Source-of-truth order
 
