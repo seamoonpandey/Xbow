@@ -1,0 +1,22 @@
+{
+  "run_id": "v2_clean_run",
+  "timestamp": "2026-05-17T19:39:13.529050+00:00",
+  "target_url": "http://localhost:5050",
+  "fuzzer_url": "http://localhost:5003",
+  "tools_run": [
+    "red_sentinel",
+    "xsstrike",
+    "dalfox",
+    "zap"
+  ],
+  "tool_versions": {
+    "python": "Python 3.11.6",
+    "xsstrike": "usage: xsstrike [-h] [-u TARGET] [--data PARAMDATA] [-e ENCODE] [--fuzzer]",
+    "dalfox": "",
+    "zap": "0.10.0"
+  },
+  "total_endpoints": 14,
+  "total_time_seconds": 244.68,
+  "ground_truth_path": "/home/moon/Projects/xbow/eval/ground_truth.json",
+  "manifest_path": "/home/moon/Projects/xbow/eval/manifests/multi-type.json"
+}

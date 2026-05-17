@@ -1,0 +1,820 @@
+{
+  "run_id": "manual_test",
+  "total_time_seconds": 49.55,
+  "tool_versions": {
+    "python": "Python 3.11.6",
+    "xsstrike": "usage: xsstrike [-h] [-u TARGET] [--data PARAMDATA] [-e ENCODE] [--fuzzer]",
+    "dalfox": "",
+    "zap": "0.10.0"
+  },
+  "ground_truth": {
+    "reflected-body": "Vuln",
+    "reflected-script": "Vuln",
+    "reflected-attr-unquoted": "Vuln",
+    "reflected-href": "Vuln",
+    "reflected-iframe": "Vuln",
+    "reflected-multiparams": "Vuln",
+    "reflected-meta": "Safe",
+    "bypass-double-encode": "Vuln",
+    "bypass-quote-escape": "Vuln",
+    "bypass-blacklist": "Vuln",
+    "bypass-case": "Vuln",
+    "bypass-angle-only": "Safe",
+    "bypass-waf-sim": "Vuln",
+    "mutation-innerhtml": "Safe"
+  },
+  "per_endpoint_results": [
+    {
+      "name": "reflected-body",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/body",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<script>alert(1)</script>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            },
+            {
+              "payload": "<img src=x onerror=alert(1)>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.75,
+          "error": null,
+          "vuln_count": 2,
+          "executed_count": 2,
+          "reflected_count": 2
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.84,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-script",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/script",
+      "params": [
+        "name"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "';alert(1)//",
+              "param": "name",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "script"
+            }
+          ],
+          "time_seconds": 2.65,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.13,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.71,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-attr-unquoted",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/attribute-unquoted",
+      "params": [
+        "color"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "x onfocus=alert(1) autofocus=x",
+              "param": "color",
+              "type": "reflected_xss",
+              "executed": false,
+              "reflected": true,
+              "position": "html_body"
+            }
+          ],
+          "time_seconds": 2.67,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.75,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-href",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/href",
+      "params": [
+        "url"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "javascript:alert(1)",
+              "param": "url",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.7,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.71,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-iframe",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/iframe",
+      "params": [
+        "src"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "javascript:alert(1)",
+              "param": "src",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "html_body"
+            }
+          ],
+          "time_seconds": 2.63,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.75,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-multiparams",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/multiparams",
+      "params": [
+        "a",
+        "b"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<script>alert(1)</script>",
+              "param": "a",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.64,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 1.82,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "reflected-meta",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/meta",
+      "params": [
+        "redir"
+      ],
+      "expected": "Safe",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 2.67,
+          "error": null,
+          "vuln_count": 0,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.74,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-double-encode",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/double-encode",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "%253Cscript%253Ealert(1)%253C/script%253E",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": false,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.7,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.73,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-quote-escape",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/quote-escape",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<img src=x onerror=alert(1)>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.7,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.72,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-blacklist",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/blacklist",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<img src=x onerror=alert(1)>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.65,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.1,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.71,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-case",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/case",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<ScRiPt>alert(1)</ScRiPt>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": true,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.67,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 1,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.72,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-angle-only",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/angle-only",
+      "params": [
+        "q"
+      ],
+      "expected": "Safe",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "\" autofocus onfocus=alert(1) id=\"",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": false,
+              "reflected": true,
+              "position": "html_body"
+            }
+          ],
+          "time_seconds": 2.69,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.13,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.75,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.12,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "bypass-waf-sim",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/waf-sim",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "<script>fetch('/health')</script>",
+              "param": "q",
+              "type": "reflected_xss",
+              "executed": false,
+              "reflected": true,
+              "position": "attribute"
+            }
+          ],
+          "time_seconds": 2.67,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.74,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    },
+    {
+      "name": "mutation-innerhtml",
+      "category": "Mutation",
+      "url": "http://localhost:5050/mutation/innerhtml",
+      "params": [
+        "html"
+      ],
+      "expected": "Safe",
+      "tool_results": {
+        "red_sentinel": {
+          "detected": true,
+          "details": [
+            {
+              "payload": "DOM-XSS: .innerHTML \u2192 innerHTML",
+              "param": ".innerHTML",
+              "type": "dom_xss",
+              "executed": false,
+              "reflected": false,
+              "position": "script"
+            }
+          ],
+          "time_seconds": 0.01,
+          "error": null,
+          "vuln_count": 1,
+          "executed_count": 0,
+          "reflected_count": 1
+        },
+        "xsstrike": {
+          "detected": true,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "payloads_found": 0,
+          "reflection_count": 0
+        },
+        "dalfox": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.82,
+          "error": null,
+          "poc_count": 0,
+          "params_with_poc": []
+        },
+        "zap": {
+          "detected": false,
+          "details": [],
+          "time_seconds": 0.11,
+          "error": null,
+          "total_alerts": 0,
+          "alert_type_counts": {}
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "red_sentinel": {
+      "tp": 11,
+      "fn": 0,
+      "fp": 2,
+      "tn": 1,
+      "precision": 0.8462,
+      "recall": 1.0,
+      "f1": 0.9167,
+      "strict_endpoints": 14,
+      "partial_tp": 0,
+      "partial_fp": 0
+    },
+    "xsstrike": {
+      "tp": 0,
+      "fn": 11,
+      "fp": 1,
+      "tn": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "strict_endpoints": 14,
+      "partial_tp": 0,
+      "partial_fp": 0
+    },
+    "dalfox": {
+      "tp": 0,
+      "fn": 11,
+      "fp": 0,
+      "tn": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "strict_endpoints": 14,
+      "partial_tp": 0,
+      "partial_fp": 0
+    },
+    "zap": {
+      "tp": 0,
+      "fn": 11,
+      "fp": 0,
+      "tn": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "strict_endpoints": 14,
+      "partial_tp": 0,
+      "partial_fp": 0
+    }
+  }
+}

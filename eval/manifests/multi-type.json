@@ -1,7 +1,7 @@
 {
   "_meta": {
     "category": "Multi-Type",
-    "description": "14 endpoints across reflected XSS, bypass techniques, and mutation XSS — 10 vulnerable, 3 safe, 1 partially-safe (WAF byp. w/ restricted payloads)",
+    "description": "14 endpoints across reflected XSS, bypass techniques, and mutation XSS — 11 vulnerable, 3 safe (verified via source code analysis)",
     "target": "http://localhost:5050"
   },
   "endpoints": [
@@ -144,7 +144,7 @@
       "url": "http://localhost:5050/bypass/angle-only",
       "method": "GET",
       "params": ["q"],
-      "expected": "Vuln",
+      "expected": "Safe",
       "stored_mode": false,
       "payloads": [
         {"payload": "\" autofocus onfocus=alert(1) id=\"", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
@@ -156,7 +156,7 @@
       "url": "http://localhost:5050/bypass/waf-sim",
       "method": "GET",
       "params": ["q"],
-      "expected": "Partially",
+      "expected": "Vuln",
       "stored_mode": false,
       "payloads": [
         {"payload": "<script>fetch('/health')</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
@@ -168,7 +168,7 @@
       "url": "http://localhost:5050/mutation/innerhtml",
       "method": "GET",
       "params": ["html"],
-      "expected": "Partially",
+      "expected": "Safe",
       "stored_mode": false,
       "payloads": [
         {"payload": "<svg><g onload=alert(1)></g></svg>", "target_param": "html", "confidence": 1.0, "technique": "original", "severity": "medium"}

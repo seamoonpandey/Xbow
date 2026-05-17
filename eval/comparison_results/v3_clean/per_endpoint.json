@@ -1,0 +1,2012 @@
+[
+  {
+    "name": "reflected-body",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/body",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<script>alert(1)</script>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          },
+          {
+            "payload": "<img src=x onerror=alert(1)>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.72,
+        "error": null,
+        "vuln_count": 2,
+        "executed_count": 2,
+        "reflected_count": 2
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.11,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/body?q=%3E%3Clink+rel%3Dprefetch+href%3D%2F%2Fevil.com+onload%3Dalert%281%29+class%3Ddalfox%3E\u001b["
+          }
+        ],
+        "time_seconds": 2.58,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.22,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-script",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/script",
+    "params": [
+      "name"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "';alert(1)//",
+            "param": "name",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "script"
+          }
+        ],
+        "time_seconds": 2.71,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.1,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/script?name=%22%3E%3CIMG+SRC%3Dx+ondragend%3D%22alert%28String.fromCharCode%2888%2C83%2C83%29%29"
+          }
+        ],
+        "time_seconds": 2.56,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-attr-unquoted",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/attribute-unquoted",
+    "params": [
+      "color"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "x onfocus=alert(1) autofocus=x",
+            "param": "color",
+            "type": "reflected_xss",
+            "executed": false,
+            "reflected": true,
+            "position": "html_body"
+          }
+        ],
+        "time_seconds": 2.65,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.12,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/attribute-unquoted?color=%22%3E%3CIMG+SRC%3Dx+onhashchange%3D%22alert%28String.fromCharCode%2888"
+          }
+        ],
+        "time_seconds": 2.55,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-href",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/href",
+    "params": [
+      "url"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "javascript:alert(1)",
+            "param": "url",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.67,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.12,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/href?url=%22%3E%3Csvg+onload%3D%22SharedArrayBuffer%26%26alert%281%29%22+class%3Ddalfox%3E\u001b[0m"
+          }
+        ],
+        "time_seconds": 2.55,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-iframe",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/iframe",
+    "params": [
+      "src"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "javascript:alert(1)",
+            "param": "src",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "html_body"
+          }
+        ],
+        "time_seconds": 2.67,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.14,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 2.53,
+        "error": null,
+        "poc_count": 0
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-multiparams",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/multiparams",
+    "params": [
+      "a",
+      "b"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<script>alert(1)</script>",
+            "param": "a",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.68,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.12,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/multiparams?a=%3E%3Clink+rel%3Dprefetch+href%3D%2F%2Fevil.com+onload%3Dalert%281%29+class%3Ddalf"
+          },
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/multiparams?c=%27%3E%3Cembed+src%3D%23+codebase%3Djavascript%3Aalert%281%29%2F%2F+class%3Ddalfox"
+          },
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/multiparams?b=%22%3E%3CIMG+SRC%3Dx+onloadedmetadata%3D%22alert%28String.fromCharCode%2888%2C83%2"
+          }
+        ],
+        "time_seconds": 3.49,
+        "error": null,
+        "poc_count": 3
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "reflected-meta",
+    "category": "Reflected",
+    "url": "http://localhost:5050/reflected/meta",
+    "params": [
+      "redir"
+    ],
+    "expected": "Safe",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 2.75,
+        "error": null,
+        "vuln_count": 0,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.14,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/reflected/meta?redir=%22%3E%3CIMG+SRC%3Dx+onprogress%3D%22alert%28String.fromCharCode%2888%2C83%2C83%29%29"
+          }
+        ],
+        "time_seconds": 2.51,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-double-encode",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/double-encode",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "%253Cscript%253Ealert(1)%253C/script%253E",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": false,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.65,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.1,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/bypass/double-encode?q=%2522%253E%253C%2549%254D%2547%2520%2553%2552%2543%253D%2578%2520%256F%256E%256D%25"
+          }
+        ],
+        "time_seconds": 2.53,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-quote-escape",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/quote-escape",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<img src=x onerror=alert(1)>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.68,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.12,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/bypass/quote-escape?q=%22%3E%3CIMG+SRC%3Dx+onoffline%3D%22alert%28String.fromCharCode%2888%2C83%2C83%29%29"
+          }
+        ],
+        "time_seconds": 2.53,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-blacklist",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/blacklist",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<img src=x onerror=alert(1)>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.65,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.11,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/bypass/blacklist?q=%22%3E%3Cimg+src%3Dx+onerror%3D%22setTimeout%28%27alert%281%29%27%2C1%29%22+class%3Ddal"
+          }
+        ],
+        "time_seconds": 2.57,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.2,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-case",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/case",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<ScRiPt>alert(1)</ScRiPt>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": true,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.65,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 1,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.14,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/bypass/case?q=%22%3E%3CIMG+SRC%3Dx+onloadstart%3D%22alert%28String.fromCharCode%2888%2C83%2C83%29%29%22+cl"
+          }
+        ],
+        "time_seconds": 2.55,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-angle-only",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/angle-only",
+    "params": [
+      "q"
+    ],
+    "expected": "Safe",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "\" autofocus onfocus=alert(1) id=\"",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": false,
+            "reflected": true,
+            "position": "html_body"
+          }
+        ],
+        "time_seconds": 2.7,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.12,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": true,
+        "details": [
+          {
+            "poc": "[POC][V][GET][inHTML] http://localhost:5050/bypass/angle-only?q=%27%22%3E%3Csvg%2Fclass%3Ddalfox+onload%3D%26%2397%26%23108%26%23101%26%23114%26%23001"
+          }
+        ],
+        "time_seconds": 2.53,
+        "error": null,
+        "poc_count": 1
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "bypass-waf-sim",
+    "category": "Bypass",
+    "url": "http://localhost:5050/bypass/waf-sim",
+    "params": [
+      "q"
+    ],
+    "expected": "Vuln",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "<script>fetch('/health')</script>",
+            "param": "q",
+            "type": "reflected_xss",
+            "executed": false,
+            "reflected": true,
+            "position": "attribute"
+          }
+        ],
+        "time_seconds": 2.69,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.13,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 2.52,
+        "error": null,
+        "poc_count": 0
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "mutation-innerhtml",
+    "category": "Mutation",
+    "url": "http://localhost:5050/mutation/innerhtml",
+    "params": [
+      "html"
+    ],
+    "expected": "Safe",
+    "tool_results": {
+      "red_sentinel": {
+        "detected": true,
+        "details": [
+          {
+            "payload": "DOM-XSS: .innerHTML \u2192 innerHTML",
+            "param": ".innerHTML",
+            "type": "dom_xss",
+            "executed": false,
+            "reflected": false,
+            "position": "script"
+          }
+        ],
+        "time_seconds": 0.01,
+        "error": null,
+        "vuln_count": 1,
+        "executed_count": 0,
+        "reflected_count": 1
+      },
+      "xsstrike": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 0.14,
+        "error": null,
+        "payloads_found": 0,
+        "reflection_count": 0
+      },
+      "dalfox": {
+        "detected": false,
+        "details": [],
+        "time_seconds": 2.59,
+        "error": null,
+        "poc_count": 0
+      },
+      "zap": {
+        "detected": true,
+        "details": [
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (DOM Based)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)",
+          "High: Cross Site Scripting (Reflected)"
+        ],
+        "time_seconds": 12.19,
+        "error": null,
+        "total_alerts": 18,
+        "xss_alerts": [
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (DOM Based)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          },
+          {
+            "alert": "Cross Site Scripting (Reflected)",
+            "risk": "High"
+          }
+        ],
+        "alert_type_counts": {
+          "cross-site-scripting-(dom-based)": 3,
+          "cross-site-scripting-(reflected)": 15
+        }
+      }
+    }
+  }
+]

