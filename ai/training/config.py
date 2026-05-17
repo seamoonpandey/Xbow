@@ -9,7 +9,7 @@ from pathlib import Path
 
 # ─── Paths (matching actual tree structure) ──────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent   # red-sentinel/
-DATASET_DIR = PROJECT_ROOT / "dataset" / "processed" / "splits_from_ranker"
+DATASET_DIR = PROJECT_ROOT / "dataset" / "splits"
 MODEL_DIR = PROJECT_ROOT / "model"
 CUSTOM_TOKENIZER_PATH = MODEL_DIR / "tokenizer" / "tokenizer.json"
 CHECKPOINT_DIR = MODEL_DIR / "checkpoints"
@@ -19,7 +19,8 @@ CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 (CHECKPOINT_DIR / "logs").mkdir(parents=True, exist_ok=True)
 
 # ─── Dataset Splits (CSV files) ─────────────────────────
-# Using enriched training data from prepare_enriched_training_data.py
+# Using the 60K combined dataset from finalize_dataset.py
+# (synthetic + scraped payloads, properly labeled)
 TRAIN_FILE = DATASET_DIR / "train.csv"
 VAL_FILE = DATASET_DIR / "val.csv"
 TEST_FILE = DATASET_DIR / "test.csv"
@@ -52,7 +53,7 @@ SEVERITY_CLASSES = len(SEVERITY_LABELS)  # 3
 
 # ─── Model Architecture ─────────────────────────────────
 DROPOUT = 0.3
-FREEZE_LAYERS = 2    # Freeze embeddings + first 2 transformer layers
+FREEZE_LAYERS = 0    # Don't freeze layers (XSS domain is far from natural language)
 
 # ─── Training Hyperparameters ────────────────────────────
 EPOCHS = 15
@@ -106,6 +107,20 @@ USE_AMP = DEVICE.type in ("cuda", "mps")
 # ─── Logging ─────────────────────────────────────────────
 LOG_EVERY_N_STEPS = 50
 SAVE_EVERY_N_EPOCHS = 1
+
+# ─── Joint Head Architecture ──────────────────────────────
+# Share a hidden layer between context and severity heads
+# so that context learning benefits severity and vice versa.
+JOINT_HEAD = True
+
+# ─── Experiment Tracking ──────────────────────────────────
+RUN_LOG_DIR = PROJECT_ROOT / "runs"
+RUN_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+# ─── LR Finder ────────────────────────────────────────────
+LR_FIND_MIN = 1e-7
+LR_FIND_MAX = 1.0
+LR_FIND_STEP_MULTIPLIER = 1.05   # Multiply LR by this each step
 
 
 # ─── Print config on import ──────────────────────────────

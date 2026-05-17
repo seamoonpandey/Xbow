@@ -136,7 +136,7 @@ def get_dataloaders(batch_size: int = BATCH_SIZE) -> Tuple[DataLoader, DataLoade
         shuffle=True,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True,
+        drop_last=False,   # Keep all samples; with 41K data the last partial batch is negligible
     )
 
     val_loader = DataLoader(

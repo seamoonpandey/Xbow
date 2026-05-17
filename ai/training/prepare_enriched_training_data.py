@@ -61,6 +61,18 @@ def encode_context_enrichment(sample: dict) -> str:
     return " ".join(context_parts)
 
 
+# Raw context label values from fuzzer → normalized label mapping.
+# Fuzzer records raw reflection positions (e.g. "html_body") which must
+# be mapped to the classifier's canonical CONTEXT_LABELS to avoid data loss.
+RAW_CONTEXT_NORMALIZATION = {
+    "html_body": "tag_injection",
+    "attribute": "attribute_escape",
+    "js_block": "script_injection",
+    "js_string": "js_uri",
+    "url": "js_uri",
+}
+
+
 def _lower_text(value) -> str:
     """Return a lowercase string for optional JSON fields."""
     if value is None:
@@ -73,9 +85,11 @@ def infer_context_label(sample: dict) -> str:
     Infer the context label from available fields.
     Falls back to 'generic' if uncertain.
     """
-    # If explicitly provided, use it
+    # If explicitly provided, normalize it
     if sample.get("context") and sample["context"] != "generic":
-        return sample["context"]
+        raw = sample["context"]
+        # Normalize raw fuzzer context labels to canonical training labels
+        return RAW_CONTEXT_NORMALIZATION.get(raw, raw)
     
     # Try to infer from source/sink
     source = _lower_text(sample.get("source_name"))

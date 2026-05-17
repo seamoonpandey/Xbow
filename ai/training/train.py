@@ -27,17 +27,20 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 import argparse
 import json
+import csv
 import time
 import math
 import logging
 from pathlib import Path
 from datetime import datetime
+from collections import Counter
 
 import torch
 import torch.nn as nn
+import pandas as pd
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import LambdaLR
-from torch.amp import autocast, GradScaler  # Generic AMP API (works for CUDA + MPS)
+from torch.amp import autocast, GradScaler
 
 from config import (
     DEVICE, USE_AMP, EPOCHS, BATCH_SIZE, LEARNING_RATE, WEIGHT_DECAY,
@@ -46,6 +49,8 @@ from config import (
     CONTEXT_CLASSES, SEVERITY_CLASSES,
     CONTEXT_LABELS, SEVERITY_LABELS,
     CHECKPOINT_DIR, LOG_EVERY_N_STEPS, SAVE_EVERY_N_EPOCHS,
+    TRAIN_FILE, RUN_LOG_DIR, FREEZE_LAYERS, JOINT_HEAD, DROPOUT,
+    LR_FIND_MIN, LR_FIND_MAX, LR_FIND_STEP_MULTIPLIER,
 )
 from dataset import get_dataloaders
 from model import build_model
@@ -130,6 +135,66 @@ class MetricsTracker:
         return min(self.history["val_loss"])
 
 
+class RunLogger:
+    """Logs experiment runs to timestamped directories for comparison."""
+
+    def __init__(self, config_overrides: dict | None = None):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.run_dir = RUN_LOG_DIR / f"run_{timestamp}"
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save config snapshot
+        config_snapshot = {
+            "timestamp": timestamp,
+            "dataset": str(TRAIN_FILE),
+            "batch_size": BATCH_SIZE,
+            "learning_rate": LEARNING_RATE,
+            "epochs": EPOCHS,
+            "freeze_layers": FREEZE_LAYERS,
+            "joint_head": JOINT_HEAD,
+            "label_smoothing": LABEL_SMOOTHING,
+            "context_loss_weight": CONTEXT_LOSS_WEIGHT,
+            "severity_loss_weight": SEVERITY_LOSS_WEIGHT,
+            "warmup_ratio": WARMUP_RATIO,
+            "dropout": DROPOUT,
+        }
+        if config_overrides:
+            config_snapshot.update(config_overrides)
+
+        with open(self.run_dir / "config.json", "w") as f:
+            json.dump(config_snapshot, f, indent=2)
+
+        # Init metrics CSV
+        self.metrics_path = self.run_dir / "metrics.csv"
+        with open(self.metrics_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "epoch", "train_loss", "val_loss",
+                "train_context_acc", "train_severity_acc",
+                "val_context_acc", "val_severity_acc",
+                "learning_rate", "epoch_time_seconds",
+            ])
+
+    def log_epoch(self, epoch: int, metrics: dict):
+        with open(self.metrics_path, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                epoch + 1,
+                f"{metrics.get('train_loss', 0):.4f}",
+                f"{metrics.get('val_loss', 0):.4f}",
+                f"{metrics.get('train_context_acc', 0):.1f}",
+                f"{metrics.get('train_severity_acc', 0):.1f}",
+                f"{metrics.get('val_context_acc', 0):.1f}",
+                f"{metrics.get('val_severity_acc', 0):.1f}",
+                f"{metrics.get('learning_rate', 0):.2e}",
+                f"{metrics.get('epoch_time', 0):.1f}",
+            ])
+
+    @property
+    def path(self) -> Path:
+        return self.run_dir
+
+
 # ═════════════════════════════════════════════════════════════
 #                     CHECKPOINTING
 # ═════════════════════════════════════════════════════════════
@@ -178,7 +243,10 @@ def load_checkpoint(path, model, optimizer, scheduler, scaler):
         at which the checkpoint was saved.
     """
     ckpt = torch.load(path, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(ckpt["model_state_dict"])
+    missing, unexpected = model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    if missing or unexpected:
+        print(f"  ⚠  Checkpoint architecture mismatch — {len(missing)} missing, {len(unexpected)} unexpected keys")
+        print(f"      (expected if architecture changed, e.g. joint_head toggle)")
     optimizer.load_state_dict(ckpt["optimizer_state_dict"])
     scheduler.load_state_dict(ckpt["scheduler_state_dict"])
     if scaler is not None and "scaler_state_dict" in ckpt:
@@ -362,6 +430,102 @@ def validate(model, loader, context_criterion, severity_criterion, logger) -> di
 
 
 # ═════════════════════════════════════════════════════════════
+#                    LR FINDER
+# ═════════════════════════════════════════════════════════════
+
+def lr_find(model, train_loader, ctx_criterion, sev_criterion, logger):
+    """Learning rate range test to find optimal LR.
+
+    Starts at LR_FIND_MIN, multiplies LR each step, tracks loss.
+    Based on "Cyclical Learning Rates for Training Neural Networks" (Smith, 2017).
+    """
+    logger.info("\n" + "=" * 60)
+    logger.info("  🔬 LR Range Test")
+    logger.info("=" * 60)
+
+    model.train()
+    losses = []
+    lrs = []
+
+    # Create temp optimizer with starting LR
+    temp_optimizer = AdamW(
+        [p for p in model.parameters() if p.requires_grad],
+        lr=LR_FIND_MIN, weight_decay=WEIGHT_DECAY,
+    )
+
+    logger.info(f"  Starting LR: {LR_FIND_MIN:.2e}, multiplier: {LR_FIND_STEP_MULTIPLIER}")
+    logger.info(f"  Running on {len(train_loader)} batches...\n")
+
+    for step, batch in enumerate(train_loader):
+        current_lr = LR_FIND_MIN * (LR_FIND_STEP_MULTIPLIER ** step)
+        if current_lr > LR_FIND_MAX:
+            break
+
+        for param_group in temp_optimizer.param_groups:
+            param_group["lr"] = current_lr
+
+        input_ids = batch["input_ids"].to(DEVICE)
+        attention_mask = batch["attention_mask"].to(DEVICE)
+        ctx_labels = batch["context_label"].to(DEVICE)
+        sev_labels = batch["severity_label"].to(DEVICE)
+
+        temp_optimizer.zero_grad()
+
+        with autocast(device_type=DEVICE.type, enabled=USE_AMP):
+            ctx_logits, sev_logits = model(input_ids, attention_mask)
+            ctx_loss = ctx_criterion(ctx_logits, ctx_labels)
+            sev_loss = sev_criterion(sev_logits, sev_labels)
+            loss = (CONTEXT_LOSS_WEIGHT * ctx_loss) + (SEVERITY_LOSS_WEIGHT * sev_loss)
+
+        loss.backward()
+        temp_optimizer.step()
+
+        losses.append(loss.item())
+        lrs.append(current_lr)
+
+        if (step + 1) % 20 == 0:
+            logger.info(f"  Step {step+1:>4} | LR: {current_lr:.2e} | Loss: {loss.item():.4f}")
+
+    # Find optimal LR range
+    if len(losses) > 10:
+        smoothed = []
+        window = max(1, len(losses) // 20)
+        for i in range(len(losses)):
+            start = max(0, i - window)
+            end = min(len(losses), i + window + 1)
+            smoothed.append(sum(losses[start:end]) / (end - start))
+
+        # Find steepest negative gradient (loss decreasing fastest)
+        deltas = [-(smoothed[i] - smoothed[i-1]) for i in range(1, len(smoothed))]
+        start_idx = len(deltas) // 10
+        end_idx = len(deltas) * 9 // 10
+
+        if start_idx < end_idx and max(deltas[start_idx:end_idx]) > 0:
+            best_idx = start_idx + deltas[start_idx:end_idx].index(max(deltas[start_idx:end_idx]))
+            best_lr = lrs[best_idx + 1]
+
+            logger.info(f"\n  ✅ Recommended LR range:")
+            logger.info(f"     Minimum:    {best_lr / 10:.2e}")
+            logger.info(f"     Suggested:  {best_lr:.2e}")
+            logger.info(f"     Maximum:    {best_lr * 2:.2e}")
+        else:
+            logger.info(f"\n  ⚠  No clear LR optimum found (loss didn't decrease consistently)")
+
+    # Save results
+    results = {"learning_rates": lrs, "losses": losses}
+    results_path = CHECKPOINT_DIR / "lr_find_results.json"
+    with open(results_path, "w") as f:
+        json.dump(results, f, indent=2)
+    logger.info(f"\n  💾 LR find results saved → {results_path}")
+    logger.info(f"\n  📊 Plot with: python -c \"import json, matplotlib.pyplot as plt; d=json.load(open('{results_path}')); plt.semilogx(d['learning_rates'], d['losses']); plt.grid(); plt.savefig('lr_find.png')\"")
+
+    del temp_optimizer
+    if DEVICE.type == "cuda":
+        torch.cuda.empty_cache()
+    return lrs, losses
+
+
+# ═════════════════════════════════════════════════════════════
 #                         MAIN
 # ═════════════════════════════════════════════════════════════
 
@@ -371,7 +535,9 @@ def main():
     parser.add_argument("--batch_size", type=int, default=BATCH_SIZE)
     parser.add_argument("--lr", type=float, default=LEARNING_RATE)
     parser.add_argument("--patience", type=int, default=PATIENCE)
+    parser.add_argument("--no_class_weights", action="store_true", help="Disable class weighting")
     parser.add_argument("--resume", action="store_true", help="Resume from latest.pt")
+    parser.add_argument("--lr-find", action="store_true", help="Run LR range test and exit")
     args = parser.parse_args()
 
     # ── Setup ──
@@ -379,15 +545,20 @@ def main():
 
     logger.info("")
     logger.info("=" * 60)
-    logger.info("  [logo.png] RedSentinel AI — Training Pipeline")
+    logger.info("  RedSentinel AI — Training Pipeline")
     logger.info("=" * 60)
-    logger.info(f"  Device:       {DEVICE}")
-    logger.info(f"  Epochs:       {args.epochs}")
-    logger.info(f"  Batch size:   {args.batch_size}")
-    logger.info(f"  LR:           {args.lr}")
-    logger.info(f"  Patience:     {args.patience}")
-    logger.info(f"  Label smooth: {LABEL_SMOOTHING}")
-    logger.info(f"  Loss weights: ctx={CONTEXT_LOSS_WEIGHT}, sev={SEVERITY_LOSS_WEIGHT}")
+    logger.info(f"  Device:          {DEVICE}")
+    logger.info(f"  Epochs:          {args.epochs}")
+    logger.info(f"  Batch size:      {args.batch_size}")
+    logger.info(f"  LR:              {args.lr}")
+    logger.info(f"  Patience:        {args.patience}")
+    logger.info(f"  Label smooth:    {LABEL_SMOOTHING}")
+    logger.info(f"  Loss weights:    ctx={CONTEXT_LOSS_WEIGHT}, sev={SEVERITY_LOSS_WEIGHT}")
+    logger.info(f"  Freeze layers:   {FREEZE_LAYERS}")
+    logger.info(f"  Joint head:      {JOINT_HEAD}")
+    logger.info(f"  Class weights:   {not args.no_class_weights}")
+    logger.info(f"  Dataset:         {TRAIN_FILE}")
+    logger.info(f"  Runs logged to:  {RUN_LOG_DIR}")
 
     # ── Data ──
     train_loader, val_loader, _ = get_dataloaders(args.batch_size)
@@ -395,8 +566,11 @@ def main():
     # ── Model ──
     model = build_model()
 
+    # ── Experiment Tracking ──
+    run_logger = RunLogger({"learning_rate": args.lr, "epochs": args.epochs})
+    logger.info(f"\n  📝 Run: {run_logger.path.name}")
+
     # ── Optimizer ──
-    # Only optimize trainable params (some layers are frozen)
     trainable_params = [p for p in model.parameters() if p.requires_grad]
     optimizer = AdamW(
         trainable_params,
@@ -412,15 +586,45 @@ def main():
     scheduler = get_scheduler(optimizer, warmup_steps, total_steps)
     logger.info(f"\n  📊 Steps: {total_steps} total, {warmup_steps} warmup")
 
-    # ── Loss ──
-    ctx_criterion = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
-    sev_criterion = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
+    # ── Loss with Class Weights ──
+    if args.no_class_weights:
+        ctx_weight = None
+        sev_weight = None
+        logger.info("\n  ⚖️ Class weights: disabled (--no_class_weights)")
+    else:
+        logger.info("\n  ⚖️ Computing class weights for imbalanced dataset...")
+        df = pd.read_csv(TRAIN_FILE)
+
+        ctx_counts = Counter(df["context"].str.strip().str.lower())
+        total_ctx = sum(ctx_counts.values())
+        n_ctx = len(CONTEXT_LABELS)
+        ctx_weight = torch.tensor([
+            total_ctx / (n_ctx * ctx_counts.get(label, 1))
+            for label in CONTEXT_LABELS
+        ], dtype=torch.float, device=DEVICE)
+
+        sev_counts = Counter(df["severity"].str.strip().str.lower())
+        total_sev = sum(sev_counts.values())
+        n_sev = len(SEVERITY_LABELS)
+        sev_weight = torch.tensor([
+            total_sev / (n_sev * sev_counts.get(label, 1))
+            for label in SEVERITY_LABELS
+        ], dtype=torch.float, device=DEVICE)
+
+        ctx_str = ", ".join(f"{l}={w:.2f}" for l, w in zip(CONTEXT_LABELS, ctx_weight.tolist()))
+        sev_str = ", ".join(f"{l}={w:.2f}" for l, w in zip(SEVERITY_LABELS, sev_weight.tolist()))
+        logger.info(f"    Context:  [{ctx_str}]")
+        logger.info(f"    Severity: [{sev_str}]")
+
+    ctx_criterion = nn.CrossEntropyLoss(weight=ctx_weight, label_smoothing=LABEL_SMOOTHING)
+    sev_criterion = nn.CrossEntropyLoss(weight=sev_weight, label_smoothing=LABEL_SMOOTHING)
+
+    # ── LR Finder ──
+    if args.lr_find:
+        lr_find(model, train_loader, ctx_criterion, sev_criterion, logger)
+        return
 
     # ── AMP Scaler ──
-    # GradScaler prevents gradient underflow in float16.
-    # CUDA:    scaler is REQUIRED for stable fp16 training.
-    # MPS:     NOT needed — Apple's Metal handles scaling internally.
-    # CPU:     NOT needed — AMP is disabled entirely.
     scaler = (
         GradScaler(device=DEVICE.type)
         if USE_AMP and DEVICE.type == "cuda"
@@ -487,6 +691,7 @@ def main():
         all_metrics = {**train_metrics, **val_metrics}
         metrics.record(all_metrics)
         metrics.save(CHECKPOINT_DIR / "metrics.json")
+        run_logger.log_epoch(epoch, all_metrics)
 
         # ── Save latest ──
         save_checkpoint(
@@ -544,6 +749,8 @@ def main():
 
     logger.info(f"  Checkpoints:      {CHECKPOINT_DIR}")
     logger.info(f"  Metrics:          {CHECKPOINT_DIR / 'metrics.json'}")
+    logger.info(f"  Run logs:         {run_logger.path / 'metrics.csv'}")
+    logger.info(f"  Config:           {run_logger.path / 'config.json'}")
 
     # ── Summary table ──
     logger.info("\n  Epoch Summary:")

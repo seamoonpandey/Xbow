@@ -125,7 +125,11 @@ evaluate:
 	cd ai/training && $(PYTHON) evaluate.py
 	@echo ""
 
-train-all: train-data train evaluate
+# Note: 'train-data' (prepare_enriched_training_data.py) populated the old
+# splits_from_ranker/ directory, which is no longer used. Training now
+# uses the 60K dataset in dataset/splits/ (synthetic + scraped, properly labeled).
+# Run 'make dataset' first to ensure dataset/splits/ exists.
+train-all: train evaluate
 	@echo "Full ML pipeline complete."
 	@echo ""
 

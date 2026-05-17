@@ -1,30 +1,45 @@
 {
   "manifest_version": "1.0",
-  "generated_at": "2026-05-17T01:43:03.857748+00:00",
-  "project_repo_sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
+  "generated_at": "2026-05-17T03:38:42.349321+00:00",
+  "project_repo_sha": "ce20074f031c0a4f71b9d9c038db858266a01abe",
   "sources": [
     {
       "name": "AwesomeXSS",
       "url": "https://github.com/s0md3v/AwesomeXSS",
       "path": "dataset/raw/AwesomeXSS",
+      "commit_sha": "9982704e7c6217a74463d187c5a6258b9343eaa9",
+      "remote_url": "https://github.com/s0md3v/AwesomeXSS",
+      "download_date": "2026-05-17T03:38:31.930245+00:00",
+      "file_count": 52,
       "type": "git_clone"
     },
     {
       "name": "PayloadsAllTheThings",
       "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
       "path": "dataset/raw/PayloadsAllTheThings",
+      "commit_sha": "e961fef231d8327bae83b563fab50aec2e6b77c0",
+      "remote_url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+      "download_date": "2026-05-17T03:38:34.856616+00:00",
+      "file_count": 613,
       "type": "git_clone"
     },
     {
       "name": "XSSGAI",
       "url": "https://github.com/AnonKryptiQuz/XSSGAI",
       "path": "dataset/raw/XSSGAI",
+      "commit_sha": "39c2297eed0d3263a543bb24e8bc829495960ad9",
+      "remote_url": "https://github.com/AnonKryptiQuz/XSSGAI",
+      "download_date": "2026-05-17T03:38:40.451131+00:00",
+      "file_count": 74,
       "type": "git_clone"
     },
     {
       "name": "PortSwigger XSS Cheat Sheet",
       "url": "https://portswigger.net/web-security/cross-site-scripting/cheat-sheet",
       "path": "dataset/raw/portswigger_raw.html",
+      "sha256": "8493df9cae49e2cda23343f1cbb4ceb1f7e68fdf55cdc7e522589267d3421796",
+      "size_bytes": 1361510,
+      "download_date": "2026-05-17T03:38:42.134336+00:00",
       "type": "downloaded_file"
     }
   ],
@@ -50,12 +65,12 @@
       "date": "2026-03-06T10:41:29+05:45"
     },
     "scripts/dataset_stats.py": {
-      "sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
-      "date": "2026-05-17T07:13:23+05:45"
+      "sha": "b67148cc8c82fd6fc5ba1c6b67b2b0ce26388d76",
+      "date": "2026-05-17T07:40:05+05:45"
     },
     "scripts/generate_dataset_manifest.py": {
-      "sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
-      "date": "2026-05-17T07:13:23+05:45"
+      "sha": "b67148cc8c82fd6fc5ba1c6b67b2b0ce26388d76",
+      "date": "2026-05-17T07:40:05+05:45"
     },
     "dataset/events.py": {
       "sha": "8c251305c5fe8e030042bb3fd8291db88fe5dc3f",
@@ -82,14 +97,14 @@
       "size_bytes": 1586738
     },
     "dataset/processed/enriched_training.csv": {
-      "sha256": "de85d069c90eec91d3555709e4e2b48c3d4f6d129cd042f7749febcd2190605a",
-      "rows": 3135,
-      "size_bytes": 162410
+      "sha256": "016d0b8d9402343fc423774a93c0ede456e5de7f2ed21fdf55f7395c57e009f8",
+      "rows": 5563,
+      "size_bytes": 325766
     },
     "dataset/processed/enriched_training_enriched.csv": {
-      "sha256": "f65353854bc76388ccef5c0d2b44ec06faa9dc614436712c9fe234eaeb172a98",
-      "rows": 3135,
-      "size_bytes": 397495
+      "sha256": "801cb4e799232d4c30ba4223de6c1bd5d49f7f5a0b2bc2db0b85d13627486fee",
+      "rows": 5563,
+      "size_bytes": 1048925
     },
     "dataset/processed/payloads_labeled.csv": {
       "sha256": "bc1dd7e0fd50efae596793ec77453154e6124fe353b6446555134128f5d37250",
@@ -137,9 +152,9 @@
       "size_bytes": 564748
     },
     "dataset/ranker_training/ranker_training_samples.jsonl": {
-      "sha256": "3a301e5bfa8394e3f8383fd400e6dcc7316fe3dbcbc3c4a264030b68c0608442",
-      "rows": 8976,
-      "size_bytes": 5205274
+      "sha256": "b123e3520254dfa0e328bde1acae638aef4f7f7baf32263cc5bdcc03756187e2",
+      "rows": 9012,
+      "size_bytes": 5223274
     }
   },
   "notes": [

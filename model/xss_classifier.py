@@ -16,46 +16,63 @@ class XSSClassifier(nn.Module):
     ]
     SEVERITY_LABELS = ["low", "medium", "high"]
 
-    def __init__(self, num_contexts=8, num_severities=3, dropout=0.3):
+    def __init__(self, num_contexts=8, num_severities=3, dropout=0.3,
+                 freeze_layers=0, joint_head=True):
         super().__init__()
-        
+
         self.backbone = DistilBertModel.from_pretrained("distilbert-base-uncased")
         hidden_size = self.backbone.config.hidden_size  # 768
-        
-        # Freeze first 2 layers (transfer learning)
-        for param in self.backbone.embeddings.parameters():
-            param.requires_grad = False
-        for param in self.backbone.transformer.layer[:2].parameters():
-            param.requires_grad = False
-        
+
+        # Conditionally freeze early layers (default: none — XSS domain
+        # is far from natural language, so fine-tuning all layers is better)
+        if freeze_layers >= 1:
+            for param in self.backbone.embeddings.parameters():
+                param.requires_grad = False
+        if freeze_layers >= 2:
+            for param in self.backbone.transformer.layer[:2].parameters():
+                param.requires_grad = False
+
         # Classification heads
         self.dropout = nn.Dropout(dropout)
-        
-        # Context head
-        self.context_head = nn.Sequential(
-            nn.Linear(hidden_size, 256),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(256, num_contexts)
-        )
-        
-        # Severity head
-        self.severity_head = nn.Sequential(
-            nn.Linear(hidden_size, 128),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(128, num_severities)
-        )
-    
+
+        if joint_head:
+            # Shared hidden layer — context learning benefits severity and vice versa
+            self.shared_hidden = nn.Sequential(
+                nn.Linear(hidden_size, 256),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+            )
+            self.context_head = nn.Linear(256, num_contexts)
+            self.severity_head = nn.Linear(256, num_severities)
+        else:
+            # Separate heads (original architecture)
+            self.context_head = nn.Sequential(
+                nn.Linear(hidden_size, 256),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+                nn.Linear(256, num_contexts)
+            )
+            self.severity_head = nn.Sequential(
+                nn.Linear(hidden_size, 128),
+                nn.ReLU(),
+                nn.Dropout(dropout),
+                nn.Linear(128, num_severities)
+            )
+
     def forward(self, input_ids, attention_mask=None):
         outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
         # Use [CLS] token representation
         cls_output = outputs.last_hidden_state[:, 0, :]
         cls_output = self.dropout(cls_output)
-        
-        context_logits = self.context_head(cls_output)
-        severity_logits = self.severity_head(cls_output)
-        
+
+        if hasattr(self, 'shared_hidden'):
+            shared = self.shared_hidden(cls_output)
+            context_logits = self.context_head(shared)
+            severity_logits = self.severity_head(shared)
+        else:
+            context_logits = self.context_head(cls_output)
+            severity_logits = self.severity_head(cls_output)
+
         return context_logits, severity_logits
     
     def predict(self, input_ids, attention_mask=None):

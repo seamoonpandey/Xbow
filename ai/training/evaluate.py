@@ -27,7 +27,7 @@ from sklearn.metrics import (
 )
 
 from config import (
-    DEVICE, CHECKPOINT_DIR,
+    DEVICE, USE_AMP, CHECKPOINT_DIR,
     CONTEXT_LABELS, SEVERITY_LABELS,
     CONTEXT_CLASSES, SEVERITY_CLASSES,
     MODEL_DIR, BATCH_SIZE,
@@ -93,7 +93,7 @@ def evaluate_model(model, test_loader, logger_print=print):
             ctx_labels = batch["context_label"].to(DEVICE)
             sev_labels = batch["severity_label"].to(DEVICE)
             
-            with autocast(enabled=(DEVICE == "cuda")):
+            with autocast(device_type=DEVICE.type, enabled=USE_AMP):
                 ctx_logits, sev_logits = model(input_ids, attention_mask)
             
             # Predictions
@@ -335,7 +335,13 @@ def main():
     # Load weights
     print(f"\n  📦 Loading checkpoint: {checkpoint_path.name}")
     checkpoint = torch.load(checkpoint_path, map_location=DEVICE, weights_only=False)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    missing, unexpected = model.load_state_dict(checkpoint["model_state_dict"], strict=False)
+    if missing:
+        print(f"  ⚠  Missing keys (likely architecture change): {len(missing)}")
+    if unexpected:
+        print(f"  ⚠  Unexpected keys (likely architecture change): {len(unexpected)}")
+    if not missing and not unexpected:
+        print(f"  ✓ Exact match — all keys loaded successfully")
     print(f"  ✓ Loaded (trained epoch: {checkpoint.get('epoch', '?') + 1})")
     print(f"  ✓ Val loss at save: {checkpoint.get('val_loss', '?'):.4f}")
     
