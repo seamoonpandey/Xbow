@@ -29,14 +29,16 @@ See project `RUN.md` for exact environment and targets used in benchmarks.
 
 **Table 6.2: Payload Dataset Distribution**
 
-- Total payloads: **59122**; Unique payload texts: **59122**
+> Verified by `scripts/dataset_stats.py` Section 11 (reproducible via `make dataset-report`).
+
+- Total payloads: **59,122**; Unique payload texts: **59,122**
 
 **By source**
 
 | Source | Count | Percentage |
 |---|---:|---:|
-| synthetic | 40624 | 68.7% |
-| real | 18498 | 31.3% |
+| synthetic | 40,624 | 68.7% |
+| real | 18,498 | 31.3% |
 
 **By technique**
 
@@ -85,9 +87,9 @@ See project `RUN.md` for exact environment and targets used in benchmarks.
 
 | Severity | Count | Percentage |
 |---|---:|---:|
-| medium | 39856 | 67.4% |
-| low | 10087 | 17.1% |
-| high | 9179 | 15.5% |
+| medium | 39,856 | 67.4% |
+| low | 10,087 | 17.1% |
+| high | 9,179 | 15.5% |
 
 ## 6.4 AI Context Classification Results
 
