@@ -43,8 +43,15 @@ The dataset pipeline is fully reproducible via the project Makefile. All scripts
 ### Build from raw sources
 
 ```bash
-# Requires dataset/raw/ to be populated (see "Download Raw Sources" below)
+# Auto-download + rebuild (clones repos and downloads PortSwigger HTML if missing)
 make dataset
+```
+
+Or run the steps separately:
+
+```bash
+make dataset-raw    # Clone/download sources (idempotent)
+make dataset        # Rebuild CSVs & splits from raw sources
 ```
 
 This runs the pipeline in order:
@@ -107,7 +114,7 @@ dataset/ranker_training/  Ranker training data when generated
 # Scripts
 scripts/dataset_stats.py              Reproducible statistics report (12 sections)
 scripts/generate_dataset_manifest.py   Manifest generator (checksums + metadata)
-Makefile                               Pipeline automation (make dataset / make dataset-report)
+Makefile                               Pipeline automation (make dataset-raw / make dataset / make dataset-report)
 ```
 
 Docker Compose mounts `./dataset/splits` into the payload-gen container at `/app/dataset/splits`. If the mounted split files are missing or the bank loads empty, the payload-gen `/generate` endpoint returns 503.
@@ -141,7 +148,13 @@ Training/evaluation files may use narrower label sets depending on the script th
 
 Raw sources are local inputs and are not committed.
 
+The easiest way is using the Makefile — it auto-clones and downloads everything:
+
 ```bash
+make dataset-raw
+```
+
+Or manually:
 mkdir -p dataset/raw
 cd dataset/raw \
 && git clone https://github.com/s0md3v/AwesomeXSS \
@@ -150,6 +163,8 @@ cd dataset/raw \
 && curl -sL https://portswigger.net/web-security/cross-site-scripting/cheat-sheet \
   -o portswigger_raw.html
 ```
+
+Both produce the same result. `make dataset-raw` is idempotent — it skips repos/files that already exist and uses shallow clones (`--depth 1`) to minimise download size.
 
 ---
 

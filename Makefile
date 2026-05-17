@@ -3,12 +3,10 @@
 # Reproducible dataset pipeline.  All targets run from project root.
 #
 # Usage:
+#   make dataset-raw      Clone/download raw sources into dataset/raw/
 #   make dataset          Rebuild processed CSVs & splits from raw sources
 #   make dataset-report   Run dataset_stats.py & (re)generate manifest
-#   make dataset-all      Both of the above
-#
-# The raw source directories under dataset/raw/ must exist first
-# (gitignored — see dataset/README.md for download instructions).
+#   make dataset-all      dataset-raw + dataset + dataset-report
 #
 # ──────────────────────────────────────────────────────────────────────
 
@@ -49,7 +47,7 @@ MANIFEST_JSON     := dataset/dataset_manifest.json
 
 .PHONY: help build build-core build-dashboard build-docker \
         train train-ranker train-data evaluate train-all \
-        dataset dataset-report dataset-all
+        dataset-raw dataset dataset-report dataset-all
 
 help:
 	@echo "RedSentinel Makefile"
@@ -68,11 +66,10 @@ help:
 	@echo "  make train-all       Full pipeline: train-data + train + evaluate"
 	@echo ""
 	@echo "── Dataset ────────────────────────────────────"
+	@echo "  make dataset-raw     Clone/download raw sources into dataset/raw/"
 	@echo "  make dataset         Rebuild all processed CSVs & splits from raw sources"
 	@echo "  make dataset-report  Run dataset_stats.py + generate dataset_manifest.json"
-	@echo "  make dataset-all     Both of the above"
-	@echo ""
-	@echo "Note: dataset/raw/ must exist (see dataset/README.md for download)"
+	@echo "  make dataset-all     dataset-raw + dataset + dataset-report"
 	@echo ""
 
 # ══════════════════════════════════════════════════════════════════════
@@ -132,8 +129,42 @@ train-all: train-data train evaluate
 	@echo ""
 
 # ══════════════════════════════════════════════════════════════════════
-#  Dataset targets (existing)
+#  Dataset targets
 # ══════════════════════════════════════════════════════════════════════
+
+# ── dataset-raw: auto-clone/download raw sources ──────────────────────
+# Idempotent — skips repos/dirs that already exist.
+# Uses shallow clones (--depth 1) to minimise download size.
+
+dataset-raw:
+	@mkdir -p dataset/raw
+	@echo "── Checking raw sources ──"
+	@if [ -d "dataset/raw/AwesomeXSS/.git" ]; then \
+		echo "  ✓ AwesomeXSS already cloned"; \
+	else \
+		echo "  … Cloning AwesomeXSS..."; \
+		cd dataset/raw && git clone --depth 1 https://github.com/s0md3v/AwesomeXSS; \
+	fi
+	@if [ -d "dataset/raw/PayloadsAllTheThings/.git" ]; then \
+		echo "  ✓ PayloadsAllTheThings already cloned"; \
+	else \
+		echo "  … Cloning PayloadsAllTheThings..."; \
+		cd dataset/raw && git clone --depth 1 https://github.com/swisskyrepo/PayloadsAllTheThings; \
+	fi
+	@if [ -d "dataset/raw/XSSGAI/.git" ]; then \
+		echo "  ✓ XSSGAI already cloned"; \
+	else \
+		echo "  … Cloning XSSGAI..."; \
+		cd dataset/raw && git clone --depth 1 https://github.com/AnonKryptiQuz/XSSGAI; \
+	fi
+	@if [ -f "dataset/raw/portswigger_raw.html" ]; then \
+		echo "  ✓ PortSwigger cheat-sheet already downloaded"; \
+	else \
+		echo "  … Downloading PortSwigger cheat-sheet..."; \
+		curl -sfL https://portswigger.net/web-security/cross-site-scripting/cheat-sheet \
+		  -o dataset/raw/portswigger_raw.html; \
+	fi
+	@echo ""
 
 # ── Dataset pipeline ─────────────────────────────────────────────────
 # Each step depends on the previous one's output.
@@ -173,7 +204,7 @@ $(TRAIN_CSV) $(VAL_CSV) $(TEST_CSV): $(FINALIZE_DATASET) $(LABELED_CSV) $(SYNTHE
 	@echo "  Val:   $(VAL_CSV)"
 	@echo "  Test:  $(TEST_CSV)"
 
-dataset: $(TRAIN_CSV) $(VAL_CSV) $(TEST_CSV)
+dataset: dataset-raw $(TRAIN_CSV) $(VAL_CSV) $(TEST_CSV)
 	@echo ""
 
 # ── Dataset report ───────────────────────────────────────────────────
