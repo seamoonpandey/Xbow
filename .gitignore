@@ -84,3 +84,4 @@ dump.rdb
 scanner-logs/
 XSStrike/
 runs/
+output/
