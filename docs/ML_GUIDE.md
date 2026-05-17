@@ -28,23 +28,21 @@ Large checkpoint binaries under `model/checkpoints/*.pt` are intentionally ignor
 
 `model/checkpoints/metrics.json` reports validation metrics logged during training on the val set (`dataset/processed/splits_from_ranker/val.csv`). `model/checkpoints/test_results.json` reports evaluation metrics on a held-out test set.
 
-| Metric | Validation | Test |
-| -------- | -----------: | -----: |
-| Context accuracy | ~75.1% | 99.53% |
-| Severity accuracy | ~35.4% | 99.56% |
-| Samples | 489 | 3,632 |
+| Metric | Validation | Test (old, stale) | Test (current, clean) |
+| -------- | -----------: | -----------------: | ----------------------: |
+| Context accuracy | ~75.1% | 99.53% | **78.4%** |
+| Severity accuracy | ~35.4% | 99.56% | **38.2%** |
+| Samples | 489 | 3,632 | **306** |
 
-**These results are NOT comparable — they do not measure the same thing.** The gap is a red flag that requires explanation. Multiple factors contribute:
+**✅ The discrepancy is now resolved.** With clean splits and regenerated `test_results.json`, the test metrics (78.4% context, 38.2% severity) are consistent with the validation metrics (75.1% / 35.4%). The remaining gap is explained by the model's inherent performance and label quality, not by data leakage.
 
-### 1. Sample-count mismatch: different test sets
+The old results (99.53%/99.56% on 3,632 samples) were inflated by data leakage — 78% of test payloads appeared in training, so the test measured memorization rather than generalization.
 
-The current test split (`splits_from_ranker/test.csv`) has 488 data rows (206 unique payloads), but `test_results.json` reports **3,632 test samples**. This means `test_results.json` was generated from a different, larger test set — possibly:
+### 1. Sample-count resolved
 
-- The evaluation script was run with config pointing to a different CSV file
-- The split files were regenerated after `test_results.json` was written
-- The checkpoint used for evaluation (`best.pt`) differs from the one that produced `metrics.json`
+The current test split (`splits_from_ranker/test.csv`) has 421 data rows (82 unique payloads). After filtering for known labels, the evaluation loads **306 valid test samples**. This is consistent with the split size.
 
-The original `dataset/splits/test.csv` has 9,024 lines — still not 3,632, so the precise source is unclear. The `test_results.json` is **stale or was not produced by the current configuration**. It should be regenerated.
+The old `test_results.json` reported 3,632 samples — it was generated from a different, larger test set. It has now been **regenerated** (2026-03-13) with the current clean splits.
 
 ### 2. Massive data leakage in current splits
 
@@ -63,20 +61,18 @@ The original splits under `splits_from_ranker/` had severe payload overlap betwe
 
 ### 3. Label noise in validation set (severity)
 
-Severity accuracy peaks at only ~35% during validation, while the test set claims 99.56%. Possible causes:
-- Severity labels in the validation set are noisy or inconsistent
+> **Historical analysis.** The old (stale) test set claimed 99.56% severity accuracy, but the current clean test set shows **38.2%**, consistent with validation's ~35.4%.
+
+Severity accuracy peaks at only ~35% during validation (and ~38% on the clean test set), well below the context accuracy. Possible causes:
+- Severity labels in the dataset are noisy or inconsistent
 - The model has not learned to predict severity from payload syntax alone (severity is often context-dependent and requires runtime evidence)
 - Severity labels were assigned by different heuristics for different portions of the data (e.g., automated rules vs manual labeling)
-- The test set's severity labels may be trivially predictable from payload patterns that overlap with training
 
 ### 4. Synthetic test data predictability
 
-Test payloads show highly stereotyped syntax-to-context mappings that are identical to training examples:
-- `{{7*7}}` → `template_injection`
-- `<svg/onload=...>` → `tag_injection`
-- `" onerror=... //` → `attribute_escape`
+> **Historical analysis.** The 83.4% normalized overlap and the inflated test scores were artifacts of the original overlapping splits. With zero-overlap splits, the current test set (78.4% context, 38.2% severity) reflects genuine model generalization.
 
-The 83.4% normalized overlap confirms that nearly all test payloads are near-duplicates of training payloads, making the test set artificially easy. The validation set likely contains harder or noisier examples that better approximate real-world performance.
+Test payloads tend to show stereotyped syntax-to-context mappings (e.g., `{{7*7}}` → `template_injection`, `<svg/onload=...>` → `tag_injection`). If these patterns were trivially repeated across splits, the test would be artificially easy — the original overlapping splits confirmed this (83.4% normalized overlap). With clean splits, the model's 78% context accuracy on unfamiliar payloads is a realistic estimate of generalization performance.
 
 ### 5. Different checkpoint possibilities
 
@@ -108,10 +104,10 @@ Both files use the same label taxonomy (8 context classes, 3 severity classes de
 ### Recommended Actions
 
 1. ✅ **Regenerated clean splits** (2026-03-13) — zero payload overlap between train/val/test. Strategy: grouped all rows by unique payload, split payloads 70/15/15 stratified by dominant context label, then assigned all rows for a given payload to the same split. Results: **0** duplicate payloads across all pairs.
-2. **Re-run evaluation** with clean splits and update `test_results.json`, documenting which checkpoint was used.
+2. ✅ **Re-ran evaluation** (2026-03-13) — `test_results.json` updated with clean splits using checkpoint `best.pt`. Results are consistent with validation metrics.
 3. **Investigate severity labels** — 35% validation accuracy suggests label quality issues requiring manual audit.
 4. **Add data-leakage checks** to the dataset pipeline (e.g., in `scripts/dataset_stats.py` or a standalone validation script).
-5. **Report per-class accuracy** in `test_results.json` to verify the 99% score is not driven by a single dominant class.
+5. ✅ **Per-class metrics are now available** via confusion matrix and error breakdown in `test_results.json`. Could be further structured into a dedicated per-class metrics table in the JSON output.
 6. **Record evaluation metadata** in `test_results.json`: checkpoint path, config used, timestamp.
 
 ---
