@@ -11,7 +11,7 @@ import torch
 
 from config import (
     DEVICE, CONTEXT_CLASSES, SEVERITY_CLASSES, DROPOUT, MODEL_DIR,
-    FREEZE_LAYERS, JOINT_HEAD
+    FREEZE_LAYERS, JOINT_HEAD, GRADIENT_CHECKPOINTING
 )
 
 # Add model/ directory to Python path so we can import xss_classifier
@@ -29,6 +29,7 @@ def build_model() -> XSSClassifier:
         dropout=DROPOUT,
         freeze_layers=FREEZE_LAYERS,
         joint_head=JOINT_HEAD,
+        gradient_checkpointing=GRADIENT_CHECKPOINTING,
     )
 
     model = model.to(DEVICE)
@@ -39,6 +40,7 @@ def build_model() -> XSSClassifier:
     frozen = sum(1 for p in model.parameters() if not p.requires_grad)
     total = sum(1 for p in model.parameters())
     print(f"  Frozen layers: {frozen}/{total} parameter groups")
+    print(f"  Gradient checkpointing: {GRADIENT_CHECKPOINTING}")
     print(f"  Architecture: {'Joint head (shared)' if JOINT_HEAD else 'Separate heads'}")
 
     return model
@@ -52,6 +54,7 @@ def load_model_from_checkpoint(checkpoint_path: Path) -> XSSClassifier:
         dropout=DROPOUT,
         freeze_layers=FREEZE_LAYERS,
         joint_head=JOINT_HEAD,
+        gradient_checkpointing=GRADIENT_CHECKPOINTING,
     )
 
     checkpoint = torch.load(checkpoint_path, map_location=DEVICE, weights_only=False)

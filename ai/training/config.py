@@ -55,6 +55,9 @@ SEVERITY_CLASSES = len(SEVERITY_LABELS)  # 3
 # ─── Model Architecture ─────────────────────────────────
 DROPOUT = 0.3
 FREEZE_LAYERS = 0    # Don't freeze layers (XSS domain is far from natural language)
+GRADIENT_CHECKPOINTING = True  # Recompute activations during backward vs storing.
+                                # Saves ~50% activation memory on GPU at ~33%
+                                # compute overhead. Disable if you have >6 GB VRAM.
 
 # ─── Training Hyperparameters ────────────────────────────
 EPOCHS = 15

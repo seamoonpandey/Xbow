@@ -7,6 +7,7 @@ class XSSClassifier(nn.Module):
     Red Sentinel XSS Classifier
     - Uses DistilBERT as backbone (lightweight, fast)
     - Multi-head output: context + severity
+    - Gradient checkpointing for memory-efficient training on limited VRAM
     """
     
     CONTEXT_LABELS = [
@@ -17,9 +18,10 @@ class XSSClassifier(nn.Module):
     SEVERITY_LABELS = ["low", "medium", "high"]
 
     def __init__(self, num_contexts=8, num_severities=3, dropout=0.3,
-                 freeze_layers=0, joint_head=True):
+                 freeze_layers=0, joint_head=True, gradient_checkpointing=False):
         super().__init__()
 
+        self.gradient_checkpointing = gradient_checkpointing
         self.backbone = DistilBertModel.from_pretrained("distilbert-base-uncased")
         hidden_size = self.backbone.config.hidden_size  # 768
 
@@ -60,7 +62,18 @@ class XSSClassifier(nn.Module):
             )
 
     def forward(self, input_ids, attention_mask=None):
-        outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
+        # Gradient checkpointing: recompute backbone activations during
+        # backward instead of storing them. Saves ~50% activation memory
+        # on GPU at the cost of ~33% extra compute during backward.
+        # Only active during training (torch.is_grad_enabled()).
+        if self.gradient_checkpointing and self.training and torch.is_grad_enabled():
+            outputs = torch.utils.checkpoint.checkpoint(
+                self.backbone, input_ids, attention_mask,
+                use_reentrant=False,
+            )
+        else:
+            outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
+
         # Use [CLS] token representation
         cls_output = outputs.last_hidden_state[:, 0, :]
         cls_output = self.dropout(cls_output)

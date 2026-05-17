@@ -63,10 +63,23 @@ from config import (
     CONTEXT_LABELS, SEVERITY_LABELS,
     CHECKPOINT_DIR, LOG_EVERY_N_STEPS, SAVE_EVERY_N_EPOCHS, SAVE_ONLY_BEST,
     TRAIN_FILE, RUN_LOG_DIR, FREEZE_LAYERS, JOINT_HEAD, DROPOUT,
+    GRADIENT_CHECKPOINTING,
     LR_FIND_MIN, LR_FIND_MAX, LR_FIND_STEP_MULTIPLIER,
 )
 from dataset import get_dataloaders
 from model import build_model
+
+# ── Memory-Efficient Optimizer ──────────────────────────
+# Use 8-bit Adam (bitsandbytes) when available to reduce
+# optimizer state memory by ~4x (508 MB → 127 MB for DistilBERT).
+# Falls back to standard AdamW seamlessly.
+try:
+    from bitsandbytes.optim import AdamW8bit
+    OPTIMIZER_CLS = AdamW8bit
+    _HAS_8BIT = True
+except ImportError:
+    OPTIMIZER_CLS = AdamW
+    _HAS_8BIT = False
 
 
 # ═════════════════════════════════════════════════════════════
@@ -590,7 +603,9 @@ def main():
 
     # ── Optimizer ──
     trainable_params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = AdamW(
+    if _HAS_8BIT:
+        logger.info(f"  ⚡ Using 8-bit Adam (bitsandbytes) — saves ~380 MB GPU memory")
+    optimizer = OPTIMIZER_CLS(
         trainable_params,
         lr=args.lr,
         weight_decay=WEIGHT_DECAY,
