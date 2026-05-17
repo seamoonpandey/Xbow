@@ -238,14 +238,181 @@ def main():
         print(f"     Split CSVs may be stale — re-run finalize_dataset.py to")
         print(f"     regenerate them from current processed CSVs.")
 
-    # ── 7. Context / Severity Distribution ─────────────────────────────────────
-    _sep("7. Class Distribution (from split CSVs)")
+    # ── 7. Payload-Family Balance ──────────────────────────────────────────────
+    _sep("7. Payload-Family Balance (dominant XSS patterns)")
+
+    if not train.empty or not val.empty or not test.empty:
+        all_dfs = []
+        for df, name in [(train, "train"), (val, "val"), (test, "test")]:
+            if not df.empty:
+                d = df.copy()
+                d["_split"] = name
+                all_dfs.append(d)
+        if all_dfs:
+            all_splits = pd.concat(all_dfs, ignore_index=True)
+
+            # Define pattern families and their detection regexes
+            FAMILIES = [
+                ("<script>",       r'<\s*script[^a-zA-Z]'),
+                ("<img>",          r'<\s*img\s'),
+                ("<svg>",          r'<\s*svg\s'),
+                ("<iframe>",       r'<\s*iframe\s'),
+                ("<body>",          r'<\s*body\s'),
+                ("<input>",        r'<\s*input\s'),
+                ("<a>",            r'<\s*a\s'),
+                ("<details>",      r'<\s*details\s'),
+                ("onerror=",       r'onerror\s*='),
+                ("onload=",        r'onload\s*='),
+                ("onclick=",       r'onclick\s*='),
+                ("onmouseover=",   r'onmouseover\s*='),
+                ("onfocus=",       r'onfocus\s*='),
+                ("onmouseenter=",  r'onmouseenter\s*='),
+                ("onpointer",      r'onpointer\w+\s*='),
+                ("onanimation",    r'onanimation\w+\s*='),
+                ("ontoggle=",      r'ontoggle\s*='),
+                ("js_uri",         r'javascript\s*:'),
+                ("data_uri",       r'data\s*:\s*text/html'),
+                ("template_brace", r'\{\{.*?\}\}'),
+                ("template_dollar",r'\$\{.*?\}'),
+                ("template_pct",   r'<%.*?%>'),
+                ("template_hash",  r'#\{.*?\}'),
+                ("eval_call",      r'eval\s*\('),
+                ("innerHTML",      r'innerHTML'),
+                ("setTimeout",     r'setTimeout\s*\('),
+                ("setInterval",    r'setInterval\s*\('),
+                ("document.write", r'document\.write'),
+                ("Function()",     r'Function\s*\('),
+                ("fromCharCode",   r'String\.fromCharCode'),
+                ("location=",      r'location\s*='),
+                ("fetch()",        r'fetch\s*\('),
+                ("alert()",        r'alert\s*[\(`]'),
+                ("prompt()",       r'prompt\s*[\(`]'),
+                ("confirm()",      r'confirm\s*[\(`]'),
+            ]
+
+            print("\n  Payload families detected (note: one payload may match multiple families):")
+            print(f"  {'Family':<22} {'Count':>10}  {'% of total':>10}")
+            print(f"  {'─'*22} {'─'*10}  {'─'*10}")
+            for family_name, pattern in FAMILIES:
+                count = all_splits["payload"].str.contains(pattern, regex=True, na=False).sum()
+                if count > 0:
+                    print(f"  {family_name:<22} {_fmt(count)}  {count / len(all_splits) * 100:>9.1f}%")
+
+            # Overlap: how many have a tag vs handler vs none
+            has_tag = all_splits["payload"].str.contains(r'<\w+', na=False)
+            has_handler = all_splits["payload"].str.contains(r'on\w+\s*=', na=False)
+            has_js_uri = all_splits["payload"].str.contains(r'javascript\s*:|data\s*:\s*text/html', na=False)
+            has_template = all_splits["payload"].str.contains(r'\{\{|\$\{|<%|#\{', na=False)
+            has_dom = all_splits["payload"].str.contains(r'document\.|\.innerHTML|eval\s*\(|setTimeout|setInterval', na=False)
+            has_func = all_splits["payload"].str.contains(r'alert\s*[\(`]|prompt\s*[\(`]|confirm\s*[\(`]|fetch\s*\(', na=False)
+
+            print("\n  Top-level family overlap (each payload counted once):")
+            # Categorize: Tag+Handler, Tag only, Handler only, URI, Template, DOM sink, Function call, Other
+            family_of = pd.Series(index=all_splits.index, dtype=str)
+            family_of[has_tag & has_handler] = "tag_and_handler"
+            family_of[has_tag & ~has_handler] = "tag_only"
+            family_of[~has_tag & has_handler] = "handler_only"
+            family_of[~has_tag & ~has_handler & has_js_uri] = "js_uri"
+            family_of[~has_tag & ~has_handler & ~has_js_uri & has_template] = "template"
+            family_of[~has_tag & ~has_handler & ~has_js_uri & ~has_template & has_dom] = "dom_sink"
+            family_of[~has_tag & ~has_handler & ~has_js_uri & ~has_template & ~has_dom & has_func] = "func_call"
+            family_of.fillna("other", inplace=True)
+
+            for fam in ["tag_and_handler", "tag_only", "handler_only", "js_uri", "template", "dom_sink", "func_call", "other"]:
+                count = (family_of == fam).sum()
+                print(f"    {fam:<20} {_fmt(count)}  ({count / len(all_splits) * 100:.1f}%)")
+
+    else:
+        print("  (split CSVs not found)")
+
+    # ── 8. Encoding & Obfuscation Category Distribution ─────────────────────────
+    _sep("8. Encoding & Obfuscation Categories")
+
+    ENCODING_CHECKS = [
+        ("unicode_escape",       r'\\u[0-9a-fA-F]{4}'),
+        ("hex_escape",           r'\\x[0-9a-fA-F]{2}'),
+        ("html_entity",          r'&#[xX]?[0-9a-fA-F]+;?'),
+        ("url_encoding",         r'%[0-9a-fA-F]{2}(?![0-9a-fA-F])'),
+        ("double_url_encoding",  r'%25[0-9a-fA-F]{2}'),
+        ("mixed_case",           None),  # check via tag version
+        ("whitespace_obfuscation", r'(\\t|\\n|&#[x]?0?[9aAdD];)'),
+        ("comment_injection",    r'/\*.*\*/|<!--.*-->'),
+        ("concat_split",         r"'\s*\+\s*'|\"\s*\+\s*\""),
+        ("atob_btoa",            r'\b(atob|btoa)\s*\('),
+        ("fromCharCode",         r'fromCharCode\s*\('),
+        ("template_literal",     r'`[^`]*\$\{[^}]+}`'),
+    ]
+
+    if not train.empty or not val.empty or not test.empty:
+        all_dfs = []
+        for df, name in [(train, "train"), (val, "val"), (test, "test")]:
+            if not df.empty:
+                d = df.copy()
+                d["_split"] = name
+                all_dfs.append(d)
+        if all_dfs:
+            all_splits = pd.concat(all_dfs, ignore_index=True)
+            pal = all_splits["payload"]
+
+            # Also check mixed_case on tag names like <script <SCRIPT <ScRiPt
+            mixed_case_count = pal.str.contains(
+                r'<[a-zA-Z]+[^>]*>', na=False
+            ).sum()
+            # Count how many have a case variation (not all-lowercase or all-uppercase for tag)
+            def _has_mixed_case(p):
+                tags = re.findall(r'<(/?)([a-zA-Z]+)', str(p))
+                if not tags:
+                    return False
+                for prefix, tag in tags:
+                    if tag != tag.lower() and tag != tag.upper():
+                        return True
+                return False
+
+            mixed_case_count = sum(1 for p in pal if _has_mixed_case(p))
+
+            print("\n  Encoding / obfuscation technique prevalence:")
+            print(f"  {'Technique':<25} {'Payloads':>10}  {'% of total':>10}")
+            print(f"  {'─'*25} {'─'*10}  {'─'*10}")
+
+            for name, regex in ENCODING_CHECKS:
+                if name == "mixed_case":
+                    print(f"  {name:<25} {_fmt(mixed_case_count):>10}  {mixed_case_count / len(pal) * 100:>9.1f}%")
+                    continue
+                if regex is None:
+                    continue
+                count = pal.str.contains(regex, regex=True, na=False).sum()
+                if count > 0:
+                    print(f"  {name:<25} {_fmt(count):>10}  {count / len(pal) * 100:>9.1f}%")
+
+            # Count payloads with no encoding at all
+            all_re = r'(' + '|'.join(re for _, re in ENCODING_CHECKS if re is not None) + r')'
+            no_encoding_no_mixed = (~pal.str.contains(all_re, regex=True, na=False)) \
+                                   & ~pal.apply(_has_mixed_case)
+            n_none = no_encoding_no_mixed.sum()
+            print(f"  {'─'*25} {'─'*10}  {'─'*10}")
+            print(f"  {'no_encoding':<25} {_fmt(n_none):>10}  {n_none / len(pal) * 100:>9.1f}%")
+
+            # Multi-encoding count
+            def _count_encodings(p):
+                total = 0
+                for _, regex in ENCODING_CHECKS:
+                    if regex is not None:
+                        total += len(re.findall(regex, str(p)))
+                return total
+            encoding_depths = pal.apply(_count_encodings)
+            n_multi = (encoding_depths > 0).sum()
+            avg_depth = encoding_depths[encoding_depths > 0].mean() if n_multi > 0 else 0
+            print(f"\n  Payloads with ≥1 encoding technique  : {_fmt(n_multi)}  ({n_multi / len(pal) * 100:.1f}%)")
+            print(f"  Avg encoding occurrences (among enc): {avg_depth:.2f}")
+            print(f"  Max encoding occurrences            : {int(encoding_depths.max())}")
+
+    else:
+        print("  (split CSVs not found)")
+
+    # ── 9. Context / Severity Distribution ─────────────────────────────────────
+    _sep("9. Class Distribution (from split CSVs)")
 
     if not train.empty and not val.empty and not test.empty:
-        for df in [train, val, test]:
-            if "split" not in df.columns:
-                # Infer from filename
-                pass
 
         train["_split"] = "train"
         val["_split"] = "val"
@@ -276,8 +443,8 @@ def main():
     else:
         print("  (split CSVs not found)")
 
-    # ── 8. Executable / Verified Payloads ──────────────────────────────────────
-    _sep("8. Executable / Verified Payloads (from ranker training)")
+    # ── 10. Executable / Verified Payloads ──────────────────────────────────────
+    _sep("10. Executable / Verified Payloads (from ranker training)")
 
     n_ranker = 0
     n_executed = 0
@@ -314,8 +481,8 @@ def main():
     else:
         print(f"  (ranker training data not found at {RANKER_JSONL})")
 
-    # ── 9. Summary ─────────────────────────────────────────────────────────────
-    _sep("9. Summary — Authoritative Payload Bank Size")
+    # ── 11. Summary ────────────────────────────────────────────────────────────
+    _sep("11. Summary — Authoritative Payload Bank Size")
 
     print()
     if TOTAL_STAGE4 > 0:
@@ -331,8 +498,27 @@ def main():
         print(f"  ► Train / Val / Test          :  {_fmt(n_train)} / {_fmt(n_val)} / {_fmt(n_test)}")
         print(f"    (total across splits        :  {_fmt(n_total_splits)})")
         print()
+        print(f"  ► Payload-family distribution  :  see Section 7")
+        print(f"  ► Encoding/obfuscation dist.   :  see Section 8")
+        print()
         print(f"  ► Browser-verified (executed) :  {_fmt(n_executed) if RANKER_JSONL.exists() else 'N/A'}")
         print(f"  ► Ranker training samples     :  {_fmt(n_ranker) if RANKER_JSONL.exists() else 'N/A'}")
+        print()
+        # Real vs synthetic + executed: combined statement requested in diversity audit
+        # Guard: all_splits may not be defined if split CSVs are missing
+        if "all_splits" in dir() or "all_splits" in locals():
+            n_real = (all_splits["source"] == "real").sum() if "source" in all_splits.columns else 0
+            n_syn = (all_splits["source"] == "synthetic").sum() if "source" in all_splits.columns else 0
+        else:
+            n_real = 0
+            n_syn = 0
+        if n_real > 0:
+            print(f"  ► Real-source payloads        :  {_fmt(n_real)}  ({n_real / len(all_splits) * 100:.1f}%)")
+            print(f"  ► Synthetic payloads          :  {_fmt(n_syn)}  ({n_syn / len(all_splits) * 100:.1f}%)")
+            print(f"  ► Browser-verified of those   :  {_fmt(n_executed) if RANKER_JSONL.exists() else 'N/A'}  (proven executable in real/browser context)")
+            print(f"    (Note: public-list → real only; synthetic is procedurally generated)")
+            print(f"    Real detection power requires end-to-end scanner validation, not just")
+            print(f"    payload count. See tests/ and scripts/e2e-smoke.sh for that.")
     else:
         print("  (Could not compute pipeline — CSV files may not exist)")
         print("  Run the pipeline scripts in order:")

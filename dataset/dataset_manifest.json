@@ -1,0 +1,152 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-05-17T01:43:03.857748+00:00",
+  "project_repo_sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
+  "sources": [
+    {
+      "name": "AwesomeXSS",
+      "url": "https://github.com/s0md3v/AwesomeXSS",
+      "path": "dataset/raw/AwesomeXSS",
+      "type": "git_clone"
+    },
+    {
+      "name": "PayloadsAllTheThings",
+      "url": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+      "path": "dataset/raw/PayloadsAllTheThings",
+      "type": "git_clone"
+    },
+    {
+      "name": "XSSGAI",
+      "url": "https://github.com/AnonKryptiQuz/XSSGAI",
+      "path": "dataset/raw/XSSGAI",
+      "type": "git_clone"
+    },
+    {
+      "name": "PortSwigger XSS Cheat Sheet",
+      "url": "https://portswigger.net/web-security/cross-site-scripting/cheat-sheet",
+      "path": "dataset/raw/portswigger_raw.html",
+      "type": "downloaded_file"
+    }
+  ],
+  "scripts": {
+    "dataset/collect_payloads.py": {
+      "sha": "f39f59d920e6d5fefd7322e9e33e13328bf84dfa",
+      "date": "2026-03-01T23:05:32+05:45"
+    },
+    "dataset/collect_portswigger.py": {
+      "sha": "dc405da2d2bdd4118730aca6848ac5a48862dfca",
+      "date": "2026-03-03T06:51:18Z"
+    },
+    "dataset/label_contexts.py": {
+      "sha": "1bdbc15b14dab1fae2bc93da7cab3fff85805ffd",
+      "date": "2026-03-06T10:41:29+05:45"
+    },
+    "dataset/generate_synthetic.py": {
+      "sha": "1bdbc15b14dab1fae2bc93da7cab3fff85805ffd",
+      "date": "2026-03-06T10:41:29+05:45"
+    },
+    "dataset/finalize_dataset.py": {
+      "sha": "1bdbc15b14dab1fae2bc93da7cab3fff85805ffd",
+      "date": "2026-03-06T10:41:29+05:45"
+    },
+    "scripts/dataset_stats.py": {
+      "sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
+      "date": "2026-05-17T07:13:23+05:45"
+    },
+    "scripts/generate_dataset_manifest.py": {
+      "sha": "0448699e9acbef1678bff5878a5b983d8b6710d9",
+      "date": "2026-05-17T07:13:23+05:45"
+    },
+    "dataset/events.py": {
+      "sha": "8c251305c5fe8e030042bb3fd8291db88fe5dc3f",
+      "date": "2026-03-06T09:37:41+05:45"
+    },
+    "dataset/tags.py": {
+      "sha": "8c251305c5fe8e030042bb3fd8291db88fe5dc3f",
+      "date": "2026-03-06T09:37:41+05:45"
+    }
+  },
+  "pipeline_order": [
+    "dataset/collect_payloads.py",
+    "dataset/collect_portswigger.py",
+    "dataset/label_contexts.py",
+    "dataset/generate_synthetic.py",
+    "dataset/finalize_dataset.py",
+    "scripts/dataset_stats.py",
+    "scripts/generate_dataset_manifest.py"
+  ],
+  "artifacts": {
+    "dataset/processed/all_payloads_raw.csv": {
+      "sha256": "02547de3f496b703bc2f0455c5c3afd1df9a8b5e08c333ac5b8147edf723ed11",
+      "rows": 19015,
+      "size_bytes": 1586738
+    },
+    "dataset/processed/enriched_training.csv": {
+      "sha256": "de85d069c90eec91d3555709e4e2b48c3d4f6d129cd042f7749febcd2190605a",
+      "rows": 3135,
+      "size_bytes": 162410
+    },
+    "dataset/processed/enriched_training_enriched.csv": {
+      "sha256": "f65353854bc76388ccef5c0d2b44ec06faa9dc614436712c9fe234eaeb172a98",
+      "rows": 3135,
+      "size_bytes": 397495
+    },
+    "dataset/processed/payloads_labeled.csv": {
+      "sha256": "bc1dd7e0fd50efae596793ec77453154e6124fe353b6446555134128f5d37250",
+      "rows": 19015,
+      "size_bytes": 2146416
+    },
+    "dataset/processed/portswigger_payloads.csv": {
+      "sha256": "af9f1563a7f5189076c13e1a13234c4822a33f200eeddccf466dd12e85017e3c",
+      "rows": 526,
+      "size_bytes": 74701
+    },
+    "dataset/processed/synthetic_payloads.csv": {
+      "sha256": "f9d5afb9839caadf58b70080841dfa45aecf1f48aa878665b7a610687a8be5bb",
+      "rows": 42212,
+      "size_bytes": 2942237
+    },
+    "dataset/splits/test.csv": {
+      "sha256": "d5ffa2f37771ab04539f6842ac4e009284a45d55b6ca1ed91f6e6d2303a6662b",
+      "rows": 8869,
+      "size_bytes": 928425
+    },
+    "dataset/splits/train.csv": {
+      "sha256": "78b2a23d500d0d0d0e9a32abd9aec95bdc4a982189f447bbce1945ab175c3887",
+      "rows": 41385,
+      "size_bytes": 4323004
+    },
+    "dataset/splits/val.csv": {
+      "sha256": "aa13f8ed4f52444c30f63cbb14577034fa487f0f1829d0d4184ba76390e5cac1",
+      "rows": 8868,
+      "size_bytes": 925748
+    },
+    "dataset/splits/test_payloads.txt": {
+      "sha256": "cc366a1902e9b9b1181adf6100876e7a72b29b21b0d32aab61a63eac3858c61e",
+      "rows": 9023,
+      "size_bytes": 567214
+    },
+    "dataset/splits/train_payloads.txt": {
+      "sha256": "58d95394542ff9d893ef7cabf0edf13894fc35ffd5ab3c64b2e83a7113d6be4e",
+      "rows": 42127,
+      "size_bytes": 2637750
+    },
+    "dataset/splits/val_payloads.txt": {
+      "sha256": "51ecd7643b7b30416260a19abd04d257f9ad91890cc4c88651e3022a2637bf36",
+      "rows": 9049,
+      "size_bytes": 564748
+    },
+    "dataset/ranker_training/ranker_training_samples.jsonl": {
+      "sha256": "3a301e5bfa8394e3f8383fd400e6dcc7316fe3dbcbc3c4a264030b68c0608442",
+      "rows": 8976,
+      "size_bytes": 5205274
+    }
+  },
+  "notes": [
+    "dataset/raw/ is gitignored \u2014 raw sources exist only locally.",
+    "Run \"make dataset\" to rebuild all processed/split files from raw sources.",
+    "Run \"make dataset-report\" to regenerate dataset_stats.py output.",
+    "PortSwigger source is an HTML file (not a git repo); checksum proven here.",
+    "Commit SHAs for raw sources are from local clones and may differ from origin HEAD."
+  ]
+}
