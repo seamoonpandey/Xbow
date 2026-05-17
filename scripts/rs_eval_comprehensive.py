@@ -459,8 +459,36 @@ PORT_FILE = ROOT / "dataset" / "processed" / "portswigger_payloads.csv"
 PORT_SAMPLE_SIZE = 50  # Number of PortSwigger payloads to test
 
 
+# ── Context-to-Endpoint Routing for PortSwigger Payloads ───────
+# Each PortSwigger payload context type maps to the exploitable endpoint
+# that best simulates the intended injection context:
+#   event_handler  → /reflected/body   (raw HTML injection via {{ q }})
+#   attribute      → /reflected/attribute (attr injection via value="{{ user }}")
+#   script_injection → /reflected/script (JS string injection via '{name}')
+#   js_uri         → /reflected/href   (href="{{ url }}" — javascript: protocol)
+#   template_injection → /mutation/angular (Angular {{ expr }} rendering)
+#   tag_injection  → /reflected/body   (raw HTML injection)
+#   dom_sink       → /dom/innerhtml    (innerHTML via URL params)
+#   generic        → /reflected/body   (catch-all raw HTML)
+#   attribute_escape → /reflected/attribute (attr encoding context)
+
+CONTEXT_ROUTES = {
+    "event_handler":      {"url": "/reflected/body",      "param": "q"},
+    "attribute":          {"url": "/reflected/attribute",  "param": "user"},
+    "script_injection":   {"url": "/reflected/script",     "param": "name"},
+    "js_uri":             {"url": "/reflected/href",       "param": "url"},
+    "template_injection": {"url": "/mutation/angular",     "param": "expr"},
+    "tag_injection":      {"url": "/reflected/body",      "param": "q"},
+    "dom_sink":           {"url": "/dom/innerhtml",        "param": "data"},
+    "generic":            {"url": "/reflected/body",      "param": "q"},
+    "attribute_escape":   {"url": "/reflected/attribute",  "param": "user"},
+}
+
+DEFAULT_ROUTE = {"url": "/reflected/body", "param": "q"}
+
+
 def run_portswigger_coverage():
-    """Test PortSwigger payloads against the primary reflected endpoint."""
+    """Test PortSwigger payloads routed by context to the most appropriate endpoint."""
     if not PORT_FILE.exists():
         print("  [!] PortSwigger CSV not found — skipping coverage")
         return None
@@ -479,7 +507,7 @@ def run_portswigger_coverage():
     sample = all_payloads[:PORT_SAMPLE_SIZE]
 
     print(f"\n{'='*70}")
-    print(f"  PORSWIGGER COVERAGE ANALYSIS")
+    print(f"  PORSWIGGER COVERAGE ANALYSIS  (multi-context routing)")
     print(f"  Total PortSwigger payloads: {total}")
     print(f"  Testing sample: {PORT_SAMPLE_SIZE}")
     print(f"{'='*70}")
@@ -491,63 +519,101 @@ def run_portswigger_coverage():
 
     print(f"\n  Sample context distribution:")
     for ctx, ps in sorted(by_context.items(), key=lambda x: -len(x[1])):
-        print(f"    {ctx}: {len(ps)} payloads")
+        route = CONTEXT_ROUTES.get(ctx, DEFAULT_ROUTE)
+        print(f"    {ctx}: {len(ps)} payloads → {route['url']}?{route['param']}=<payload>")
 
-    # Test each against reflected-body (most common sink)
+    # Group payloads by target endpoint+param for batched fuzzer calls.
+    # Smart routing: full HTML payloads (starting with `<`) in "attribute" context
+    # need body context instead — they're complete elements, not attribute-breakers.
+    endpoint_batches = {}  # key: (url, param) -> list of payloads
+    for p, ctx in sample:
+        route = CONTEXT_ROUTES.get(ctx, DEFAULT_ROUTE)
+        # Full HTML elements in attribute context should go to body instead
+        if ctx == "attribute" and p.strip().startswith("<"):
+            route = {"url": "/reflected/body", "param": "q"}
+        full_url = f"{TARGET}{route['url']}"
+        key = (full_url, route["param"])
+        endpoint_batches.setdefault(key, []).append((p, ctx))
+
+    print(f"\n  Routing to {len(endpoint_batches)} different endpoint+param combinations")
+
     results = []
     detected = 0
     executed = 0
+    per_context_stats = {}
 
-    batch_size = 5
-    for i in range(0, len(sample), batch_size):
-        batch = sample[i:i+batch_size]
-        payloads = [make_payload(p, "q") for p, _ in batch]
+    batch_count = sum(
+        (len(entries) + 4) // 5 for entries in endpoint_batches.values()
+    )
+    batch_idx = 0
 
-        try:
-            fuzz_result = api_post(FUZZER, "/fuzz", {
-                "url": f"{TARGET}/reflected/body",
-                "payloads": payloads,
-                "verify_execution": True,
-                "timeout": 60000,
-                "stored_mode": False,
-            }, timeout=120)
+    for (url, param), payloads in sorted(endpoint_batches.items(),
+                                          key=lambda x: -len(x[1])):
+        print(f"\n  → {url.split('/')[-1]}/{param}")
 
-            for r in fuzz_result.get("results", []):
-                vuln = r.get("vuln", False)
-                exec_ = r.get("executed", False)
-                refl = r.get("reflected", False)
-                if vuln:
-                    detected += 1
-                if exec_:
-                    executed += 1
-                results.append({
-                    "payload": r.get("payload", "")[:100],
-                    "vuln": vuln,
-                    "executed": exec_,
-                    "reflected": refl,
-                    "type": r.get("type", ""),
-                })
+        for i in range(0, len(payloads), 5):
+            batch = payloads[i:i+5]
+            batch_idx += 1
+            fuzz_payloads = [make_payload(p, param) for p, _ in batch]
 
-            print(f"    Batch {i//batch_size + 1}/{(len(sample)-1)//batch_size + 1}: "
-                  f"tested {len(batch)} payloads, detected: {sum(1 for r in fuzz_result.get('results',[]) if r.get('vuln'))}")
+            try:
+                fuzz_result = api_post(FUZZER, "/fuzz", {
+                    "url": url,
+                    "payloads": fuzz_payloads,
+                    "verify_execution": True,
+                    "timeout": 60000,
+                    "stored_mode": False,
+                }, timeout=120)
 
-        except Exception as e:
-            print(f"    Batch {i//batch_size + 1} error: {str(e)[:60]}")
+                for r in fuzz_result.get("results", []):
+                    vuln = r.get("vuln", False)
+                    exec_ = r.get("executed", False)
+                    refl = r.get("reflected", False)
+                    if vuln:
+                        detected += 1
+                    if exec_:
+                        executed += 1
+                    results.append({
+                        "payload": r.get("payload", "")[:100],
+                        "vuln": vuln,
+                        "executed": exec_,
+                        "reflected": refl,
+                        "type": r.get("type", ""),
+                        "tested_on": f"{url}?{param}=<payload>",
+                    })
 
-    # Compile coverage stats
+                batch_detected = sum(
+                    1 for r in fuzz_result.get("results", []) if r.get("vuln")
+                )
+                print(f"      Batch {batch_idx}/{batch_count}: "
+                      f"{len(batch)} payloads, detected: {batch_detected}")
+
+            except Exception as e:
+                print(f"      Batch {batch_idx}/{batch_count} error: {str(e)[:80]}")
+
+    # Build per-context breakdown from results
+    for ctx in set(ctx for _, ctx in sample):
+        ctx_total = sum(1 for _, c in sample if c == ctx)
+        ctx_detected = 0
+        ctx_executed = 0
+        for p, c in sample:
+            if c == ctx:
+                for r in results:
+                    if r["payload"][:100] == p[:100]:
+                        if r["vuln"]:
+                            ctx_detected += 1
+                        if r["executed"]:
+                            ctx_executed += 1
+                        break
+        per_context_stats[ctx] = {
+            "total": ctx_total,
+            "detected": ctx_detected,
+            "executed": ctx_executed,
+            "coverage_pct": round(ctx_detected / ctx_total * 100, 1) if ctx_total else 0,
+        }
+
     coverage_pct = (detected / len(sample) * 100) if sample else 0
     execution_pct = (executed / len(sample) * 100) if sample else 0
-
-    # Per-context breakdown
-    context_results = {}
-    for ctx in set(ctx for _, ctx in sample):
-        ctx_payloads = [r for r, (_, c) in zip(results, sample) if c == ctx]
-        ctx_detected = sum(1 for r in ctx_payloads if r["vuln"])
-        context_results[ctx] = {
-            "total": len(ctx_payloads),
-            "detected": ctx_detected,
-            "coverage_pct": round(ctx_detected / len(ctx_payloads) * 100, 1) if ctx_payloads else 0,
-        }
 
     port_data = {
         "total_portswigger_payloads": total,
@@ -556,11 +622,20 @@ def run_portswigger_coverage():
         "browser_executed": executed,
         "coverage_pct": round(coverage_pct, 1),
         "execution_pct": round(execution_pct, 1),
-        "context_breakdown": context_results,
+        "context_breakdown": per_context_stats,
+        "routing_table": {
+            ctx: f"{TARGET}{route['url']}?{route['param']}=<payload>"
+            for ctx, route in CONTEXT_ROUTES.items()
+        },
         "details": results,
     }
 
     PORT_RESULTS_FILE.write_text(json.dumps(port_data, indent=2, default=str))
+
+    print(f"\n  Context breakdown:")
+    for ctx, cd in sorted(per_context_stats.items(), key=lambda x: -x[1]["total"]):
+        route = CONTEXT_ROUTES.get(ctx, DEFAULT_ROUTE)
+        print(f"    {ctx:25s} {cd['total']:3d} payloads → {cd['detected']:2d} detected ({cd['coverage_pct']:.0f}%)")
     print(f"\n  PortSwigger Coverage: {detected}/{PORT_SAMPLE_SIZE} ({coverage_pct:.1f}%)")
     print(f"  Browser-Confirmed: {executed}/{PORT_SAMPLE_SIZE} ({execution_pct:.1f}%)")
     print(f"  Results saved: {PORT_RESULTS_FILE}")
@@ -771,9 +846,13 @@ def generate_markdown(data, port_data=None):
 
     # ── 5. PortSwigger Coverage (if available) ──
     if port_data:
-        lines.append("## 5. PortSwigger Payload Coverage\n")
-        lines.append(f"**Tested against:** `{TARGET}/reflected/body`")
+        lines.append("## 5. PortSwigger Payload Coverage (Multi-Context Routing)\n")
+        lines.append(f"**Tested against:** {len(port_data.get('context_breakdown', {}))} different endpoint contexts")
         lines.append(f"**Total PortSwigger payloads in dataset:** {port_data['total_portswigger_payloads']}")
+        lines.append(f"**Endpoints used:**")
+        for ctx, route_str in sorted(port_data.get('routing_table', {}).items()):
+            lines.append(f"  - `{ctx}` → `{route_str}`")
+        lines.append("")
         lines.append(f"**Sample tested:** {port_data['sample_tested']}")
         lines.append(f"**Detected:** {port_data['detected']} ({port_data['coverage_pct']}%)")
         lines.append(f"**Browser-executed:** {port_data['browser_executed']} ({port_data['execution_pct']}%)")
@@ -788,10 +867,11 @@ def generate_markdown(data, port_data=None):
         lines.append("")
 
         lines.append("### 5.2 Payload Detail\n")
-        lines.append("| Payload | Reflected | Executed | Vuln | Type |")
-        lines.append("|---------|-----------|----------|------|------|")
+        lines.append("| Payload | Tested On | Reflected | Executed | Vuln | Type |")
+        lines.append("|---------|-----------|-----------|----------|------|------|")
         for d in port_data.get("details", []):
-            lines.append(f"| `{d['payload'][:50]}` | {d['reflected']} | {d['executed']} | "
+            tested = d.get('tested_on', '').split('?')[-1] if 'tested_on' in d else ''
+            lines.append(f"| `{d['payload'][:40]}` | `{tested}` | {d['reflected']} | {d['executed']} | "
                           f"{d['vuln']} | {d.get('type', '')} |")
         lines.append("")
 

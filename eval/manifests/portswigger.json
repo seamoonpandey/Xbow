@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "category": "PortSwigger",
+    "description": "PortSwigger payload coverage — tests PortSwigger payloads routed by context to appropriate endpoints",
+    "target": "http://localhost:9090",
+    "portswigger_file": "dataset/processed/portswigger_payloads.csv",
+    "sample_size": 50,
+    "context_routes": {
+      "event_handler":      {"url": "/reflected/body",     "param": "q"},
+      "attribute":          {"url": "/reflected/attribute", "param": "user"},
+      "script_injection":   {"url": "/reflected/script",    "param": "name"},
+      "js_uri":             {"url": "/reflected/href",      "param": "url"},
+      "template_injection": {"url": "/mutation/angular",    "param": "expr"},
+      "tag_injection":      {"url": "/reflected/body",     "param": "q"},
+      "dom_sink":           {"url": "/dom/innerhtml",       "param": "data"},
+      "generic":            {"url": "/reflected/body",     "param": "q"},
+      "attribute_escape":   {"url": "/reflected/attribute", "param": "user"}
+    }
+  },
+  "endpoints": []
+}

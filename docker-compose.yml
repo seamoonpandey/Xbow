@@ -169,6 +169,38 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # ── Evaluation Targets (real-world benchmarks) ──
+  # Start with: docker compose --profile eval-targets up juice-shop webgoat owasp-benchmark
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: redsentinel-juice-shop
+    ports:
+      - "3000:3000"
+    profiles:
+      - eval
+      - eval-targets
+    restart: unless-stopped
+
+  webgoat:
+    image: webgoat/webgoat:latest
+    container_name: redsentinel-webgoat
+    ports:
+      - "8080:8080"
+    profiles:
+      - eval
+      - eval-targets
+    restart: unless-stopped
+
+  owasp-benchmark:
+    image: owasp/benchmark:latest
+    container_name: redsentinel-benchmark
+    ports:
+      - "8443:8443"
+    profiles:
+      - eval
+      - eval-targets
+    restart: unless-stopped
+
 volumes:
   pgdata:
   reports:

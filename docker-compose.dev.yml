@@ -67,3 +67,12 @@ services:
       # NEXT_PUBLIC_WS_URL derived from window.location at runtime (browser)
     healthcheck:
       start_period: 15s
+
+  juice-shop:
+    profiles: ["eval", "eval-targets"]
+
+  webgoat:
+    profiles: ["eval", "eval-targets"]
+
+  owasp-benchmark:
+    profiles: ["eval", "eval-targets"]

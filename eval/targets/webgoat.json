@@ -1,0 +1,98 @@
+{
+  "_meta": {
+    "name": "OWASP WebGoat",
+    "description": "OWASP WebGoat — deliberately insecure web application with XSS lessons",
+    "image": "webgoat/webgoat:latest",
+    "port": 8080,
+    "target_url": "http://localhost:8080",
+    "category": "real-world",
+    "auth_required": true,
+    "auth_config": {
+      "endpoint": "/WebGoat/login",
+      "method": "POST",
+      "credentials": {"username": "guest", "password": "guest"},
+      "fields": {"username": "username", "password": "password"},
+      "session_cookie": "JSESSIONID"
+    },
+    "notes": "WebGoat v8+ requires login. Default credentials: guest/guest. Session cookies must be sent with all subsequent requests."
+  },
+  "endpoints": [
+    {
+      "name": "webgoat-reflected-xss",
+      "category": "WebGoat",
+      "url": "http://localhost:8080/WebGoat/CrossSiteScripting/attack1",
+      "method": "POST",
+      "params": ["QTY1"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "Reflected XSS — parameter is reflected in the response HTML",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "QTY1", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "QTY1", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "';alert(1)//", "target_param": "QTY1", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "webgoat-stored-xss",
+      "category": "WebGoat",
+      "url": "http://localhost:8080/WebGoat/CrossSiteScripting/attack2",
+      "method": "POST",
+      "params": ["QTY2"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:8080/WebGoat/CrossSiteScripting/attack2",
+      "form_fields": {
+        "QTY2": "",
+        "checkbox": "on"
+      },
+      "notes": "Stored XSS — input is stored and displayed when the lesson page is revisited",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "QTY2", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "QTY2", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "QTY2", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "webgoat-dom-xss",
+      "category": "WebGoat",
+      "url": "http://localhost:8080/WebGoat/CrossSiteScripting/attack3",
+      "method": "POST",
+      "params": ["param1"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "DOM-based XSS — client-side JavaScript handles the input",
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "param1", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "param1", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "webgoat-xss-csrf",
+      "category": "WebGoat",
+      "url": "http://localhost:8080/WebGoat/CrossSiteScripting/attack4",
+      "method": "POST",
+      "params": ["param1"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "XSS combined with CSRF protection bypass",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "param1", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "param1", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "webgoat-sql-injection-xss",
+      "category": "WebGoat",
+      "url": "http://localhost:8080/WebGoat/SqlInjection/attack5",
+      "method": "POST",
+      "params": ["account_name"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "notes": "SQL injection endpoint — not XSS, expected Safe (no reflected XSS)",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "account_name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "' OR '1'='1", "target_param": "account_name", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

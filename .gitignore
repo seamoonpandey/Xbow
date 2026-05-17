@@ -32,7 +32,7 @@ ai/model/checkpoints/logs/
 # Processed/split CSVs are tracked instead
 dataset/raw/
 
-# ─── Generated inference outputs ──────────────────────────
+# ─── Generated inference outputs / reports ────────────────
 outputs/*
 !outputs/.gitkeep
 
@@ -85,3 +85,9 @@ scanner-logs/
 XSStrike/
 runs/
 output/
+
+# ─── Evaluation archives (generated raw results — NOT tracked) ──
+# Each run saves raw fuzzer responses to a timestamped directory.
+# Manifests (source of truth) ARE tracked in eval/manifests/.
+eval/archive/*
+!eval/archive/.gitkeep

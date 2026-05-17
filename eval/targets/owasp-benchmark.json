@@ -1,0 +1,104 @@
+{
+  "_meta": {
+    "name": "OWASP Benchmark",
+    "description": "OWASP Benchmark — vulnerability detection benchmark with known ground truth labels",
+    "image": "owasp/benchmark:latest",
+    "port": 8443,
+    "target_url": "https://localhost:8443",
+    "category": "benchmark",
+    "auth_required": false,
+    "protocol": "https",
+    "tls_verify": false,
+    "notes": "OWASP Benchmark is a Java-based test suite with ~2,740 test cases, each labeled Vulnerable or Safe. The benchmark measures detection tool accuracy. XSS test cases use endpoints like /benchmark/BenchmarkTestXXXXX. Each test case reflects input in a specific context. We test a representative subset.",
+    "test_case_count": 2740,
+    "xss_test_count": 212
+  },
+  "endpoints": [
+    {
+      "name": "benchmark-xss-001",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest00001",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "XSS test case — reflects user input directly in HTML response body",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "benchmark-xss-002",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest00002",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "XSS test case — input reflected in HTML attribute context without proper escaping",
+      "payloads": [
+        {"payload": "\"><script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "' onfocus=alert(1) autofocus='", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "benchmark-xss-003",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest00003",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Vuln",
+      "stored_mode": false,
+      "notes": "XSS test case — input used in JavaScript string context",
+      "payloads": [
+        {"payload": "';alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "\\\";alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "benchmark-safe-001",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest01000",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "notes": "Safe test case — input is properly escaped/encoded before reflection",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "benchmark-safe-002",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest01500",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "notes": "Safe test case — input is sanitized before reflection (no XSS possible)",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "';alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    },
+    {
+      "name": "benchmark-safe-003",
+      "category": "Benchmark",
+      "url": "https://localhost:8443/benchmark/BenchmarkTest02000",
+      "method": "GET",
+      "params": ["vector"],
+      "expected": "Safe",
+      "stored_mode": false,
+      "notes": "Safe test case — Content-Type is plain/text, no HTML parsing of input",
+      "payloads": [
+        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+      ]
+    }
+  ]
+}
