@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Golden regression baseline \u2014 do not modify unless baseline has legitimately improved",
-    "source_run": "validation-test",
+    "source_run": "full-exploitable-eval",
     "created": "2026-05-17",
     "version": 1
   },
@@ -11,16 +11,194 @@
     "min_f1": 1.0,
     "max_fn": 0,
     "max_fp": 0,
-    "max_errors": 0
+    "max_errors": 0,
+    "min_portswigger_coverage": 96.0
   },
   "endpoints": {
+    "T1": {
+      "expected": "Vuln",
+      "min_vulns": 9
+    },
+    "T2": {
+      "expected": "Safe"
+    },
+    "T3": {
+      "expected": "Vuln",
+      "min_vulns": 5
+    },
+    "T4": {
+      "expected": "Vuln",
+      "min_vulns": 7
+    },
+    "bypass-angle-only": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "bypass-blacklist": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "bypass-case": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "bypass-comment": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "bypass-double-encode": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "bypass-quote-escape": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "bypass-recursive": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "bypass-tag-strip": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "bypass-waf-sim": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "dom-cookie": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "dom-eval": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "dom-innerhtml": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "dom-jquery": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "dom-localstorage": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "dom-settimeout": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "dom-srcdoc": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "dom-url-replace": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "dom-write": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "mutation-angular": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "mutation-dangerouslyhtml": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "mutation-innerhtml": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "mutation-svg": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
     "reflected-attribute": {
       "expected": "Vuln",
       "min_vulns": 3
     },
+    "reflected-attribute-unquoted": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
     "reflected-body": {
       "expected": "Vuln",
       "min_vulns": 5
+    },
+    "reflected-comment": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "reflected-css": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "reflected-event": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "reflected-header": {
+      "expected": "Safe"
+    },
+    "reflected-href": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "reflected-iframe": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "reflected-js-string": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "reflected-json": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "reflected-meta": {
+      "expected": "Safe"
+    },
+    "reflected-multiparams": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "reflected-script": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "reflected-style": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "reflected-textarea": {
+      "expected": "Vuln",
+      "min_vulns": 1
+    },
+    "stored-comments": {
+      "expected": "Vuln",
+      "min_vulns": 4
+    },
+    "stored-guestbook": {
+      "expected": "Vuln",
+      "min_vulns": 2
+    },
+    "stored-notes": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "stored-profile-bio": {
+      "expected": "Vuln",
+      "min_vulns": 3
+    },
+    "stored-profile-website": {
+      "expected": "Vuln",
+      "min_vulns": 1
     }
   }
 }
