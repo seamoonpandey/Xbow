@@ -46,6 +46,7 @@ Ground truth was determined by **source code analysis** of each endpoint:
 ## Platform 1: Exploitable App (Flask)
 
 ### Per-Endpoint Results
+> **Methodology note:** This table uses "reflection-based detection" — if a tool reports any reflection/alert, it's marked as detected regardless of execution. Red Sentinel's pipeline distinguishes reflection from execution (see FP Analysis below).
 
 | Endpoint | Type | Expected | Red Sentinel | XSStrike | Dalfox | ZAP |
 |----------|:----:|:--------:|:------------:|:--------:|:------:|:---:|

@@ -118,7 +118,7 @@ self-executing `<img>` tag.
 | **Total Endpoints** | 47 |
 | **Total Vulns Found** | 96 |
 | **Browser-Confirmed** | 73 |
-| **PortSwigger Coverage** | **98.0%** (49/50 payloads detected) |
+| **PortSwigger Coverage** | **96.0%** (48/50 payloads detected) |
 | **Endpoints with Errors** | 0 |
 
 ### Category Breakdown

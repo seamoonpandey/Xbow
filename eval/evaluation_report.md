@@ -23,6 +23,8 @@ This evaluation follows a structured 10-step methodology for comparing XSS detec
 
 All scans target the same endpoints under identical network conditions. Tools were run sequentially per test case to avoid interference.
 
+> **Note on scope:** This comparative evaluation covers only 4 base test cases (T1–T4) against multiple tools. The "Full 47-Endpoint Evaluation" in Step 10 is a Red Sentinel-only evaluation against the full exploitable app. Different numbers across reports reflect different test scopes, not contradictions.
+
 ---
 
 ## Step 1: Ground Truth Table
