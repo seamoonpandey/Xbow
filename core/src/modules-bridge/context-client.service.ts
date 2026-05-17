@@ -11,6 +11,12 @@ export interface AnalyzeRequest {
   waf: string;
   /** Optional: flat cookie header to forward to the Python context module */
   cookieHeader?: string;
+  /** Form method for form-based context probing (GET | POST) */
+  formMethod?: string;
+  /** Required form field names for form-based probing */
+  formFields?: string[];
+  /** Page where stored output appears (for stored XSS context probing) */
+  displayUrl?: string;
 }
 
 export type ContextMap = Record<
@@ -45,6 +51,9 @@ export class ContextClientService {
         url: req.url,
         params: req.params,
         waf: req.waf,
+        form_method: req.formMethod ?? 'GET',
+        form_fields: req.formFields ?? [],
+        display_url: req.displayUrl ?? '',
       };
 
       // Forward cookies so the Python module can probe auth-gated endpoints

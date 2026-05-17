@@ -4,12 +4,17 @@ analyzes reflection contexts for xss parameters using probing, char fuzzing, and
 """
 
 import logging
+import os
 import re
 import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+
+# add shared module to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from shared.schemas import AnalyzeRequest, ParamContext
 
 from probe_injector import inject_probes
 from reflection_analyzer import analyze_reflection, get_primary_context
@@ -52,19 +57,6 @@ app = FastAPI(
 
 # ── ai classifier (loaded once at startup) ──────────────────
 classifier = AIClassifier()
-
-
-# ── schemas ─────────────────────────────────────────────────
-class AnalyzeRequest(BaseModel):
-    url: str
-    params: list[str]
-    waf: str = "none"
-
-
-class ParamContext(BaseModel):
-    reflects_in: str = "none"
-    allowed_chars: list[str] = Field(default_factory=list)
-    context_confidence: float = 0.0
 
 
 # ── routes ──────────────────────────────────────────────────

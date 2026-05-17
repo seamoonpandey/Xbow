@@ -14,6 +14,7 @@ class AnalyzeRequest(BaseModel):
     form_method: str = "GET"  # GET or POST
     form_fields: list[str] = Field(default_factory=list)  # all required field names
     display_url: str = ""  # page where stored output appears (for stored XSS)
+    cookie_header: str | None = None  # forwarded by Core for authenticated context probing
 
 
 class ParamContext(BaseModel):

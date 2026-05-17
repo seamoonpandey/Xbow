@@ -58,7 +58,31 @@ describe('ContextClientService', () => {
       'http://localhost:5001/analyze',
       expect.anything(),
     );
+    // Verify the new canonical fields are always sent with defaults
+    const postBody = http.post.mock.calls[0][1];
+    expect(postBody.form_method).toBe('GET');
+    expect(postBody.form_fields).toEqual([]);
+    expect(postBody.display_url).toBe('');
     expect(result.q.reflects_in).toBe('html_text');
+  });
+
+  it('forwards form_method, form_fields, display_url, and cookie_header', async () => {
+    const http = mockHttp({});
+    const svc = new ContextClientService(http, mockConfig());
+    await svc.analyze({
+      url: 'https://t.com/form',
+      params: ['field1', 'field2'],
+      waf: 'cloudflare',
+      formMethod: 'POST',
+      formFields: ['field1', 'field2'],
+      displayUrl: 'https://t.com/display',
+      cookieHeader: 'session=abc123',
+    });
+    const postBody = http.post.mock.calls[0][1];
+    expect(postBody.form_method).toBe('POST');
+    expect(postBody.form_fields).toEqual(['field1', 'field2']);
+    expect(postBody.display_url).toBe('https://t.com/display');
+    expect(postBody.cookie_header).toBe('session=abc123');
   });
 
   it('uses configured CONTEXT_URL', async () => {
