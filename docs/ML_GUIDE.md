@@ -10,6 +10,7 @@ This is the canonical guide for RedSentinel model, dataset, and ML-runtime owner
 dataset/splits/                 Train/val/test payload splits used by payload-gen
 dataset/processed/              Curated and enriched payload data
 dataset/ranker_training/        Ranker training samples and related data when present
+dataset/dataset_manifest.json   Reproducible artifact manifest (SHA-256 checksums, row counts)
 model/tokenizer/                Tokenizer used by the context classifier
 model/ranker/                   XGBoost ranker model artifacts and metrics when present
 model/checkpoints/metrics.json  Small tracked checkpoint summary
@@ -20,6 +21,51 @@ training_data volume            Runtime fuzzer-collected samples in Docker Compo
 ```
 
 Large checkpoint binaries under `model/checkpoints/*.pt` are intentionally ignored. Keep them local, mount them in containers, or publish them as release artifacts instead of committing them.
+
+---
+
+## Dataset Pipeline
+
+The dataset pipeline is automated via the project Makefile. See `dataset/README.md` for full details.
+
+| Target | Action |
+|---|---|
+| `make dataset` | Rebuild all processed CSVs & splits from raw sources |
+| `make dataset-report` | Run `scripts/dataset_stats.py` + regenerate `dataset/dataset_manifest.json` |
+| `make dataset-all` | Both of the above |
+
+### Key scripts
+
+- **`dataset/collect_payloads.py`** — Collects raw payloads from upstream collections
+- **`dataset/collect_portswigger.py`** — Extracts PortSwigger cheat-sheet payloads
+- **`dataset/label_contexts.py`** — Labels payloads with context, severity, technique
+- **`dataset/generate_synthetic.py`** — Generates synthetic/obfuscated payload variants
+- **`dataset/finalize_dataset.py`** — Deduplicates, filters, and creates train/val/test splits
+- **`scripts/dataset_stats.py`** — Reproducible 12-section statistics report (see below)
+- **`scripts/generate_dataset_manifest.py`** — Produces `dataset/dataset_manifest.json`
+
+### Dataset statistics (`scripts/dataset_stats.py`)
+
+The stats script produces a 12-section report covering:
+
+| Section | Content |
+|---|---|
+| 1 | Raw collection counts from each source |
+| 2 | Labeling stage counts and PortSwigger overlap |
+| 3 | Synthetic generation counts |
+| 4 | Finalization and deduplication |
+| 5 | Validity filter and label filter |
+| 6 | Train/val/test split distribution |
+| 7 | **Payload-family balance** — dominant XSS pattern families |
+| 8 | **Encoding & obfuscation categories** — 12 encoding technique prevalence |
+| 9 | Class distribution by context, severity, source |
+| 10 | Executable/verified payloads from ranker training |
+| 11 | Summary with authoritative payload bank size |
+| 12 | **Real-World Application Coverage Analysis** — maps payloads to 14 exploitable sink types, cross-references browser-verified samples per context, provides coverage assessment |
+
+### Dataset manifest
+
+`dataset/dataset_manifest.json` records SHA-256 checksums, row counts, source repo metadata, and script versions for every artifact in the pipeline. The manifest is the authoritative source for data integrity verification.
 
 ---
 
@@ -54,7 +100,7 @@ Keep dataset-source lists consistent with `dataset/README.md`. Current documente
 - XSSGAI
 - PortSwigger XSS cheat sheet content
 
-Use “approximately 59K+” for payload-bank size unless an exact count is directly proven by a tracked file or reproducible script output. Do not hard-code exact values such as 59,122 in canonical docs unless the repository proves that number at the time of the documentation change.
+The curated payload-bank size is **59,122** (proven by `scripts/dataset_stats.py` Section 11 and `dataset/dataset_manifest.json`). Update this exact number when `dataset_stats.py` outputs a different count.
 
 ---
 
@@ -68,6 +114,7 @@ Use “approximately 59K+” for payload-bank size unless an exact count is dire
    - payload-gen module: `dataset/splits/` and `model/ranker/`
    - fuzzer module: `training_data` volume for collected samples
 5. Offline tools under `tools/inference/` write generated outputs to `outputs/`, which is ignored except for `.gitkeep`.
+6. **Reproducible verification**: `make dataset-report` runs `scripts/dataset_stats.py` and `scripts/generate_dataset_manifest.py` to produce the stats report and `dataset/dataset_manifest.json`.
 
 ---
 
@@ -101,7 +148,11 @@ Training/evaluation datasets may use narrower or broader labels depending on the
 ## Active Maintenance Rules
 
 - Update `dataset/README.md` when dataset generation or source collection changes.
+- Update `scripts/dataset_stats.py` when new analysis sections are added to the dataset.
+- Update `scripts/generate_dataset_manifest.py` when pipeline scripts or tracked artifacts change.
+- Update `Makefile` when new pipeline steps or workflow targets are added.
 - Update this file when model ownership, artifact paths, ranker behavior, or training flow changes.
+- Regenerate `dataset/dataset_manifest.json` after any dataset rebuild (`make dataset-report`).
 - Keep detailed experiments in `docs/evaluation/` only when they support a current tracked evaluation report.
 - Keep generated charts under `docs/evaluation/charts/` only when they support a tracked evaluation report.
 - Keep archived experiments and old plans under `docs/archive/` and treat them as historical.
@@ -111,6 +162,12 @@ Training/evaluation datasets may use narrower or broader labels depending on the
 ## Useful Commands
 
 ```bash
+# Generate dataset statistics report + manifest
+make dataset-report
+
+# Rebuild entire dataset from raw sources
+make dataset
+
 # Generate dataset evaluation tables
 python scripts/generate_dataset_tables.py
 

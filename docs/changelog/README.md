@@ -13,6 +13,7 @@ the scanner evolved.
 |------------|-------------------------------------------------------------------|------|
 | 2026-03-13 | `__fragment__` Context Fix & Browser Verifier Timing Optimization | [2026-03-13-fragment-context-and-browser-verifier.md](2026-03-13-fragment-context-and-browser-verifier.md) |
 | 2026-03-13 | Research: Extending to `postMessage` & `localStorage`               | [2026-03-13-research-postmessage-localstorage.md](2026-03-13-research-postmessage-localstorage.md) |
+| 2026-05-17 | Dataset Reproducibility Pipeline (Makefile, Manifest, Extended Stats) | [2026-05-17-dataset-reproducibility.md](2026-05-17-dataset-reproducibility.md) |
 
 ## Scope
 

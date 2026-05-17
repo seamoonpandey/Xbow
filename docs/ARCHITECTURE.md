@@ -422,7 +422,7 @@ Generated formats depend on `reportFormat` in scan options or explicit `formats`
 
 ## 12. Dataset and ML Claims
 
-Use “approximately 59K+” for the payload bank unless an exact count is proven by a currently tracked artifact or script output.
+The curated payload-bank size is **59,122** (proven by `scripts/dataset_stats.py` Section 11 and `dataset/dataset_manifest.json`).
 
 Dataset sources documented in `dataset/README.md` are:
 

@@ -2,7 +2,7 @@
 
 This directory contains XSS payload data used by RedSentinel for payload generation, model training/evaluation, and related maintenance scripts.
 
-Use “approximately 59K+” for the curated payload-bank size unless a currently tracked artifact or reproducible script output proves a more exact number.
+The curated payload-bank size is **59,122** (proven by `scripts/dataset_stats.py` Section 11 and `dataset/dataset_manifest.json`).
 
 ---
 
@@ -36,6 +36,66 @@ Source: `https://portswigger.net/web-security/cross-site-scripting/cheat-sheet`
 
 ---
 
+## Reproducible Pipeline
+
+The dataset pipeline is fully reproducible via the project Makefile. All scripts under `dataset/` and `scripts/` produce deterministic output from raw sources.
+
+### Build from raw sources
+
+```bash
+# Requires dataset/raw/ to be populated (see "Download Raw Sources" below)
+make dataset
+```
+
+This runs the pipeline in order:
+
+1. **`dataset/collect_payloads.py`** — Collects raw payloads from AwesomeXSS, XSSGAI, PayloadsAllTheThings clones
+2. **`dataset/collect_portswigger.py`** — Extracts payloads from the PortSwigger cheat-sheet HTML
+3. **`dataset/label_contexts.py`** — Labels each payload with context, severity, and technique
+4. **`dataset/generate_synthetic.py`** — Generates synthetic/obfuscated payload variants
+5. **`dataset/finalize_dataset.py`** — Deduplicates, filters, and splits into train/val/test CSVs
+
+### Generate report and manifest
+
+```bash
+make dataset-report
+```
+
+This runs two scripts:
+
+- **`scripts/dataset_stats.py`** — Reads the actual CSV files on disk and produces a 12-section reproducible statistics report covering raw collection counts, deduplication, validity filtering, class distribution, payload-family balance (Section 7), encoding/obfuscation categories (Section 8), executable/verified payloads from ranker training (Section 10), and real-world application coverage analysis (Section 12).
+- **`scripts/generate_dataset_manifest.py`** — Writes `dataset/dataset_manifest.json` with SHA-256 checksums, row counts, source repository metadata, and script version tracking.
+
+### Combined
+
+```bash
+make dataset-all    # Rebuild pipeline + generate report and manifest
+```
+
+---
+
+## Dataset Manifest
+
+`dataset/dataset_manifest.json` is the reproducible record of every artifact in the pipeline. It contains:
+
+- **sources** — URLs, download dates, and commit SHAs for each raw upstream source
+- **scripts** — Git commit SHA and date for every pipeline script
+- **artifacts** — SHA-256 checksums, row counts, and sizes for all 13 processed/split/ranker files
+- **pipeline_order** — The canonical script execution sequence
+- **project_repo_sha** — Git commit of the RedSentinel repo at generation time
+
+The manifest is the authoritative source for verifying data integrity. Any report citing a dataset count SHOULD reference the manifest or the output of `scripts/dataset_stats.py`.
+
+---
+
+## Coverage Analysis (Section 12)
+
+`scripts/dataset_stats.py` Section 12 maps the curated payload bank against 14 exploitable sink types (html_injection, event_handler_injection, javascript_uri, js_string_escape, attribute_breakout, textarea_escape, etc.), cross-references 8,976+ browser-verified samples from ranker training across contexts, and provides an overall coverage strength assessment.
+
+This analysis demonstrates what percentage of the payload bank maps to real-world vulnerable application endpoints (see `exploitable/app.py` for the target application).
+
+---
+
 ## Directory Roles
 
 ```text
@@ -43,6 +103,11 @@ dataset/raw/              Local cloned/downloaded upstream sources; ignored by G
 dataset/processed/        Curated and enriched payload data
 dataset/splits/           Runtime train/validation/test split files used by payload-gen
 dataset/ranker_training/  Ranker training data when generated
+
+# Scripts
+scripts/dataset_stats.py              Reproducible statistics report (12 sections)
+scripts/generate_dataset_manifest.py   Manifest generator (checksums + metadata)
+Makefile                               Pipeline automation (make dataset / make dataset-report)
 ```
 
 Docker Compose mounts `./dataset/splits` into the payload-gen container at `/app/dataset/splits`. If the mounted split files are missing or the bank loads empty, the payload-gen `/generate` endpoint returns 503.

@@ -35,7 +35,7 @@ To reduce redundancy and avoid conflicting claims, each topic has one primary ho
 | Health checks | `README.md`, `RUN.md`, `docs/ARCHITECTURE.md` | Health responses were incomplete | `core/src/health/*`, Python `app.py` files | Docs did not show actual response fields | Added Core aggregate health shape and Python service health fields where operationally useful | Medium |
 | Docker/runtime artifacts | `README.md`, `RUN.md`, `docs/ARCHITECTURE.md`, `docs/REPOSITORY_GUIDE.md`, `docs/ML_GUIDE.md`, `dataset/README.md` | Mounted artifacts/fallbacks were incomplete | `docker-compose.yml`, Python app startup code | Missing model, ranker, dataset split, reports, and training data mount details | Documented all relevant mounts and fallback behavior; README keeps a compact summary, detailed ownership lives in repository/ML/run docs | Medium |
 | Severity scoring | `docs/ARCHITECTURE.md` | Old `HASH_SOURCE_LOW_CAP`; possible impression that CVSS/ALE replaced runtime severity | `core/src/common/utils/severity-scorer.ts`, `core/src/common/utils/risk-calculus.ts` | Runtime severity is rule-based; CVSS-inspired/ALE values are a separate report-layer analytical model | Documented rule-based axes, thresholds, overrides, `HASH_SOURCE_MEDIUM_CAP`, and the separate report-layer risk model | High |
-| Dataset size | `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_GUIDE.md`, `dataset/README.md` | Exact count `59,122` and historical `24K` style wording could be over-specific | Dataset docs/scripts not fully revalidated in this pass | Exact count should not be asserted without proof | Replaced/standardized canonical docs to “approximately 59K+”; primary detail lives in `dataset/README.md` and `docs/ML_GUIDE.md` | Medium |
+| Dataset size | `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_GUIDE.md`, `dataset/README.md`, `docs/REPOSITORY_GUIDE.md` | Docs used “approximately 59K+” with caveats | `scripts/dataset_stats.py` Section 11, `dataset/dataset_manifest.json` | Exact count (59,122) now proven by reproducible script and tracked manifest | Updated all canonical docs to use exact count **59,122** with reference to `scripts/dataset_stats.py` | Resolved |
 | Dataset sources | `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_GUIDE.md`, `dataset/README.md` | Source lists were not consistently repeated | `dataset/README.md` download/source section | Canonical docs should share one source list | Standardized sources: AwesomeXSS, PayloadsAllTheThings, XSSGAI, PortSwigger XSS cheat sheet content | Medium |
 | Context taxonomy | `README.md`, `docs/ARCHITECTURE.md`, `docs/ML_GUIDE.md`, `dataset/README.md` | Risk of presenting one six-class taxonomy as universal | Context app, fuzzer app, shared schemas | Runtime reflection contexts, training labels, and vulnerability labels differ | Separated runtime reflection contexts from vulnerability/finding labels and training labels | Medium |
 | Testing claims | `README.md`, `docs/ARCHITECTURE.md` | Specific pass/test counts such as unit/e2e totals | `core/package.json`, test folders/configs | Counts should not be claimed unless tests are run now | Removed pass-count claims; documented available test suites and commands only | Medium |
@@ -63,6 +63,17 @@ A third pass checked smaller wording and mapping issues after redundancy cleanup
 - Architecture wording remains the single home for detailed Core/Python API contracts.
 - Scan-parameters wording remains the single home for DTO option ranges and tuning explanations.
 - Dataset and ML docs remain split by source/layout (`dataset/README.md`) versus model/ranker/fallback ownership (`docs/ML_GUIDE.md`).
+
+## New additions since the audit
+
+### Dataset reproducibility pipeline (2026-05-17)
+
+Three new components were added and documented together:
+| Area | Document/file with issue | Existing claim | Code source of truth | Problem | Fix applied | Priority |
+|---|---|---|---|---|---|---|
+| Dataset pipeline automation | `README.md`, `dataset/README.md`, `docs/ML_GUIDE.md`, `docs/REPOSITORY_GUIDE.md` | No Makefile, no manifest, no stats report | `Makefile`, `scripts/dataset_stats.py`, `scripts/generate_dataset_manifest.py` | Pipeline was manual and unverifiable | Added `Makefile` targets, 12-section stats script, manifest generator; documented in `dataset/README.md`, `docs/ML_GUIDE.md`, and changelog | High |
+| Coverage analysis | `dataset/README.md`, `docs/ML_GUIDE.md` | No mapping of payloads to real-world endpoints | `scripts/dataset_stats.py` Section 12 | No visibility into what sink types the dataset covers | Added Section 12 with 14 sink types, 5 specialized endpoint notes, browser-verified cross-reference, coverage strength tiers | Medium |
+| Dataset integrity | `dataset/README.md`, `docs/REPOSITORY_GUIDE.md` | No checksums or row-count tracking | `scripts/generate_dataset_manifest.py`, `dataset/dataset_manifest.json` | Artifact drift was invisible | Manifest records SHA-256, row counts, source metadata; added to tracked artifacts policy | Medium |
 
 ## Remaining code-level inconsistencies to clean up later
 

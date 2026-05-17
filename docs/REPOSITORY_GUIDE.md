@@ -22,6 +22,9 @@ When documentation and implementation disagree, use this order:
 - `docs/ML_GUIDE.md` documents model/data/ranker ownership, fallback behavior, and ML taxonomy guidance.
 - `dataset/README.md` documents dataset sources, generated dataset layout, dataset runtime use, and raw-source download notes.
 - `docs/DOCS_CODE_ALIGNMENT_AUDIT.md` records documentation/code mismatches, cleanup passes, and known remaining code-level inconsistencies.
+- `scripts/dataset_stats.py` is the authoritative source for dataset size claims and diversity analysis.
+- `scripts/generate_dataset_manifest.py` produces the reproducible `dataset/dataset_manifest.json`.
+- `Makefile` automates the dataset pipeline: `make dataset`, `make dataset-report`, `make dataset-all`.
 
 When canonical docs disagree, update the narrower document and the higher-level source in the same change.
 
@@ -50,6 +53,8 @@ Tracked:
 - Curated/processed datasets that are small enough for normal Git review.
 - Small model metadata such as metrics, tokenizer files, and ranker metadata when appropriate.
 - Intentional fixtures, such as curated example reports.
+- The dataset manifest `dataset/dataset_manifest.json` (tracked as the authoritative integrity record).
+- Pipeline automation scripts under `scripts/` and the `Makefile`.
 
 Ignored or mounted locally:
 
@@ -92,5 +97,5 @@ If a dependency is needed in both Docker and local development, update both the 
 - Do not claim `/scan/:id/report` downloads HTML/PDF/JSON. It returns a report URL pointer only.
 - Runtime severity is rule-based. CVSS-inspired, ALE, and expected-loss values may be documented only as the separate report-layer analytical model implemented in `core/src/common/utils/risk-calculus.ts`.
 - Use `HASH_SOURCE_MEDIUM_CAP`, not the stale `HASH_SOURCE_LOW_CAP` name.
-- Use “approximately 59K+” for dataset size unless a tracked script/artifact proves an exact count.
+- Use the exact dataset size from `scripts/dataset_stats.py` Section 11 (currently **59,122**). The script is the authoritative source.
 - Mark `docs/archive/` as historical whenever referencing it.

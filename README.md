@@ -127,7 +127,9 @@ Docker Compose mounts these important paths:
 
 ## Dataset and ML Notes
 
-The payload bank should be described as approximately **59K+** payloads unless a current tracked artifact or script proves a more exact count. Current dataset sources are AwesomeXSS, PayloadsAllTheThings, XSSGAI, and PortSwigger cheat-sheet content.
+The curated payload-bank size is **59,122** (proven by `scripts/dataset_stats.py` Section 11). Current dataset sources are AwesomeXSS, PayloadsAllTheThings, XSSGAI, and PortSwigger cheat-sheet content.
+
+Run `make dataset-report` to generate the authoritative statistics report (12 sections covering family balance, encoding, coverage analysis) and a reproducible `dataset/dataset_manifest.json` with SHA-256 checksums and row counts.
 
 Runtime reflection contexts, training labels, and vulnerability/finding labels are separate. Do not describe the project as having one universal six-class taxonomy.
 
