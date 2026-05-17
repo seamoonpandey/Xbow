@@ -17,87 +17,88 @@
     {
       "name": "benchmark-xss-001",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest00001",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00013.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00013"],
       "expected": "Vuln",
       "stored_mode": false,
-      "notes": "XSS test case — reflects user input directly in HTML response body",
+      "notes": "XSS test case from Benchmark xss-00 directory (test 00013)",
       "payloads": [
-        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "<svg onload=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00013", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00013", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "BenchmarkTest00013", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     },
     {
       "name": "benchmark-xss-002",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest00002",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00014.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00014"],
       "expected": "Vuln",
       "stored_mode": false,
-      "notes": "XSS test case — input reflected in HTML attribute context without proper escaping",
+      "notes": "XSS test case from Benchmark xss-00 directory (test 00014)",
       "payloads": [
-        {"payload": "\"><script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "' onfocus=alert(1) autofocus='", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "\" autofocus onfocus=\"alert(1)", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00014", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00014", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "BenchmarkTest00014", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     },
     {
       "name": "benchmark-xss-003",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest00003",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00030.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00030"],
       "expected": "Vuln",
       "stored_mode": false,
-      "notes": "XSS test case — input used in JavaScript string context",
+      "notes": "XSS test case from Benchmark xss-00 directory (test 00030)",
       "payloads": [
-        {"payload": "';alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "\\\";alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00030", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00030", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<svg onload=alert(1)>", "target_param": "BenchmarkTest00030", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     },
     {
       "name": "benchmark-safe-001",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest01000",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00036.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00036"],
       "expected": "Safe",
       "stored_mode": false,
-      "notes": "Safe test case — input is properly escaped/encoded before reflection",
+      "notes": "Safe test case from Benchmark xss-00 (test 00036 — no detected reflection)",
       "payloads": [
-        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00036", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00036", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     },
     {
       "name": "benchmark-safe-002",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest01500",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00041.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00041"],
       "expected": "Safe",
       "stored_mode": false,
-      "notes": "Safe test case — input is sanitized before reflection (no XSS possible)",
+      "notes": "Safe test case from Benchmark xss-00 (test 00041 — no detected reflection)",
       "payloads": [
-        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "';alert(1)//", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00041", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00041", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     },
     {
       "name": "benchmark-safe-003",
       "category": "Benchmark",
-      "url": "https://localhost:8443/benchmark/BenchmarkTest02000",
+      "url": "https://localhost:8443/benchmark/xss-00/BenchmarkTest00047.html",
       "method": "GET",
-      "params": ["vector"],
+      "params": ["BenchmarkTest00047"],
       "expected": "Safe",
       "stored_mode": false,
-      "notes": "Safe test case — Content-Type is plain/text, no HTML parsing of input",
+      "notes": "Safe test case from Benchmark xss-00 (test 00047 — no detected reflection)",
       "payloads": [
-        {"payload": "<script>alert(1)</script>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"},
-        {"payload": "<img src=x onerror=alert(1)>", "target_param": "vector", "confidence": 1.0, "technique": "original", "severity": "medium"}
+        {"payload": "<script>alert(1)</script>", "target_param": "BenchmarkTest00047", "confidence": 1.0, "technique": "original", "severity": "medium"},
+        {"payload": "<img src=x onerror=alert(1)>", "target_param": "BenchmarkTest00047", "confidence": 1.0, "technique": "original", "severity": "medium"}
       ]
     }
   ]
