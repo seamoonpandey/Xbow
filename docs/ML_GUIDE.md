@@ -24,6 +24,98 @@ Large checkpoint binaries under `model/checkpoints/*.pt` are intentionally ignor
 
 ---
 
+## Validation vs Test Discrepancy
+
+`model/checkpoints/metrics.json` reports validation metrics logged during training on the val set (`dataset/processed/splits_from_ranker/val.csv`). `model/checkpoints/test_results.json` reports evaluation metrics on a held-out test set.
+
+| Metric | Validation | Test |
+| -------- | -----------: | -----: |
+| Context accuracy | ~75.1% | 99.53% |
+| Severity accuracy | ~35.4% | 99.56% |
+| Samples | 489 | 3,632 |
+
+**These results are NOT comparable — they do not measure the same thing.** The gap is a red flag that requires explanation. Multiple factors contribute:
+
+### 1. Sample-count mismatch: different test sets
+
+The current test split (`splits_from_ranker/test.csv`) has 488 data rows (206 unique payloads), but `test_results.json` reports **3,632 test samples**. This means `test_results.json` was generated from a different, larger test set — possibly:
+
+- The evaluation script was run with config pointing to a different CSV file
+- The split files were regenerated after `test_results.json` was written
+- The checkpoint used for evaluation (`best.pt`) differs from the one that produced `metrics.json`
+
+The original `dataset/splits/test.csv` has 9,024 lines — still not 3,632, so the precise source is unclear. The `test_results.json` is **stale or was not produced by the current configuration**. It should be regenerated.
+
+### 2. Massive data leakage in current splits
+
+> **Historical analysis (original splits, before regeneration).** Current splits have **zero** payload overlap — see Action #1 below.
+
+The original splits under `splits_from_ranker/` had severe payload overlap between sets:
+
+| Overlap type | Train-Val | Train-Test |
+|---|---|---|
+| Duplicate payloads (exact) | 83.1% | 78.2% |
+| Duplicate (payload, context) pairs | 64.4% | 57.7% |
+| Duplicate (payload, context, severity) triples | 53.4% | 52.5% |
+| Near-duplicate (normalized) test payloads in train | — | 83.4% |
+
+**161 of 206 unique test payloads (78%) appear in the training set.** 422 of 471 test rows use payloads already seen during training. Even test payloads with novel normalized forms retain ~0.91 average string similarity to their closest training match. This means the test set largely tests *memorization* rather than *generalization*. The model can predict test labels by recalling the most common label assigned to each payload during training, rather than learning to infer context from syntactic features.
+
+### 3. Label noise in validation set (severity)
+
+Severity accuracy peaks at only ~35% during validation, while the test set claims 99.56%. Possible causes:
+- Severity labels in the validation set are noisy or inconsistent
+- The model has not learned to predict severity from payload syntax alone (severity is often context-dependent and requires runtime evidence)
+- Severity labels were assigned by different heuristics for different portions of the data (e.g., automated rules vs manual labeling)
+- The test set's severity labels may be trivially predictable from payload patterns that overlap with training
+
+### 4. Synthetic test data predictability
+
+Test payloads show highly stereotyped syntax-to-context mappings that are identical to training examples:
+- `{{7*7}}` → `template_injection`
+- `<svg/onload=...>` → `tag_injection`
+- `" onerror=... //` → `attribute_escape`
+
+The 83.4% normalized overlap confirms that nearly all test payloads are near-duplicates of training payloads, making the test set artificially easy. The validation set likely contains harder or noisier examples that better approximate real-world performance.
+
+### 5. Different checkpoint possibilities
+
+`metrics.json` logs metrics **during training** using the latest model state after each epoch. The best model is saved as `best.pt`. If `test_results.json` was generated from a different checkpoint (e.g., `latest.pt` after more training, or an older `best.pt` from a different training run), the results would differ. The checkpoint metadata in `test_results.json` does not record which checkpoint was used.
+
+### 6. Label task consistency
+
+Both files use the same label taxonomy (8 context classes, 3 severity classes defined in `config.py`). However, the validation metrics show per-class accuracy varying widely — some classes may have very few or zero validation examples, making aggregate metrics misleading. The test results do not report per-class accuracy, making it impossible to verify whether the high scores are uniform or driven by dominant classes.
+
+### Data-leakage checks
+
+**Before regeneration (historical):**
+
+| Check | Result |
+|-------|--------|
+| Exact duplicate payloads across train/test | **78.2%** of test payloads seen in train |
+| Exact duplicate triples across train/test | **52.5%** of test triples seen in train |
+| Near-duplicate (normalized) test payloads in train | **83.4%** |
+| Average string similarity of novel test payloads to train | **0.907** |
+| Same source pages across train/test | Cannot determine — no source-page metadata in splits |
+
+**After regeneration (current state):**
+
+| Check | Result |
+|-------|--------|
+| Exact duplicate payloads across train/val/test | **0** — zero overlap across all split pairs |
+| Same source pages across train/test | Cannot determine — no source-page metadata in splits |
+
+### Recommended Actions
+
+1. ✅ **Regenerated clean splits** (2026-03-13) — zero payload overlap between train/val/test. Strategy: grouped all rows by unique payload, split payloads 70/15/15 stratified by dominant context label, then assigned all rows for a given payload to the same split. Results: **0** duplicate payloads across all pairs.
+2. **Re-run evaluation** with clean splits and update `test_results.json`, documenting which checkpoint was used.
+3. **Investigate severity labels** — 35% validation accuracy suggests label quality issues requiring manual audit.
+4. **Add data-leakage checks** to the dataset pipeline (e.g., in `scripts/dataset_stats.py` or a standalone validation script).
+5. **Report per-class accuracy** in `test_results.json` to verify the 99% score is not driven by a single dominant class.
+6. **Record evaluation metadata** in `test_results.json`: checkpoint path, config used, timestamp.
+
+---
+
 ## Dataset Pipeline
 
 The dataset pipeline is automated via the project Makefile. See `dataset/README.md` for full details.
