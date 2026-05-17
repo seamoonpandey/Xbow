@@ -25,6 +25,19 @@ import os
 # Has no effect on CUDA or CPU.
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
+# ── GPU Memory & CPU Thread Optimization ──────────────────
+# These env vars must be set before ANY PyTorch import/init
+# to take effect. PyTorch reads OMP_NUM_THREADS during its C
+# initialization, so we set it here before touching torch.
+# PYTORCH_CUDA_ALLOC_CONF is read at CUDA init time (first
+# .cuda() call), so it's less timing-sensitive.
+#
+# The values mirror config.py's OMP_NUM_THREADS and
+# PYTORCH_CUDA_ALLOC_CONF — kept inline to avoid triggering
+# config.py's top-level torch import too early.
+os.environ["OMP_NUM_THREADS"] = str((os.cpu_count() or 4) // 2)
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 import argparse
 import json
 import csv
@@ -48,7 +61,7 @@ from config import (
     CONTEXT_LOSS_WEIGHT, SEVERITY_LOSS_WEIGHT, LABEL_SMOOTHING,
     CONTEXT_CLASSES, SEVERITY_CLASSES,
     CONTEXT_LABELS, SEVERITY_LABELS,
-    CHECKPOINT_DIR, LOG_EVERY_N_STEPS, SAVE_EVERY_N_EPOCHS,
+    CHECKPOINT_DIR, LOG_EVERY_N_STEPS, SAVE_EVERY_N_EPOCHS, SAVE_ONLY_BEST,
     TRAIN_FILE, RUN_LOG_DIR, FREEZE_LAYERS, JOINT_HEAD, DROPOUT,
     LR_FIND_MIN, LR_FIND_MAX, LR_FIND_STEP_MULTIPLIER,
 )
@@ -603,8 +616,16 @@ def main():
         ctx_counts = Counter(df["context"].str.strip().str.lower())
         total_ctx = sum(ctx_counts.values())
         n_ctx = len(CONTEXT_LABELS)
+        # Dampened inverse-frequency weighting:
+        # Use sqrt of the ratio instead of linear to avoid extreme
+        # weights on minority classes (e.g. generic at 1.2% → ~3.2×
+        # instead of ~10.3×). This reduces overfitting risk while
+        # still correcting for imbalance.
+        # See: Cui et al. "Class-Balanced Loss Based on Effective
+        # Number of Samples" (CVPR 2019) for a more sophisticated
+        # approach.
         ctx_weight = torch.tensor([
-            total_ctx / (n_ctx * ctx_counts.get(label, 1))
+            math.sqrt(total_ctx / (n_ctx * ctx_counts.get(label, 1)))
             for label in CONTEXT_LABELS
         ], dtype=torch.float, device=DEVICE)
 
@@ -612,7 +633,7 @@ def main():
         total_sev = sum(sev_counts.values())
         n_sev = len(SEVERITY_LABELS)
         sev_weight = torch.tensor([
-            total_sev / (n_sev * sev_counts.get(label, 1))
+            math.sqrt(total_sev / (n_sev * sev_counts.get(label, 1)))
             for label in SEVERITY_LABELS
         ], dtype=torch.float, device=DEVICE)
 
@@ -716,8 +737,8 @@ def main():
             CHECKPOINT_DIR / "latest.pt"
         )
 
-        # ── Save periodic ──
-        if (epoch + 1) % SAVE_EVERY_N_EPOCHS == 0:
+        # ── Save periodic (if not using minimal checkpointing) ──
+        if not SAVE_ONLY_BEST and (epoch + 1) % SAVE_EVERY_N_EPOCHS == 0:
             save_checkpoint(
                 model, optimizer, scheduler, scaler,
                 epoch, val_metrics["val_loss"],

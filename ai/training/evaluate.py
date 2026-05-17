@@ -17,7 +17,7 @@ from collections import defaultdict
 
 import torch
 import numpy as np
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,

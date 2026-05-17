@@ -31,7 +31,7 @@ from config import (
 class XSSDataset(Dataset):
     """PyTorch Dataset for XSS payload classification from CSV."""
 
-    def __init__(self, csv_path: Path, tokenizer: DistilBertTokenizerFast):
+    def __init__(self, csv_path: str | Path, tokenizer: DistilBertTokenizerFast):
         self.tokenizer = tokenizer
 
         # Build label mappings
@@ -40,7 +40,7 @@ class XSSDataset(Dataset):
 
         # Load CSV
         df = pd.read_csv(csv_path)
-        print(f"  📄 Raw rows in {csv_path.name}: {len(df)}")
+        print(f"  📄 Raw rows in {Path(csv_path).name}: {len(df)}")
 
         # Clean + validate
         self.samples = []
@@ -70,7 +70,7 @@ class XSSDataset(Dataset):
 
         if skipped > 0:
             print(f"  ⚠  Skipped {skipped} rows with unknown/missing labels")
-        print(f"  ✓  Loaded {len(self.samples)} valid samples from {csv_path.name}")
+        print(f"  ✓  Loaded {len(self.samples)} valid samples from {Path(csv_path).name}")
 
     def __len__(self) -> int:
         return len(self.samples)
