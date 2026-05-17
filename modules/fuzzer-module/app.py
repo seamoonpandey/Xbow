@@ -30,7 +30,7 @@ logger = logging.getLogger("fuzzer")
 PORT = int(os.environ.get("PORT", "5003"))
 
 
-def detect_advanced_xss_type(payload: str, position: str, response_body: str, is_exact: bool, executed: bool) -> str:
+def detect_advanced_xss_type(payload: str, position: str, response_body: str, is_exact: bool, executed: bool, default_type: str = "reflected_xss") -> str:
     """
     detect advanced XSS types beyond basic reflected/stored/dom.
     returns vuln_type string.
@@ -71,8 +71,8 @@ def detect_advanced_xss_type(payload: str, position: str, response_body: str, is
         if position in ("html_body", "attribute"):
             return "mutation_xss"
     
-    # Default: treat as reflected XSS
-    return "reflected_xss"
+    # Default: preserve the original type (reflected_xss, stored_xss, etc.)
+    return default_type
 
 
 def _deduplicate_similar_vulns(results: list[FuzzResult]) -> list[FuzzResult]:
@@ -362,7 +362,8 @@ async def fuzz(request: FuzzRequest):
             if is_vuln and vuln_type == "stored_xss":
                 response_body = r.get("response_body", "")
                 vuln_type = detect_advanced_xss_type(
-                    payload, position, response_body, is_exact, False  # stored doesn't execute
+                    payload, position, response_body, is_exact, False,  # stored doesn't execute
+                    default_type="stored_xss"
                 )
 
             final_results.append(FuzzResult(

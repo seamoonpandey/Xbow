@@ -402,3 +402,151 @@ def test_payloadgen_output_matches_fuzzer_input_schema():
     )
     assert fuzz_payload.payload == gen.payload
     assert fuzz_payload.target_param == gen.target_param
+
+
+# ── cookie_header forwarding through context module ─────────────
+
+
+@pytest.mark.anyio
+@patch("integration_context_app.inject_probes", new_callable=AsyncMock)
+@patch("integration_context_app.fuzz_chars", new_callable=AsyncMock)
+@patch("integration_context_app.analyze_reflection")
+@patch("integration_context_app.get_primary_context")
+@patch("integration_context_app.get_dom_context")
+@patch("integration_context_app.classifier")
+async def test_context_module_accepts_cookie_header(
+    mock_classifier, mock_dom, mock_primary, mock_reflection, mock_fuzz, mock_probes
+):
+    """cookie_header field is accepted by context module without error"""
+    mock_probes.return_value = {
+        "q": {"marker": "rsp123", "body": "<html>rsp123</html>", "status_code": 200},
+    }
+    mock_reflection.return_value = [
+        {"position": "html_text", "context_snippet": "<p>rsp123</p>"}
+    ]
+    mock_primary.return_value = "html_text"
+    mock_dom.return_value = "html_text"
+    mock_classifier.classify.return_value = {"context_type": "html_text", "confidence": 0.95}
+    mock_fuzz.return_value = ["<", ">", "'", '"']
+
+    async with AsyncClient(
+        transport=ASGITransport(app=context_mod.app), base_url="http://test"
+    ) as client:
+        resp = await client.post("/analyze", json={
+            "url": "https://target.com/search",
+            "params": ["q"],
+            "waf": "none",
+            "cookie_header": "session=tok123",
+        })
+    assert resp.status_code == 200
+    context_map = resp.json()
+    assert isinstance(context_map, dict)
+    assert context_map["q"]["reflects_in"] == "html_text"
+
+
+@pytest.mark.anyio
+@patch("integration_context_app.inject_probes", new_callable=AsyncMock)
+@patch("integration_context_app.fuzz_chars", new_callable=AsyncMock)
+@patch("integration_context_app.analyze_reflection")
+@patch("integration_context_app.get_primary_context")
+@patch("integration_context_app.get_dom_context")
+@patch("integration_context_app.classifier")
+async def test_context_module_accepts_form_fields_and_display_url(
+    mock_classifier, mock_dom, mock_primary, mock_reflection, mock_fuzz, mock_probes
+):
+    """form_method, form_fields, display_url are accepted"""
+    mock_probes.return_value = {
+        "q": {"marker": "rsp123", "body": "<html>rsp123</html>", "status_code": 200},
+    }
+    mock_reflection.return_value = [
+        {"position": "html_text", "context_snippet": "<p>rsp123</p>"}
+    ]
+    mock_primary.return_value = "html_text"
+    mock_dom.return_value = "html_text"
+    mock_classifier.classify.return_value = {"context_type": "html_text", "confidence": 0.95}
+    mock_fuzz.return_value = ["<", ">", "'", '"']
+
+    async with AsyncClient(
+        transport=ASGITransport(app=context_mod.app), base_url="http://test"
+    ) as client:
+        resp = await client.post("/analyze", json={
+            "url": "https://target.com/search",
+            "params": ["q"],
+            "waf": "none",
+            "form_method": "POST",
+            "form_fields": ["csrf", "postId"],
+            "display_url": "https://target.com/display",
+        })
+    assert resp.status_code == 200
+    context_map = resp.json()
+    assert isinstance(context_map, dict)
+    assert context_map["q"]["reflects_in"] == "html_text"
+
+
+# ── Auth storage state through fuzzer ───────────────────────────
+
+
+@pytest.mark.anyio
+@patch("integration_fuzzer_app.send_payloads", new_callable=AsyncMock)
+@patch("integration_fuzzer_app.check_reflection_batch")
+@patch("integration_fuzzer_app.verify_payloads", new_callable=AsyncMock)
+@patch("integration_fuzzer_app.scan_response_body")
+@patch("integration_fuzzer_app.collect_batch_training_samples")
+async def test_fuzzer_accepts_auth_storage_state(
+    mock_collect, mock_dom_scan, mock_verify, mock_reflect, mock_send
+):
+    """auth_storage_state is accepted by fuzzer without error"""
+    storage_state = {
+        "cookies": [
+            {
+                "name": "session",
+                "value": "tok123",
+                "domain": "example.com",
+                "path": "/",
+                "httpOnly": True,
+                "secure": True,
+                "sameSite": "Lax",
+                "expires": -1,
+            }
+        ],
+        "origins": [],
+    }
+
+    mock_send.return_value = MockSendBatch([
+        MockSendResult(
+            payload="<script>alert(1)</script>",
+            target_param="q",
+            response_body="<html><script>alert(1)</script></html>",
+            status_code=200,
+        ),
+    ])
+    mock_reflect.return_value = [
+        {
+            "payload": "<script>alert(1)</script>",
+            "target_param": "q",
+            "reflected": True,
+            "exact_match": True,
+            "status_code": 200,
+            "reflection_position": "body",
+            "context_snippet": "<html><script>alert(1)</script></html>",
+        }
+    ]
+    mock_verify.return_value = []
+    mock_dom_scan.return_value = MockScanResult([])
+
+    async with AsyncClient(
+        transport=ASGITransport(app=fuzzer_mod.app), base_url="http://test"
+    ) as client:
+        resp = await client.post("/fuzz", json={
+            "url": "https://target.com",
+            "payloads": [{"payload": "<script>alert(1)</script>", "target_param": "q", "confidence": 0.9}],
+            "verify_execution": True,
+            "timeout": 5000,
+            "auth_cookie_header": "session=tok123",
+            "auth_storage_state": storage_state,
+        })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "results" in data
+    assert len(data["results"]) >= 1
+    mock_send.assert_awaited_once()

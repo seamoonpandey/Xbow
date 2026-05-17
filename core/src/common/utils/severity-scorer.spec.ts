@@ -219,9 +219,9 @@ describe('severity-scorer', () => {
 
   // ── Override rules ────────────────────────────────────────
   describe('override rules', () => {
-    it('HASH_SOURCE_LOW_CAP: caps hash + script to LOW (EVAL override no longer fires for script)', () => {
+    it('HASH_SOURCE_MEDIUM_CAP: caps hash + script to MEDIUM (EVAL override no longer fires for script)', () => {
       // hash + script: score=2+1+3+0=6 → HIGH base
-      // Rule 1 (HASH_SOURCE_LOW_CAP) caps to LOW
+      // Rule 1 (HASH_SOURCE_MEDIUM_CAP) caps to MEDIUM
       // Rule 2 (EVAL_SINK_MINIMUM_HIGH) does NOT fire for script anymore (only eval)
       const r = scoreFinding(
         makeInput({
@@ -229,14 +229,15 @@ describe('severity-scorer', () => {
           sink: 'script',
         }),
       );
-      expect(r.severity).toBe(VulnSeverity.LOW);
-      expect(r.appliedOverrides).toContain('HASH_SOURCE_LOW_CAP');
+      expect(r.severity).toBe(VulnSeverity.MEDIUM);
+      expect(r.score).toBe(6);
+      expect(r.appliedOverrides).toContain('HASH_SOURCE_MEDIUM_CAP');
       expect(r.appliedOverrides).not.toContain('EVAL_SINK_MINIMUM_HIGH');
     });
 
-    it('HASH_SOURCE_LOW_CAP: hash + eval → LOW capped then EVAL raises to HIGH', () => {
+    it('HASH_SOURCE_MEDIUM_CAP: hash + eval → MEDIUM capped then EVAL raises to HIGH', () => {
       // hash + eval: score=2+1+3+0=6 → HIGH base
-      // Rule 1 caps to LOW, Rule 2 raises back to HIGH
+      // Rule 1 caps to MEDIUM, Rule 2 raises back to HIGH
       const r = scoreFinding(
         makeInput({
           source: 'location.hash',
@@ -244,11 +245,11 @@ describe('severity-scorer', () => {
         }),
       );
       expect(r.severity).toBe(VulnSeverity.HIGH);
-      expect(r.appliedOverrides).toContain('HASH_SOURCE_LOW_CAP');
+      expect(r.appliedOverrides).toContain('HASH_SOURCE_MEDIUM_CAP');
       expect(r.appliedOverrides).toContain('EVAL_SINK_MINIMUM_HIGH');
     });
 
-    it('HASH_SOURCE_LOW_CAP: caps hash + attribute to LOW', () => {
+    it('HASH_SOURCE_MEDIUM_CAP: hash + attribute stays MEDIUM (no cap needed)', () => {
       const r = scoreFinding(
         makeInput({
           source: 'location.hash',
@@ -257,9 +258,10 @@ describe('severity-scorer', () => {
         }),
       );
       // exec=2 + share=1 + sink=1 + payload=0 = 4 → MEDIUM base
-      // Rule 1 caps to LOW
-      expect(r.severity).toBe(VulnSeverity.LOW);
-      expect(r.appliedOverrides).toContain('HASH_SOURCE_LOW_CAP');
+      // Base already MEDIUM, cap to MEDIUM is a no-op
+      expect(r.severity).toBe(VulnSeverity.MEDIUM);
+      expect(r.score).toBe(4);
+      expect(r.appliedOverrides).not.toContain('HASH_SOURCE_MEDIUM_CAP');
     });
 
     it('EVAL_SINK_MINIMUM_HIGH: raises eval sink to min HIGH', () => {
@@ -327,9 +329,8 @@ describe('severity-scorer', () => {
     });
 
     it('WAF_BYPASS_MEDIUM_MINIMUM: reflected + % + exactMatch → min MEDIUM', () => {
-      // Need a case where base score < MEDIUM: dom-only + hash + attribute
-      // But hash cap overrides to LOW anyway...
-      // Test with a setup that gives LOW without hash
+      // When reflected=true, minimum exec score is 2 → base is at least MEDIUM.
+      // WAF bypass override ensures MEDIUM floor (no change in this case).
       const r = scoreFinding(
         makeInput({
           reflected: true,
@@ -340,9 +341,8 @@ describe('severity-scorer', () => {
           exactMatch: true,
         }),
       );
-      // Score: 2+1+1+1=5 → MEDIUM base, hash caps to LOW, then WAF raises to MEDIUM
-      expect(r.appliedOverrides).toContain('HASH_SOURCE_LOW_CAP');
-      expect(r.appliedOverrides).toContain('WAF_BYPASS_MEDIUM_MINIMUM');
+      // Score: 2+1+1+1=5 → MEDIUM base (already MEDIUM, overrides are no-ops)
+      expect(r.score).toBe(5);
       expect(r.severity).toBe(VulnSeverity.MEDIUM);
     });
 
@@ -539,7 +539,7 @@ describe('severity-scorer', () => {
       expect(r.severity).toBe(VulnSeverity.HIGH);
     });
 
-    it('DOM Finding 20: dom-only+hash+document.write → LOW (hash cap)', () => {
+    it('DOM Finding 20: dom-only+hash+document.write → MEDIUM (hash cap to MEDIUM)', () => {
       const r = scoreFinding({
         reflected: false,
         executed: false,
@@ -549,10 +549,9 @@ describe('severity-scorer', () => {
         exactMatch: false,
         browserAlertTriggered: false,
       });
-      // exec=1 + share=1 + sink=3 + payload=0 = 5 → MEDIUM, hash cap → LOW
+      // exec=1 + share=1 + sink=3 + payload=0 = 5 → MEDIUM, hash cap to MEDIUM (no-op)
       expect(r.score).toBe(5);
-      expect(r.severity).toBe(VulnSeverity.LOW);
-      expect(r.appliedOverrides).toContain('HASH_SOURCE_LOW_CAP');
+      expect(r.severity).toBe(VulnSeverity.MEDIUM);
     });
   });
 });

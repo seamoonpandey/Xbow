@@ -283,8 +283,8 @@ export class ScanService {
 
   async deleteAllScans(): Promise<number> {
     const count = await this.scanRepo.count();
-    await this.vulnRepo.deleteAll();
-    await this.scanRepo.deleteAll();
+    await this.vulnRepo.clear();
+    await this.scanRepo.clear();
     this.vulnKeys.clear();
     this.logger.warn(`all scans deleted (${count} scans removed)`);
     return count;

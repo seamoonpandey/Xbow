@@ -4,6 +4,7 @@ import { ScanController } from './scan.controller';
 import { ScanService } from './scan.service';
 import { ScanEntity } from './entities/scan.entity';
 import { VulnEntity } from './entities/vuln.entity';
+import { ScanAuditEntity } from './entities/scan-audit.entity';
 import { ScanQueueProducer } from '../queue/scan.producer';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 import { ScanStatus } from '../common/interfaces/scan.interface';
@@ -20,10 +21,10 @@ describe('ScanController', () => {
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [ScanEntity, VulnEntity],
+          entities: [ScanEntity, VulnEntity, ScanAuditEntity],
           synchronize: true,
         }),
-        TypeOrmModule.forFeature([ScanEntity, VulnEntity]),
+        TypeOrmModule.forFeature([ScanEntity, VulnEntity, ScanAuditEntity]),
       ],
       controllers: [ScanController],
       providers: [
@@ -87,7 +88,7 @@ describe('ScanController', () => {
   describe('listScans', () => {
     it('returns paginated list', async () => {
       for (let i = 0; i < 5; i++) {
-        await scanService.create({ url: `https://${i}.com` });
+        await scanService.create({ url: `https://${i}.com` }, 'test-user');
       }
       const page1 = await controller.listScans(1, 2, mockReq as any);
       expect(page1).toHaveLength(2);
@@ -97,7 +98,7 @@ describe('ScanController', () => {
     });
 
     it('returns empty for out-of-range page', async () => {
-      await scanService.create({ url: 'https://example.com' });
+      await scanService.create({ url: 'https://example.com' }, 'test-user');
       const result = await controller.listScans(100, 20, mockReq as any);
       expect(result).toHaveLength(0);
     });

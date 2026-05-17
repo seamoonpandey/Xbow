@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScanService } from './scan.service';
 import { ScanEntity } from './entities/scan.entity';
 import { VulnEntity } from './entities/vuln.entity';
+import { ScanAuditEntity } from './entities/scan-audit.entity';
 import { ScanStatus, ScanPhase } from '../common/interfaces/scan.interface';
 import {
   ScanNotFoundException,
@@ -20,13 +21,15 @@ describe('ScanService', () => {
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [ScanEntity, VulnEntity],
+          entities: [ScanEntity, VulnEntity, ScanAuditEntity],
           synchronize: true,
         }),
-        TypeOrmModule.forFeature([ScanEntity, VulnEntity]),
+        TypeOrmModule.forFeature([ScanEntity, VulnEntity, ScanAuditEntity]),
       ],
       providers: [ScanService],
     }).compile();
+
+    service = module.get(ScanService);
   });
 
   beforeEach(async () => {
@@ -333,14 +336,23 @@ describe('ScanService', () => {
       expect(updated.progress).toBe(25);
     });
 
-    it('throws ScanAlreadyRunningException when starting already running scan', async () => {
+    it('throws ScanAlreadyRunningException when transitioning to CRAWLING from non-idle, non-CRAWLING status', async () => {
       const scan = await service.create({ url: 'https://example.com' });
+      // First transition to CRAWLING
       await service.updateStatus(
         scan.id,
         ScanStatus.CRAWLING,
         ScanPhase.CRAWL,
         10,
       );
+      // Now move to a different running status (simulate auth → crawl re-entry)
+      await service.updateStatus(
+        scan.id,
+        ScanStatus.ANALYZING,
+        ScanPhase.ANALYZE,
+        20,
+      );
+      // Transitioning back to CRAWLING while already ANALYZING should throw
       await expect(
         service.updateStatus(scan.id, ScanStatus.CRAWLING),
       ).rejects.toThrow(ScanAlreadyRunningException);
