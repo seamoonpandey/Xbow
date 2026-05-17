@@ -47,7 +47,7 @@ MANIFEST_JSON     := dataset/dataset_manifest.json
 
 .PHONY: help build build-core build-dashboard build-docker \
         train train-ranker train-data evaluate train-all \
-        dataset-raw dataset dataset-report dataset-all
+        dataset-raw dataset dataset-report dataset-all dataset-clean
 
 help:
 	@echo "RedSentinel Makefile"
@@ -70,6 +70,7 @@ help:
 	@echo "  make dataset         Rebuild all processed CSVs & splits from raw sources"
 	@echo "  make dataset-report  Run dataset_stats.py + generate dataset_manifest.json"
 	@echo "  make dataset-all     dataset-raw + dataset + dataset-report"
+	@echo "  make dataset-clean   Remove dataset/raw/, dataset/processed/, and dataset/splits/"
 	@echo ""
 
 # ══════════════════════════════════════════════════════════════════════
@@ -224,3 +225,14 @@ $(MANIFEST_JSON): $(DATASET_MANIFEST) $(DATASET_STATS) $(TRAIN_CSV)
 # ── Combined ─────────────────────────────────────────────────────────
 dataset-all: dataset dataset-report
 	@echo "Done."
+
+# ── Clean generated data ─────────────────────────────────────────────
+dataset-clean:
+	@echo "── Cleaning generated dataset directories ──"
+	@if [ -d dataset/raw ]; then rm -rf dataset/raw && echo "  ✓ dataset/raw/ removed"; else echo "  - dataset/raw/ (already clean)"; fi
+	@if [ -d dataset/processed ]; then rm -rf dataset/processed && echo "  ✓ dataset/processed/ removed"; else echo "  - dataset/processed/ (already clean)"; fi
+	@if [ -d dataset/splits ]; then rm -rf dataset/splits && echo "  ✓ dataset/splits/ removed"; else echo "  - dataset/splits/ (already clean)"; fi
+	@rm -rf dataset/__pycache__ dataset/*.egg-info 2>/dev/null || true
+	@echo ""
+	@echo "Run 'make dataset' to rebuild from scratch."
+	@echo ""

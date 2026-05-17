@@ -52,6 +52,7 @@ Or run the steps separately:
 ```bash
 make dataset-raw    # Clone/download sources (idempotent)
 make dataset        # Rebuild CSVs & splits from raw sources
+make dataset-clean  # Remove dataset/raw/, processed/, splits/, and __pycache__
 ```
 
 This runs the pipeline in order:
@@ -114,7 +115,7 @@ dataset/ranker_training/  Ranker training data when generated
 # Scripts
 scripts/dataset_stats.py              Reproducible statistics report (12 sections)
 scripts/generate_dataset_manifest.py   Manifest generator (checksums + metadata)
-Makefile                               Pipeline automation (make dataset-raw / make dataset / make dataset-report)
+Makefile                               Pipeline automation (make dataset-raw / make dataset / make dataset-report / make dataset-clean)
 ```
 
 Docker Compose mounts `./dataset/splits` into the payload-gen container at `/app/dataset/splits`. If the mounted split files are missing or the bank loads empty, the payload-gen `/generate` endpoint returns 503.
