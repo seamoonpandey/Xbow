@@ -47,17 +47,93 @@ MANIFEST_JSON     := dataset/dataset_manifest.json
 #  Targets
 # ══════════════════════════════════════════════════════════════════════
 
-.PHONY: dataset dataset-report dataset-all help
+.PHONY: help build build-core build-dashboard build-docker \
+        train train-ranker train-data evaluate train-all \
+        dataset dataset-report dataset-all
 
 help:
-	@echo "RedSentinel Dataset Makefile"
+	@echo "RedSentinel Makefile"
 	@echo ""
-	@echo "  make dataset          Rebuild all processed CSVs & splits from raw sources"
-	@echo "  make dataset-report   Run dataset_stats.py + generate dataset_manifest.json"
-	@echo "  make dataset-all      Both of the above"
+	@echo "── Build ──────────────────────────────────────"
+	@echo "  make build           Build all (core + dashboard)"
+	@echo "  make build-core      Build NestJS core (dist/)"
+	@echo "  make build-dashboard Build Next.js dashboard (.next/)"
+	@echo "  make build-docker    Build Docker images"
+	@echo ""
+	@echo "── Train ──────────────────────────────────────"
+	@echo "  make train           Train XSS classifier (ai/training/train.py)"
+	@echo "  make train-ranker    Train XGBoost ranker (ai/training/train_ranker.py)"
+	@echo "  make train-data      Prepare enriched training data from fuzzer samples"
+	@echo "  make evaluate        Run model evaluation on clean test split"
+	@echo "  make train-all       Full pipeline: train-data + train + evaluate"
+	@echo ""
+	@echo "── Dataset ────────────────────────────────────"
+	@echo "  make dataset         Rebuild all processed CSVs & splits from raw sources"
+	@echo "  make dataset-report  Run dataset_stats.py + generate dataset_manifest.json"
+	@echo "  make dataset-all     Both of the above"
 	@echo ""
 	@echo "Note: dataset/raw/ must exist (see dataset/README.md for download)"
 	@echo ""
+
+# ══════════════════════════════════════════════════════════════════════
+#  Build targets
+# ══════════════════════════════════════════════════════════════════════
+
+build: build-core build-dashboard
+	@echo "Build complete."
+
+build-core:
+	@echo "── Building NestJS core ──"
+	cd core && npm run build
+	@echo ""
+	@echo "  ✓ core/dist/ built"
+	@echo ""
+
+build-dashboard:
+	@echo "── Building Next.js dashboard ──"
+	cd dashboard && npm run build
+	@echo ""
+	@echo "  ✓ dashboard/.next/ built"
+	@echo ""
+
+build-docker:
+	@echo "── Building Docker images ──"
+	docker compose build
+	@echo ""
+	@echo "  ✓ Docker images built"
+	@echo ""
+
+# ══════════════════════════════════════════════════════════════════════
+#  Train targets
+# ══════════════════════════════════════════════════════════════════════
+
+train:
+	@echo "── Training XSS classifier ──"
+	cd ai/training && $(PYTHON) train.py
+	@echo ""
+
+train-ranker:
+	@echo "── Training XGBoost ranker ──"
+	cd ai/training && $(PYTHON) train_ranker.py
+	@echo ""
+
+train-data:
+	@echo "── Preparing enriched training data ──"
+	cd ai/training && $(PYTHON) prepare_enriched_training_data.py
+	@echo ""
+
+evaluate:
+	@echo "── Running model evaluation ──"
+	cd ai/training && $(PYTHON) evaluate.py
+	@echo ""
+
+train-all: train-data train evaluate
+	@echo "Full ML pipeline complete."
+	@echo ""
+
+# ══════════════════════════════════════════════════════════════════════
+#  Dataset targets (existing)
+# ══════════════════════════════════════════════════════════════════════
 
 # ── Dataset pipeline ─────────────────────────────────────────────────
 # Each step depends on the previous one's output.
