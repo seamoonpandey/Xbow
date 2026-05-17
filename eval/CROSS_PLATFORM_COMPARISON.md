@@ -14,6 +14,8 @@
 
 *All tools tested with default settings unless otherwise noted.*
 
+> **⏱ Note on timing:** All timing data comes from the `v3_clean` comparison run (`eval/comparison_results/v3_clean/`), which measured each tool per-endpoint under identical network conditions. Timing does NOT include XSStrike (which was non-functional in that run — see FN analysis).
+
 ---
 
 ## Methodology
@@ -78,6 +80,13 @@ Ground truth was determined by **source code analysis** of each endpoint:
 | **Precision** | **0.846** | **0.750** | **0.846** | **0.786** |
 | **Recall** | **1.000** | **0.818** | **1.000** | **1.000** |
 | **F1 Score** | **0.917** | **0.783** | **0.917** | **0.880** |
+| **Browser-confirmed** | **9/11** ⭐ | N/A | N/A | N/A |
+| **Total scan time (14 ep)** | **34.9s** | —¹ | **36.6s** | **170.8s** |
+| **Avg time per endpoint** | **2.5s** | —¹ | **2.6s** | **12.2s** |
+
+> ¹ XSStrike timing omitted — tool was non-functional during the v3_clean timing run (see FN analysis).
+
+**Note on detection parity:** While Red Sentinel and Dalfox show identical TP/FP/FN/TN counts in this run, Red Sentinel's browser verification confirms actual execution on 9/11 vuln findings. Dalfox (and all other tools) report reflection-based detection with no execution proof. In the `evaluation_report.md` which includes stored XSS (T4), Dalfox's F1 drops to **0.800** while Red Sentinel maintains **1.000**.
 
 ### False Positive Analysis
 
