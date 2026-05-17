@@ -51,18 +51,19 @@ def print_confusion_matrix(cm, labels, title="Confusion Matrix"):
     # Rows
     for i, label in enumerate(labels):
         row = f"  {label:>{max_label}} │"
-        for j in range(len(labels)):
-            val = cm[i][j]
+        cm_row = cm[i] if i < len(cm) else []
+        n_cols = len(cm[0]) if len(cm) > 0 else 0
+        for j in range(n_cols):
+            val = cm_row[j] if j < len(cm_row) else 0
             if i == j:
                 row += f"  \033[92m{val:>4}\033[0m "  # Green for diagonal
             elif val > 0:
                 row += f"  \033[91m{val:>4}\033[0m "  # Red for errors
             else:
                 row += f"  {val:>4} "
-            
         # Row accuracy
-        row_total = sum(cm[i])
-        row_acc = cm[i][i] / row_total * 100 if row_total > 0 else 0
+        row_total = sum(cm_row)
+        row_acc = cm_row[i] / row_total * 100 if row_total > 0 else 0
         row += f" │ {row_acc:.1f}%"
         print(row)
     
@@ -156,6 +157,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     
     ctx_report = classification_report(
         ctx_labels, ctx_preds,
+        labels=list(range(CONTEXT_CLASSES)),
         target_names=CONTEXT_LABELS,
         digits=4,
         zero_division=0,
@@ -172,6 +174,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     
     sev_report = classification_report(
         sev_labels, sev_preds,
+        labels=list(range(SEVERITY_CLASSES)),
         target_names=SEVERITY_LABELS,
         digits=4,
         zero_division=0,
@@ -183,8 +186,8 @@ def evaluate_model(model, test_loader, logger_print=print):
     #              CONFUSION MATRICES
     # ═══════════════════════════════════════════════════════
     
-    ctx_cm = confusion_matrix(ctx_labels, ctx_preds)
-    sev_cm = confusion_matrix(sev_labels, sev_preds)
+    ctx_cm = confusion_matrix(ctx_labels, ctx_preds, labels=list(range(CONTEXT_CLASSES)))
+    sev_cm = confusion_matrix(sev_labels, sev_preds, labels=list(range(SEVERITY_CLASSES)))
     
     print_confusion_matrix(ctx_cm, CONTEXT_LABELS, "Context Confusion Matrix")
     print_confusion_matrix(sev_cm, SEVERITY_LABELS, "Severity Confusion Matrix")

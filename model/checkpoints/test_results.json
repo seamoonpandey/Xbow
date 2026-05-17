@@ -1,64 +1,84 @@
 {
-  "test_samples": 3632,
-  "context_accuracy": 99.5319,
-  "severity_accuracy": 99.5595,
-  "context_f1_weighted": 0.9953,
-  "context_f1_macro": 0.9743,
-  "severity_f1_weighted": 0.9955,
-  "severity_f1_macro": 0.9601,
-  "context_errors": 17,
-  "severity_errors": 16,
-  "avg_context_confidence": 0.9243,
-  "avg_severity_confidence": 0.939,
+  "test_samples": 306,
+  "context_accuracy": 78.4314,
+  "severity_accuracy": 38.2353,
+  "context_f1_weighted": 0.7828,
+  "context_f1_macro": 0.7561,
+  "severity_f1_weighted": 0.3673,
+  "severity_f1_macro": 0.3653,
+  "context_errors": 66,
+  "severity_errors": 189,
+  "avg_context_confidence": 0.7319,
+  "avg_severity_confidence": 0.3728,
   "context_confusion_matrix": [
     [
-      292,
+      48,
+      2,
       0,
-      0,
-      0,
-      0,
-      0,
+      3,
+      9,
+      1,
       0,
       0
     ],
     [
+      2,
+      48,
       0,
-      2253,
+      2,
+      2,
+      1,
       0,
+      0
+    ],
+    [
+      2,
+      3,
+      39,
+      3,
+      6,
+      0,
+      2,
+      0
+    ],
+    [
+      2,
+      4,
+      1,
+      30,
+      1,
+      2,
+      0,
+      0
+    ],
+    [
+      2,
+      1,
+      2,
+      1,
+      54,
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      2,
+      1,
+      0,
+      1,
+      15,
+      0,
+      0
+    ],
+    [
+      1,
       4,
       0,
       1,
-      1,
-      0
-    ],
-    [
-      0,
-      1,
-      165,
       0,
       0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      2,
-      0,
-      448,
-      0,
-      0,
-      0,
-      1
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      7,
-      0,
-      1,
+      6,
       0
     ],
     [
@@ -67,67 +87,66 @@
       0,
       0,
       0,
-      75,
-      0,
-      1
-    ],
-    [
       0,
       0,
-      0,
-      0,
-      0,
-      0,
-      279,
-      1
-    ],
-    [
-      1,
-      0,
-      0,
-      0,
-      1,
-      2,
-      0,
-      96
+      0
     ]
   ],
   "severity_confusion_matrix": [
     [
-      217,
-      7,
-      0
+      61,
+      24,
+      16
     ],
     [
-      1,
-      3361,
-      1
+      53,
+      35,
+      25
     ],
     [
-      2,
-      5,
-      38
+      41,
+      30,
+      21
     ]
   ],
   "context_error_breakdown": {
-    "generic \u2192 template_injection": 1,
-    "event_handler \u2192 tag_injection": 4,
-    "tag_injection \u2192 event_handler": 2,
-    "generic \u2192 dom_sink": 2,
-    "dom_sink \u2192 generic": 1,
-    "event_handler \u2192 dom_sink": 1,
-    "attribute_escape \u2192 generic": 1,
-    "js_uri \u2192 event_handler": 1,
-    "tag_injection \u2192 generic": 1,
-    "event_handler \u2192 attribute_escape": 1,
+    "js_uri \u2192 template_injection": 6,
+    "script_injection \u2192 template_injection": 9,
+    "event_handler \u2192 template_injection": 2,
+    "dom_sink \u2192 template_injection": 1,
+    "event_handler \u2192 script_injection": 2,
+    "template_injection \u2192 js_uri": 2,
+    "dom_sink \u2192 js_uri": 1,
+    "js_uri \u2192 tag_injection": 3,
+    "js_uri \u2192 script_injection": 2,
+    "tag_injection \u2192 script_injection": 2,
+    "attribute_escape \u2192 script_injection": 1,
+    "script_injection \u2192 dom_sink": 1,
+    "js_uri \u2192 event_handler": 3,
+    "template_injection \u2192 event_handler": 1,
+    "attribute_escape \u2192 event_handler": 4,
+    "script_injection \u2192 event_handler": 2,
+    "tag_injection \u2192 event_handler": 4,
+    "dom_sink \u2192 event_handler": 2,
+    "script_injection \u2192 tag_injection": 3,
+    "event_handler \u2192 tag_injection": 2,
+    "template_injection \u2192 script_injection": 2,
     "template_injection \u2192 attribute_escape": 1,
-    "generic \u2192 script_injection": 1
+    "tag_injection \u2192 js_uri": 1,
+    "template_injection \u2192 tag_injection": 1,
+    "event_handler \u2192 dom_sink": 1,
+    "js_uri \u2192 attribute_escape": 2,
+    "tag_injection \u2192 dom_sink": 2,
+    "dom_sink \u2192 script_injection": 1,
+    "attribute_escape \u2192 tag_injection": 1,
+    "tag_injection \u2192 template_injection": 1
   },
   "severity_error_breakdown": {
-    "medium \u2192 low": 1,
-    "low \u2192 medium": 7,
-    "high \u2192 medium": 5,
-    "high \u2192 low": 2,
-    "medium \u2192 high": 1
+    "high \u2192 low": 41,
+    "medium \u2192 low": 53,
+    "low \u2192 high": 16,
+    "medium \u2192 high": 25,
+    "low \u2192 medium": 24,
+    "high \u2192 medium": 30
   }
 }
