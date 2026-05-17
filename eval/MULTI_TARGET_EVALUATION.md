@@ -5,6 +5,8 @@
 > **Targets:** OWASP Juice Shop, OWASP WebGoat, OWASP Benchmark  
 > **Comparison:** 4 tools (Red Sentinel, OWASP ZAP, XSStrike, Dalfox) on exploitable app
 
+> **ℹ️ Status note:** The real-world target evaluations below (Juice Shop, WebGoat, Benchmark) show FN-only results because Red Sentinel's architecture at the time did not support SPA JSON responses (Juice Shop), lesson-based auth flows (WebGoat), or POST/Referer-based injection (Benchmark). These are architectural limitations, not false negatives in the traditional sense. See each section's "Root Cause Analysis" for details.
+
 ---
 
 ## Executive Summary

@@ -24,7 +24,8 @@ When documentation and implementation disagree, use this order:
 
 ## Secondary References
 
-- `evaluation/` — current evaluation reports and generated charts when they support a tracked report.
+- `../eval/README.md` — **evaluation results index**: cross-tool comparisons, 47-endpoint full evaluation, multi-target real-world results, and analysis scripts. Start here for all benchmarking data.
+- `evaluation/` — legacy evaluation reports and generated charts (superseded by `../eval/`).
 - `archive/` — historical plans, progress notes, older investigations, and stale deep dives. These files are preserved for context only and are not canonical for current API, schema, architecture, dataset, or ML claims.
 
 ## Documentation rule

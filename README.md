@@ -166,6 +166,7 @@ ai/            Training scripts
 tools/         Offline inference and maintenance tools
 scripts/       Project automation and smoke tests
 tests/         Cross-module Python tests
+eval/          Evaluation reports, cross-tool comparisons, and analysis scripts ([index](eval/README.md))
 docs/          Canonical docs plus historical archive
 ```
 

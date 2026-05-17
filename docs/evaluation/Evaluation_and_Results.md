@@ -1,5 +1,14 @@
 # Evaluation and Results
 
+> **⚠️ Legacy Document Notice (2026-05-18)**
+> This report predates the May 2026 comprehensive evaluation update and the 3 FN fixes applied during that cycle.
+> - **47-endpoint exploitable app eval** → see [`eval/evaluation_report.md`](../../eval/evaluation_report.md) (TP=44, FN=0, FP=0, TN=3, F1=1.000)
+> - **Cross-tool comparison (6 endpoints)** → see [`eval/CROSS_TOOL_COMPARISON.md`](../../eval/CROSS_TOOL_COMPARISON.md)
+> - **Cross-tool comparison (14 endpoints)** → see [`eval/CROSS_PLATFORM_COMPARISON.md`](../../eval/CROSS_PLATFORM_COMPARISON.md)
+> - **Multi-target real-world eval** → see [`eval/MULTI_TARGET_EVALUATION.md`](../../eval/MULTI_TARGET_EVALUATION.md)
+>
+> The 87-endpoint aggregate below includes real-world targets (Juice Shop, WebGoat, Benchmark) where architectural limitations (SPA JSON, auth, URL mismatches) produced higher FN counts. Those are documented separately in `MULTI_TARGET_EVALUATION.md`.
+
 ## 6.1 Evaluation Objectives
 
 Briefly evaluate context classification, payload ranking, vulnerability detection, and end-to-end performance.
