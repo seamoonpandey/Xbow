@@ -14,6 +14,7 @@ the scanner evolved.
 | 2026-03-13 | `__fragment__` Context Fix & Browser Verifier Timing Optimization | [2026-03-13-fragment-context-and-browser-verifier.md](2026-03-13-fragment-context-and-browser-verifier.md) |
 | 2026-03-13 | Research: Extending to `postMessage` & `localStorage`               | [2026-03-13-research-postmessage-localstorage.md](2026-03-13-research-postmessage-localstorage.md) |
 | 2026-05-17 | Dataset Reproducibility Pipeline (Makefile, Manifest, Extended Stats) | [2026-05-17-dataset-reproducibility.md](2026-05-17-dataset-reproducibility.md) |
+| 2026-05-17 | Tier 2 `javascript:` URI Filter, `is_safe_attribute()` Extraction & 70 Unit Tests | [2026-05-17-tier2-js-uri-filter-and-tests.md](2026-05-17-tier2-js-uri-filter-and-tests.md) |
 
 ## Scope
 

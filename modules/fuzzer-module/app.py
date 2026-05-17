@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from shared.schemas import FuzzRequest, FuzzResult, FuzzResponse
 from http_sender import send_payloads, send_stored_payloads, fetch_url
-from reflection_checker import check_reflection_batch
+from reflection_checker import check_reflection_batch, is_js_uri_safe_in_context
 from browser_verifier import verify_payloads, verify_stored_form_payloads
 from dom_xss_scanner import scan_response_body, findings_to_results
 from training_collector import collect_batch_training_samples, get_training_stats
@@ -338,6 +338,7 @@ async def fuzz(request: FuzzRequest):
             payload = r["payload"]
             param = r["target_param"]
             key = f"{payload}:{param}"
+
             if key in seen_payloads:
                 continue
             seen_payloads.add(key)
@@ -345,6 +346,7 @@ async def fuzz(request: FuzzRequest):
             is_reflected = r.get("reflected", False)
             is_exact = r.get("exact_match", False)
             position = r.get("reflection_position", "none")
+            attr_name = r.get("attr_name", "")
             is_vuln = False
             vuln_type = ""
 
@@ -353,18 +355,19 @@ async def fuzz(request: FuzzRequest):
                 is_vuln = True
                 vuln_type = "stored_xss"
 
-            # Stored XSS: decoded-only reflection in dangerous position
+            # Stored XSS: decoded-only reflection in dangerous position (only when verify disabled)
             if not is_vuln and is_reflected and not is_exact and position in DANGEROUS_POSITIONS:
-                is_vuln = True
-                vuln_type = "stored_xss"
+                if not verify_execution:
+                    is_vuln = True
+                    vuln_type = "stored_xss"
 
-            # Detect advanced XSS types for stored payloads
-            if is_vuln and vuln_type == "stored_xss":
-                response_body = r.get("response_body", "")
-                vuln_type = detect_advanced_xss_type(
-                    payload, position, response_body, is_exact, False,  # stored doesn't execute
-                    default_type="stored_xss"
-                )
+                # Detect advanced XSS types for stored payloads
+                if is_vuln and vuln_type == "stored_xss":
+                    response_body = r.get("response_body", "")
+                    vuln_type = detect_advanced_xss_type(
+                        payload, position, response_body, is_exact, False,  # stored doesn't execute
+                        default_type="stored_xss"
+                    )
 
             final_results.append(FuzzResult(
                 payload=payload,
@@ -569,6 +572,7 @@ async def fuzz(request: FuzzRequest):
         is_reflected = r.get("reflected", False)
         is_exact = r.get("exact_match", False)
         position = r.get("reflection_position", "none")
+        attr_name = r.get("attr_name", "")
         verify_info = verified_map.get(key, {})
         is_executed = verify_info.get("executed", False)
         is_vuln = False
@@ -583,17 +587,32 @@ async def fuzz(request: FuzzRequest):
         # HTML position. This IS exploitable even if the browser didn't fire an
         # alert (CSP, timing, non-alert payloads). Real scanners (Burp, ZAP)
         # report this as reflected XSS.
+        #
+        # Exception: javascript:/data: URIs are special — they only execute in
+        # executable attributes (href, src, action). In body text or safe
+        # attributes (value, title, alt) they are inert text, not exploitable.
+        # Filter these to reduce FPs on safe pages.
         if not is_vuln and is_reflected and is_exact and position in DANGEROUS_POSITIONS:
-            is_vuln = True
-            vuln_type = "reflected_xss"
+            # Exception: javascript:/data: URIs are special — they only execute in
+            # executable attributes (href, src, action).  In body text or safe
+            # attributes (value, title, alt) they are inert text, not exploitable.
+            # Filter these to reduce FPs on safe pages.
+            if not is_js_uri_safe_in_context(payload, position, attr_name):
+                is_vuln = True
+                vuln_type = "reflected_xss"
 
         # Tier 3 (LOW confidence): decoded-only reflection in dangerous position.
         # The server reflects input but HTML-encodes it. This encoding may be
         # incomplete/bypassable with alternative payloads. Real scanners report
         # this as an informational / low-severity reflected input finding.
+        #
+        # When verify_execution=True (browser verification enabled), decoded-only
+        # reflections are never sent to Playwright (they can't execute as-is).
+        # Skip Tier 3 marking — the user wants confirmed executions, not heuristics.
         if not is_vuln and is_reflected and not is_exact and position in DANGEROUS_POSITIONS:
-            is_vuln = True
-            vuln_type = "reflected_xss"
+            if not verify_execution:
+                is_vuln = True
+                vuln_type = "reflected_xss"
 
         # Tier 4: verification disabled or unavailable — any reflection counts
         if not is_vuln and (not verify_execution or verify_unavailable) and is_reflected:
