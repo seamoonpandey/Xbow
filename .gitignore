@@ -83,3 +83,4 @@ core/scanner-logs/
 dump.rdb
 scanner-logs/
 XSStrike/
+runs/
