@@ -78,10 +78,10 @@ async def analyze(req: AnalyzeRequest) -> dict[str, ParamContext]:
     if not req.params:
         raise HTTPException(status_code=400, detail="no params provided")
 
-    logger.info(f"analyzing url={req.url} params={req.params} waf={req.waf}")
+    logger.info(f"analyzing url={req.url} params={req.params} waf={req.waf} authenticated={bool(req.cookie_header)}")
 
-    # step 1: inject probe markers into all params
-    probe_results = await inject_probes(req.url, req.params)
+    # step 1: inject probe markers into all params (with auth cookies if provided)
+    probe_results = await inject_probes(req.url, req.params, cookie_header=req.cookie_header)
 
     results: dict[str, ParamContext] = {}
 
@@ -157,7 +157,7 @@ async def analyze(req: AnalyzeRequest) -> dict[str, ParamContext]:
         if param == FRAGMENT_PARAM:
             allowed_chars = DEFAULT_FRAGMENT_ALLOWED_CHARS
         else:
-            allowed_chars = await fuzz_chars(req.url, param)
+            allowed_chars = await fuzz_chars(req.url, param, cookie_header=req.cookie_header)
 
         results[param] = ParamContext(
             reflects_in=final_context,

@@ -37,6 +37,7 @@ async def inject_probes(
     url: str,
     params: list[str],
     timeout: float = 10.0,
+    cookie_header: str | None = None,
 ) -> dict[str, dict]:
     """
     inject probe markers into each param and fetch the response.
@@ -45,11 +46,19 @@ async def inject_probes(
     returns {param: {marker, status_code, body, headers}} for each param,
     using the response that actually reflects the marker (preferring POST
     for form fields, falling back to GET).
+
+    when cookie_header is provided, it is forwarded as a Cookie header on
+    all requests so the context module can probe authenticated endpoints.
     """
     results: dict[str, dict] = {}
     post_globally_supported: bool | None = None
 
+    client_headers = {}
+    if cookie_header:
+        client_headers["Cookie"] = cookie_header
+
     async with httpx.AsyncClient(
+        headers=client_headers or None,
         timeout=timeout,
         follow_redirects=True,
         verify=False,

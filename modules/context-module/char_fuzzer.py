@@ -26,10 +26,14 @@ async def fuzz_chars(
     param: str,
     chars: list[str] | None = None,
     timeout: float = 10.0,
+    cookie_header: str | None = None,
 ) -> list[str]:
     """
     test which special characters are reflected unencoded for a given param.
     returns the list of allowed (unfiltered) characters.
+
+    when cookie_header is provided, it is forwarded as a Cookie header on
+    all requests so the context module can probe authenticated endpoints.
     """
     if chars is None:
         chars = SPECIAL_CHARS
@@ -51,7 +55,12 @@ async def fuzz_chars(
     test_value = "".join(test_parts)
     test_url = build_char_test_url(url, param, test_value)
 
+    client_headers = {}
+    if cookie_header:
+        client_headers["Cookie"] = cookie_header
+
     async with httpx.AsyncClient(
+        headers=client_headers or None,
         timeout=timeout,
         follow_redirects=True,
         verify=False,
