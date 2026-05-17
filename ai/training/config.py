@@ -122,6 +122,27 @@ LR_FIND_MIN = 1e-7
 LR_FIND_MAX = 1.0
 LR_FIND_STEP_MULTIPLIER = 1.05   # Multiply LR by this each step
 
+# ─── Optuna Hyperparameter Sweep ────────────────────────────
+SWEEP_N_TRIALS = 20            # Number of trials per sweep
+SWEEP_EPOCHS = 8               # Fewer epochs per trial for speed
+SWEEP_PATIENCE = 3             # Aggressive early stopping for sweeps
+SWEEP_STUDY_NAME = "redsentinel_xss_sweep"
+SWEEP_TIMEOUT_MINUTES = 120    # Kill if a single sweep runs longer
+
+# Search space boundaries
+SWEEP_LR_MIN = 1e-6
+SWEEP_LR_MAX = 1e-4
+SWEEP_DROPOUT_MIN = 0.1
+SWEEP_DROPOUT_MAX = 0.5
+SWEEP_WARMUP_MIN = 0.0
+SWEEP_WARMUP_MAX = 0.3
+SWEEP_WEIGHT_DECAY_MIN = 1e-4
+SWEEP_WEIGHT_DECAY_MAX = 1e-1
+SWEEP_LABEL_SMOOTHING_MIN = 0.0
+SWEEP_LABEL_SMOOTHING_MAX = 0.3
+SWEEP_CTX_LOSS_WEIGHT_MIN = 0.3
+SWEEP_CTX_LOSS_WEIGHT_MAX = 0.8
+
 
 # ─── Print config on import ──────────────────────────────
 def print_config():

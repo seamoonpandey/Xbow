@@ -46,7 +46,7 @@ MANIFEST_JSON     := dataset/dataset_manifest.json
 # ══════════════════════════════════════════════════════════════════════
 
 .PHONY: help build build-core build-dashboard build-docker \
-        train train-ranker train-data evaluate train-all \
+        train train-ranker train-data evaluate train-all sweep sweep-resume \
         dataset-raw dataset dataset-report dataset-all dataset-clean
 
 help:
@@ -63,7 +63,8 @@ help:
 	@echo "  make train-ranker    Train XGBoost ranker (ai/training/train_ranker.py)"
 	@echo "  make train-data      Prepare enriched training data from fuzzer samples"
 	@echo "  make evaluate        Run model evaluation on clean test split"
-	@echo "  make train-all       Full pipeline: train-data + train + evaluate"
+	@echo "  make train-all       Full pipeline: train + evaluate"
+	@echo "  make sweep           Run Optuna hyperparameter sweep (ai/training/sweep.py)"
 	@echo ""
 	@echo "── Dataset ────────────────────────────────────"
 	@echo "  make dataset-raw     Clone/download raw sources into dataset/raw/"
@@ -131,6 +132,16 @@ evaluate:
 # Run 'make dataset' first to ensure dataset/splits/ exists.
 train-all: train evaluate
 	@echo "Full ML pipeline complete."
+	@echo ""
+
+sweep:
+	@echo "── Running Optuna hyperparameter sweep ──"
+	cd ai/training && $(PYTHON) sweep.py
+	@echo ""
+
+sweep-resume:
+	@echo "── Resuming latest Optuna sweep ──"
+	cd ai/training && $(PYTHON) sweep.py --study redsentinel_xss_sweep
 	@echo ""
 
 # ══════════════════════════════════════════════════════════════════════

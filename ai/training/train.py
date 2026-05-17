@@ -538,6 +538,11 @@ def main():
     parser.add_argument("--no_class_weights", action="store_true", help="Disable class weighting")
     parser.add_argument("--resume", action="store_true", help="Resume from latest.pt")
     parser.add_argument("--lr-find", action="store_true", help="Run LR range test and exit")
+    parser.add_argument("--sweep", action="store_true", help="Run Optuna hyperparameter sweep instead of single training")
+    parser.add_argument("--n-trials", "--n_trials", type=int, default=None,
+                        help="Number of sweep trials (default: from config)")
+    parser.add_argument("--study", type=str, default=None,
+                        help="Optuna study name for sweep (default: from config)")
     args = parser.parse_args()
 
     # ── Setup ──
@@ -622,6 +627,17 @@ def main():
     # ── LR Finder ──
     if args.lr_find:
         lr_find(model, train_loader, ctx_criterion, sev_criterion, logger)
+        return
+
+    # ── Hyperparameter Sweep ──
+    if args.sweep:
+        logger.info("\n  🔬 Delegating to Optuna sweep...")
+        # Import sweep module and run
+        from sweep import run_sweep
+        run_sweep(
+            study_name=args.study or SWEEP_STUDY_NAME,
+            n_trials=args.n_trials or SWEEP_N_TRIALS,
+        )
         return
 
     # ── AMP Scaler ──
