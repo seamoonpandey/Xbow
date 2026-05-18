@@ -539,7 +539,7 @@ def lr_find(model, train_loader, ctx_criterion, sev_criterion, logger):
             best_idx = start_idx + deltas[start_idx:end_idx].index(max(deltas[start_idx:end_idx]))
             best_lr = lrs[best_idx + 1]
 
-            logger.info(f"\n  ✅ Recommended LR range:")
+            logger.info(f"\n   Recommended LR range:")
             logger.info(f"     Minimum:    {best_lr / 10:.2e}")
             logger.info(f"     Suggested:  {best_lr:.2e}")
             logger.info(f"     Maximum:    {best_lr * 2:.2e}")
@@ -551,8 +551,8 @@ def lr_find(model, train_loader, ctx_criterion, sev_criterion, logger):
     results_path = CHECKPOINT_DIR / "lr_find_results.json"
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
-    logger.info(f"\n  💾 LR find results saved → {results_path}")
-    logger.info(f"\n  📊 Plot with: python -c \"import json, matplotlib.pyplot as plt; d=json.load(open('{results_path}')); plt.semilogx(d['learning_rates'], d['losses']); plt.grid(); plt.savefig('lr_find.png')\"")
+    logger.info(f"\n   LR find results saved → {results_path}")
+    logger.info(f"\n  Plot with: python -c \"import json, matplotlib.pyplot as plt; d=json.load(open('{results_path}')); plt.semilogx(d['learning_rates'], d['losses']); plt.grid(); plt.savefig('lr_find.png')\"")
 
     del temp_optimizer
     if DEVICE.type == "cuda":
@@ -626,7 +626,7 @@ def main():
     total_steps = len(train_loader) * args.epochs
     warmup_steps = int(total_steps * WARMUP_RATIO)
     scheduler = get_scheduler(optimizer, warmup_steps, total_steps)
-    logger.info(f"\n  📊 Steps: {total_steps} total, {warmup_steps} warmup")
+    logger.info(f"\n  Steps: {total_steps} total, {warmup_steps} warmup")
 
     # ── Loss with Class Weights ──
     if args.no_class_weights:
@@ -740,7 +740,7 @@ def main():
         )
 
         # ── Validate ──
-        logger.info("\n  📊 Validating...")
+        logger.info("\n  Validating...")
         val_metrics = validate(model, val_loader, ctx_criterion, sev_criterion, logger)
         logger.info(
             f"\n  Val   → Loss: {val_metrics['val_loss']:.4f} | "
@@ -780,7 +780,7 @@ def main():
                 epoch, val_metrics["val_loss"],
                 CHECKPOINT_DIR / "best.pt"
             )
-            logger.info(f"\n  ✅ New best! Val loss improved by {improvement:.4f}")
+            logger.info(f"\n   New best! Val loss improved by {improvement:.4f}")
             logger.info(f"     Saved → {CHECKPOINT_DIR / 'best.pt'}")
         else:
             patience_counter += 1

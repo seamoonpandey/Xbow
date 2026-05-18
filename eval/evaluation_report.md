@@ -83,15 +83,15 @@ Red Sentinel was run via the evaluation pipeline (`eval/run.py`). Each endpoint 
 
 | Test | Payload | Context | Verified |
 |:-----|:--------|:--------|:---------|
-| T1 | `<script>alert(1)</script>` | HTML body | ✅ Browser exec |
-| T1 | `<img src=x onerror=alert(1)>` | HTML attribute | ✅ Browser exec |
-| T1 | `<svg onload=alert(1)>` | HTML body | ✅ Browser exec |
-| T1 | `%3Cscript%3Ealert(1)%3C/script%3E` | URL-encoded body | ✅ Browser exec |
-| T1 | `"><script>alert(1)</script>` | Attribute breakout | ✅ Browser exec |
-| T3 | `';alert(1)//` | JS string breakout | ✅ Browser exec |
-| T3 | `\";alert(1)//` | JS string breakout | ✅ Browser exec |
-| T4 | `<img src=x onerror=alert(1)>` | Stored HTML | ✅ Browser exec |
-| T4 | `<svg onload=alert(1)>` | Stored HTML | ✅ Browser exec |
+| T1 | `<script>alert(1)</script>` | HTML body |  Browser exec |
+| T1 | `<img src=x onerror=alert(1)>` | HTML attribute |  Browser exec |
+| T1 | `<svg onload=alert(1)>` | HTML body |  Browser exec |
+| T1 | `%3Cscript%3Ealert(1)%3C/script%3E` | URL-encoded body |  Browser exec |
+| T1 | `"><script>alert(1)</script>` | Attribute breakout |  Browser exec |
+| T3 | `';alert(1)//` | JS string breakout |  Browser exec |
+| T3 | `\";alert(1)//` | JS string breakout |  Browser exec |
+| T4 | `<img src=x onerror=alert(1)>` | Stored HTML |  Browser exec |
+| T4 | `<svg onload=alert(1)>` | Stored HTML |  Browser exec |
 
 ---
 
@@ -259,16 +259,16 @@ F1-score = 2 × Precision × Recall / (Precision + Recall)
 
 | Phase | Expected | Actual | Pass/Fail |
 |:------|:---------|:-------|:----------|
-| **Crawl** | Target is reachable, parameters discovered | Connected on first attempt, params detected: `q`/`name`/`name,msg` | ✅ Pass |
-| **Payload Generation** | Relevant XSS payloads created per context | 6/4/3/2 payloads generated per endpoint, context-aware | ✅ Pass |
-| **Context Analysis** | Reflection and injection context correctly identified | Body (HTML), Script (JS string), Header, Stored (form) | ✅ Pass |
-| **Fuzzing** | Payloads submitted and responses analyzed | All payloads tested against each endpoint | ✅ Pass |
-| **Browser Verification** | XSS execution confirmed via headless browser | 5/2/2 vulns browser-confirmed | ✅ Pass |
-| **PortSwigger Coverage** | Standard XSS detection benchmark passed | 96.0% (48/50) on PortSwigger benchmark suite | ✅ Pass |
-| **Report Generation** | Structured summary + reports created | Summary JSON, regression manifest, frozen manifest | ✅ Pass |
-| **False Positive Control** | No XSS reported for Safe endpoints | T2 (reflected-header): 0 vulns — correct | ✅ Pass |
-| **Stored XSS Detection** | POST-based stored XSS identified | T4 (stored-guestbook): 2 vulns found, browser-verified | ✅ Pass |
-| **JS Context Detection** | XSS inside JS string correctly exploited | T3 (reflected-script): 2 vulns found — `';alert(1)//`, `\";alert(1)//` | ✅ Pass |
+| **Crawl** | Target is reachable, parameters discovered | Connected on first attempt, params detected: `q`/`name`/`name,msg` |  Pass |
+| **Payload Generation** | Relevant XSS payloads created per context | 6/4/3/2 payloads generated per endpoint, context-aware |  Pass |
+| **Context Analysis** | Reflection and injection context correctly identified | Body (HTML), Script (JS string), Header, Stored (form) |  Pass |
+| **Fuzzing** | Payloads submitted and responses analyzed | All payloads tested against each endpoint |  Pass |
+| **Browser Verification** | XSS execution confirmed via headless browser | 5/2/2 vulns browser-confirmed |  Pass |
+| **PortSwigger Coverage** | Standard XSS detection benchmark passed | 96.0% (48/50) on PortSwigger benchmark suite |  Pass |
+| **Report Generation** | Structured summary + reports created | Summary JSON, regression manifest, frozen manifest |  Pass |
+| **False Positive Control** | No XSS reported for Safe endpoints | T2 (reflected-header): 0 vulns — correct |  Pass |
+| **Stored XSS Detection** | POST-based stored XSS identified | T4 (stored-guestbook): 2 vulns found, browser-verified |  Pass |
+| **JS Context Detection** | XSS inside JS string correctly exploited | T3 (reflected-script): 2 vulns found — `';alert(1)//`, `\";alert(1)//` |  Pass |
 
 ### Red Sentinel System Architecture (per-scan flow)
 
@@ -324,14 +324,14 @@ User Input → Context Module (detect reflection/context)
 
 | Phase | Expected | Actual | Pass/Fail |
 |:------|:---------|:-------|:----------|
-| Crawl | URLs/params discovered | All T1-T4 endpoints reached, params detected | ✅ Pass |
-| Context Analysis | Reflection/context detected | HTML body, JS string, header, stored form contexts identified | ✅ Pass |
-| Payload Generation | Context-relevant payloads created | 15 total payloads across 4 endpoints | ✅ Pass |
-| Fuzzing | Payloads tested against endpoint | 15/15 payloads tested (100%) | ✅ Pass |
-| Browser Verification | Execution confirmed | 9/9 vulns verified in headless Chrome | ✅ Pass |
-| FP Control | No XSS on Safe endpoints | T2 (Safe): 0 vulns | ✅ Pass |
-| PortSwigger | ≥90% coverage on benchmark | 96.0% (48/50) | ✅ Pass |
-| Report Generation | Structured output produced | JSON, frozen manifest, regression manifest | ✅ Pass |
+| Crawl | URLs/params discovered | All T1-T4 endpoints reached, params detected |  Pass |
+| Context Analysis | Reflection/context detected | HTML body, JS string, header, stored form contexts identified |  Pass |
+| Payload Generation | Context-relevant payloads created | 15 total payloads across 4 endpoints |  Pass |
+| Fuzzing | Payloads tested against endpoint | 15/15 payloads tested (100%) |  Pass |
+| Browser Verification | Execution confirmed | 9/9 vulns verified in headless Chrome |  Pass |
+| FP Control | No XSS on Safe endpoints | T2 (Safe): 0 vulns |  Pass |
+| PortSwigger | ≥90% coverage on benchmark | 96.0% (48/50) |  Pass |
+| Report Generation | Structured output produced | JSON, frozen manifest, regression manifest |  Pass |
 
 ---
 

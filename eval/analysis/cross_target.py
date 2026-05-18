@@ -217,7 +217,7 @@ def save_cross_target_report(comparison, rankings, run_dir):
     }
     save_path = run_dir / "cross_target_comparison.json"
     save_path.write_text(json.dumps(report, indent=2))
-    print(f"  ✅ Cross-target comparison saved to: {save_path}")
+    print(f"   Cross-target comparison saved to: {save_path}")
 
 
 def main():

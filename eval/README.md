@@ -20,11 +20,11 @@ This directory contains all evaluation results, cross-tool comparisons, and anal
 
 | Report | Endpoints | Red Sentinel Only? | PortSwigger | Includes Timing? | Browser Verified? |
 |--------|:---------:|:------------------:|:-----------:|:----------------:|:-----------------:|
-| `evaluation_report.md` (47-endpoint) | 47 | ✅ Yes | 96.0% | ❌ | ✅ 74/96 |
-| `evaluation_report.md` (T1-T4) | 4 | ❌ (4 tools) | — | ✅ | ✅ 9/9 |
-| `CROSS_PLATFORM_COMPARISON.md` | 14 | ❌ (4 tools) | — | ✅ | ✅ 9/11 |
-| `CROSS_TOOL_COMPARISON.md` | 6 | ❌ (4 tools) | 96.0% | ✅ | ✅ 11/13 |
-| `MULTI_TARGET_EVALUATION.md` | 17+4 | ✅ (RS + 3 tools on T1-T4) | — | ✅ | ✅ (exploitable only) |
+| `evaluation_report.md` (47-endpoint) | 47 |  Yes | 96.0% |  |  74/96 |
+| `evaluation_report.md` (T1-T4) | 4 |  (4 tools) | — |  |  9/9 |
+| `CROSS_PLATFORM_COMPARISON.md` | 14 |  (4 tools) | — |  |  9/11 |
+| `CROSS_TOOL_COMPARISON.md` | 6 |  (4 tools) | 96.0% |  |  11/13 |
+| `MULTI_TARGET_EVALUATION.md` | 17+4 |  (RS + 3 tools on T1-T4) | — |  |  (exploitable only) |
 
 ## Why Different Numbers?
 

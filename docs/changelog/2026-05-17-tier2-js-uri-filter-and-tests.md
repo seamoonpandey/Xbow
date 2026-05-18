@@ -197,10 +197,10 @@ Total: 70 passed in 0.21s
 
 | Test | Expected | Vulns | Executed | Result |
 |------|----------|:-----:|:--------:|:------:|
-| T1 | Vulnerable | 10 | 9 | ✅ TP |
-| T2 | Safe | **0** | **0** | ✅ TN |
-| T3 | Vulnerable | 10 | 9 | ✅ TP |
-| T4 | Vulnerable | 11 | 11 | ✅ TP |
+| T1 | Vulnerable | 10 | 9 |  TP |
+| T2 | Safe | **0** | **0** |  TN |
+| T3 | Vulnerable | 10 | 9 |  TP |
+| T4 | Vulnerable | 11 | 11 |  TP |
 
 **Metrics:** Precision=1.000, Recall=1.000, F1=1.000 — **Perfect detection**
 

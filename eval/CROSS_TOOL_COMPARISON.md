@@ -32,12 +32,12 @@ Each tool was run against all 6 endpoints independently. Results classified as T
 
 | Endpoint | Ground Truth | Red Sentinel | XSStrike | Dalfox | OWASP ZAP |
 |----------|:------------:|:------------:|:--------:|:------:|:---------:|
-| reflected-body | Vuln | ✅ **Vuln** (5 confirmed) | ✅ **Vuln** (2498 payloads) | ✅ **Vuln** | ✅ **Vuln** (6 alerts) |
-| reflected-script | Vuln | ✅ **Vuln** (2 confirmed) | ✅ **Vuln** (detected, 0 working payloads*) | ✅ **Vuln** | ✅ **Vuln** (7 alerts) |
-| reflected-attr-unquoted | Vuln | ✅ **Vuln** (1 confirmed) | ✅ **Vuln** (2 payloads) | ✅ **Vuln** | ✅ **Vuln** (8 alerts) |
-| reflected-href | Vuln | ✅ **Vuln** (3 confirmed) | ✅ **Vuln** (2 payloads) | ✅ **Vuln** | ✅ **Vuln** (9 alerts) |
-| reflected-iframe | Vuln | ✅ **Vuln** (2 confirmed) | ✅ **Vuln** (2 payloads) | ✅ **Vuln** | ✅ **Vuln** (10 alerts) |
-| reflected-meta | **Safe** | ✅ **Safe (TN)** | ❌ **Vuln (FP)** | ❌ **Vuln (FP)** | ❌ **Vuln (FP)** (11 alerts) |
+| reflected-body | Vuln |  **Vuln** (5 confirmed) |  **Vuln** (2498 payloads) |  **Vuln** |  **Vuln** (6 alerts) |
+| reflected-script | Vuln |  **Vuln** (2 confirmed) |  **Vuln** (detected, 0 working payloads*) |  **Vuln** |  **Vuln** (7 alerts) |
+| reflected-attr-unquoted | Vuln |  **Vuln** (1 confirmed) |  **Vuln** (2 payloads) |  **Vuln** |  **Vuln** (8 alerts) |
+| reflected-href | Vuln |  **Vuln** (3 confirmed) |  **Vuln** (2 payloads) |  **Vuln** |  **Vuln** (9 alerts) |
+| reflected-iframe | Vuln |  **Vuln** (2 confirmed) |  **Vuln** (2 payloads) |  **Vuln** |  **Vuln** (10 alerts) |
+| reflected-meta | **Safe** |  **Safe (TN)** |  **Vuln (FP)** |  **Vuln (FP)** |  **Vuln (FP)** (11 alerts) |
 
 > \*XSStrike's `reflected-script` detection identified the injection point via reflection analysis but generated no working payloads for the JS-string context — a weaker detection than tools with confirmed payloads.
 
@@ -78,10 +78,10 @@ Red Sentinel's pipeline includes a **browser verification phase** (via the fuzze
 
 | Aspect | Red Sentinel | XSStrike | Dalfox | ZAP |
 |--------|:------------:|:--------:|:------:|:---:|
-| **Browser verification** | ✅ Yes | ❌ No | ❌ No | ❌ No |
-| **Context-aware payloads** | ✅ Yes (AI classifier) | ✅ Yes (reflection analysis) | ⚠️ Partial | ❌ Generic |
-| **Stored XSS support** | ✅ Yes | ❌ No | ✅ Yes (sxss) | ✅ Yes |
-| **DOM XSS detection** | ✅ Yes (browser) | ⚠️ Limited | ❌ No | ✅ Yes (static) |
+| **Browser verification** |  Yes |  No |  No |  No |
+| **Context-aware payloads** |  Yes (AI classifier) |  Yes (reflection analysis) | ⚠️ Partial |  Generic |
+| **Stored XSS support** |  Yes |  No |  Yes (sxss) |  Yes |
+| **DOM XSS detection** |  Yes (browser) | ⚠️ Limited |  No |  Yes (static) |
 | **Payload generation** | AI-ranked (XGBoost) | Rule-based (3072+) | Rule-based | Rule-based |
 | **Per-endpoint avg time** | ~2s (with verification) | ~30s (3072 payloads) | ~5s | ~15s |
 

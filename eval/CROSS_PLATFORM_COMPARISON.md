@@ -52,20 +52,20 @@ Ground truth was determined by **source code analysis** of each endpoint:
 
 | Endpoint | Type | Expected | Red Sentinel | XSStrike | Dalfox | ZAP |
 |----------|:----:|:--------:|:------------:|:--------:|:------:|:---:|
-| reflected-body | Reflected | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| reflected-script | Reflected | ✅ Vuln | ✅ TP | ❌ FN | ✅ TP | ✅ TP |
-| reflected-attr-unquoted | Reflected | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| reflected-href | Reflected | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| reflected-iframe | Reflected | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| reflected-multiparams | Reflected | ✅ Vuln | ✅ TP | ❌ FN | ✅ TP | ✅ TP |
-| reflected-meta | Reflected | ❌ Safe | ✅ TN | ❌ FP | ❌ FP | ❌ FP |
-| bypass-double-encode | Bypass | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| bypass-quote-escape | Bypass | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| bypass-blacklist | Bypass | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| bypass-case | Bypass | ✅ Vuln | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| bypass-angle-only | Bypass | ❌ Safe | ❌ FP | ❌ FP | ❌ FP | ❌ FP |
-| bypass-waf-sim | WAF | ✅ Vuln* | ✅ TP | ✅ TP | ✅ TP | ✅ TP |
-| mutation-innerhtml | Mutation | ❌ Safe | ❌ FP | ❌ FP | ✅ TN | ❌ FP |
+| reflected-body | Reflected |  Vuln |  TP |  TP |  TP |  TP |
+| reflected-script | Reflected |  Vuln |  TP |  FN |  TP |  TP |
+| reflected-attr-unquoted | Reflected |  Vuln |  TP |  TP |  TP |  TP |
+| reflected-href | Reflected |  Vuln |  TP |  TP |  TP |  TP |
+| reflected-iframe | Reflected |  Vuln |  TP |  TP |  TP |  TP |
+| reflected-multiparams | Reflected |  Vuln |  TP |  FN |  TP |  TP |
+| reflected-meta | Reflected |  Safe |  TN |  FP |  FP |  FP |
+| bypass-double-encode | Bypass |  Vuln |  TP |  TP |  TP |  TP |
+| bypass-quote-escape | Bypass |  Vuln |  TP |  TP |  TP |  TP |
+| bypass-blacklist | Bypass |  Vuln |  TP |  TP |  TP |  TP |
+| bypass-case | Bypass |  Vuln |  TP |  TP |  TP |  TP |
+| bypass-angle-only | Bypass |  Safe |  FP |  FP |  FP |  FP |
+| bypass-waf-sim | WAF |  Vuln* |  TP |  TP |  TP |  TP |
+| mutation-innerhtml | Mutation |  Safe |  FP |  FP |  TN |  FP |
 
 *\*bypass-waf-sim is vulnerable with restricted payloads (keyword blocklist: alert, prompt, eval, onerror, onload)*
 
@@ -121,12 +121,12 @@ These test cases reflect the `Referer` header value into the HTML response via `
 
 | Test Case | Expected | XSStrike | Dalfox | ZAP |
 |-----------|:--------:|:--------:|:------:|:---:|
-| BenchmarkTest00013 | Vuln | ✅ | ❌ | ✅ |
-| BenchmarkTest00014 | Vuln | ✅ | ❌ | ✅ |
-| BenchmarkTest00144 | Vuln | ✅ | ❌ | ✅ |
-| BenchmarkTest00145 | Vuln | ✅ | ❌ | ✅ |
-| BenchmarkTest00146 | Vuln | ✅ | ❌ | ✅ |
-| BenchmarkTest00148 | Vuln | ✅ | ❌ | ✅ |
+| BenchmarkTest00013 | Vuln |  |  |  |
+| BenchmarkTest00014 | Vuln |  |  |  |
+| BenchmarkTest00144 | Vuln |  |  |  |
+| BenchmarkTest00145 | Vuln |  |  |  |
+| BenchmarkTest00146 | Vuln |  |  |  |
+| BenchmarkTest00148 | Vuln |  |  |  |
 | (11 more tested with raw reflection) | Vuln | — | — | — |
 
 | Metric | XSStrike | Dalfox | ZAP |

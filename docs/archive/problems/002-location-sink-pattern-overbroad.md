@@ -27,9 +27,9 @@ Actual:   2 findings:
 ```
 
 The `[=.]` character class matches both:
-- `location =` (write — **is** a sink) ✅
-- `location.hash` (read — **is** a source, NOT a sink) ❌
-- `location.search` (read — source) ❌
+- `location =` (write — **is** a sink) 
+- `location.hash` (read — **is** a source, NOT a sink) 
+- `location.search` (read — source) 
 
 The DOM `location` object has dual semantics:
 - **Reading** properties (`location.hash`, `location.search`) = **source** of user input

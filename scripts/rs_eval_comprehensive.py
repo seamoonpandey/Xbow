@@ -823,9 +823,9 @@ def generate_markdown(data, port_data=None):
         if r.get("error"):
             status = "⚠️"
         elif r.get("vulns", 0) > 0 or exp == "Safe":
-            status = "✅"
+            status = ""
         else:
-            status = "❌"
+            status = ""
         error_mark = " ⚠️" if r.get("error") else ""
         lines.append(f"| {name}{error_mark} | {r['category']} | {exp} | "
                       f"{r['vulns']} {status} | {r['executed']} | {r['reflected']} | {r['time']} |")
@@ -991,7 +991,7 @@ def generate_html(data, port_data=None):
 
     cat_rows = ""
     for cat, stats in sorted(s["categories"].items()):
-        cat_rows += f"<tr><td>{cat}</td><td>{stats['endpoints']}</td><td>{stats['vulns']}</td><td>{stats['executed']}</td><td>{stats['reflected']}</td><td>{'⚠️' if stats['errors'] > 0 else '✅'}</td></tr>\n"
+        cat_rows += f"<tr><td>{cat}</td><td>{stats['endpoints']}</td><td>{stats['vulns']}</td><td>{stats['executed']}</td><td>{stats['reflected']}</td><td>{'⚠️' if stats['errors'] > 0 else ''}</td></tr>\n"
 
     ep_rows = ""
     for name, r in sorted(data["endpoints"].items()):
@@ -1001,13 +1001,13 @@ def generate_html(data, port_data=None):
             status = "<span class='status-warn'>⚠️</span>"
             badge = "<span class='badge badge-warn'>ERROR</span>"
         elif v > 0:
-            status = "<span class='status-pass'>✅</span>"
+            status = "<span class='status-pass'></span>"
             badge = "<span class='badge badge-vuln'>VULN</span>"
         elif exp == "Safe":
-            status = "<span class='status-pass'>✅</span>"
+            status = "<span class='status-pass'></span>"
             badge = "<span class='badge badge-safe'>SAFE</span>"
         else:
-            status = "<span class='status-fail'>❌</span>"
+            status = "<span class='status-fail'></span>"
             badge = "<span class='badge badge-warn'>MISSED</span>"
         error_icon = " ⚠️" if r.get("error") else ""
         ep_rows += f"<tr><td>{name}{error_icon}</td><td>{r['category']}</td><td>{exp}</td><td>{badge}</td><td>{v}</td><td>{r['executed']}</td><td>{r['reflected']}</td><td>{r['time']}s</td></tr>\n"
@@ -1069,12 +1069,12 @@ def generate_html(data, port_data=None):
 <div class="meta">
     <span>📅 {data['timestamp'][:10]}</span>
     <span>🎯 Target: <code>{data['target']}</code></span>
-    <span>📋 Endpoints: <strong>{s['total_endpoints']}</strong></span>
+    <span> Endpoints: <strong>{s['total_endpoints']}</strong></span>
     <span>⚡ Vulns Found: <strong>{s['total_vulns']}</strong></span>
     <span>🖥️ Browser-Confirmed: <strong>{s['total_executed']}</strong></span>
 </div>
 
-<h2>📊 Executive Summary</h2>
+<h2>Executive Summary</h2>
 <div class="summary-cards">
     <div class="card {p_class}">
         <div class="value">{s['precision']:.3f}</div>
@@ -1111,13 +1111,13 @@ def generate_html(data, port_data=None):
 <h2>📈 Vulnerability Distribution by Category</h2>
 {chart_bars}
 
-<h2>📋 Category Breakdown</h2>
+<h2> Category Breakdown</h2>
 <table>
 <tr><th>Category</th><th>Endpoints</th><th>Vulns</th><th>Executed</th><th>Reflected</th><th>Status</th></tr>
 {cat_rows}
 </table>
 
-<h2>🔍 Per-Endpoint Results</h2>
+<h2> Per-Endpoint Results</h2>
 <table>
 <tr><th>Endpoint</th><th>Category</th><th>Expected</th><th>Result</th><th>Vulns</th><th>Executed</th><th>Reflected</th><th>Time</th></tr>
 {ep_rows}
@@ -1180,11 +1180,11 @@ def main():
     # Generate reports
     md = generate_markdown(data, port_data)
     REPORT_MD.write_text(md)
-    print(f"\n✅ Markdown report: {REPORT_MD}")
+    print(f"\n Markdown report: {REPORT_MD}")
 
     html = generate_html(data, port_data)
     REPORT_HTML.write_text(html)
-    print(f"✅ HTML report: {REPORT_HTML}")
+    print(f" HTML report: {REPORT_HTML}")
 
     # Also save the PortSwigger results
     results_summary = {
@@ -1198,8 +1198,8 @@ def main():
     }
     summary_file = OUTPUTS / "rs_benchmark_summary.json"
     summary_file.write_text(json.dumps(results_summary, indent=2))
-    print(f"✅ Benchmark summary: {summary_file}")
-    print(f"✅ Raw results: {RESULTS_FILE}")
+    print(f" Benchmark summary: {summary_file}")
+    print(f" Raw results: {RESULTS_FILE}")
     print("Done.")
 
 

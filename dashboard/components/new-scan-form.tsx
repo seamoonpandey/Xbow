@@ -71,18 +71,18 @@ export function NewScanForm({ onCreated }: NewScanFormProps) {
       if (resp.success) {
         setTestResult({
           status: "success",
-          message: `✅ Login successful! ${resp.cookies ?? 0} cookies captured from ${resp.createdAt ? new Date(resp.createdAt).toLocaleTimeString() : "now"}`,
+          message: ` Login successful! ${resp.cookies ?? 0} cookies captured from ${resp.createdAt ? new Date(resp.createdAt).toLocaleTimeString() : "now"}`,
         });
       } else {
         setTestResult({
           status: "error",
-          message: `❌ Login failed: ${resp.error ?? resp.message ?? "Unknown error"}`,
+          message: ` Login failed: ${resp.error ?? resp.message ?? "Unknown error"}`,
         });
       }
     } catch (err: unknown) {
       setTestResult({
         status: "error",
-        message: `❌ Connection error: ${err instanceof Error ? err.message : "Unknown error"}`,
+        message: ` Connection error: ${err instanceof Error ? err.message : "Unknown error"}`,
       });
     } finally {
       setTesting(false);

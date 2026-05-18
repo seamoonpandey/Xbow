@@ -37,9 +37,9 @@ The `on\\w+=` pattern was intended as a regex `on\w+=` (match event handlers lik
 
 **Mixing regex patterns with plain substring patterns in the same list, then applying `re.search()` to all of them.** Some entries like `<script` are plain substrings. Others like `on\w+=` are regex patterns. When Python processes the list:
 
-1. `"<script"` → valid regex (matches literal `<script`) ✅
-2. `"on\\w+="` in a Python string → becomes `on\w+=` at runtime → valid regex ✅
-3. But if someone writes `"on\w+="` (single backslash in source) → Python interprets `\w` as a literal `\w` → still works as regex ✅
+1. `"<script"` → valid regex (matches literal `<script`) 
+2. `"on\\w+="` in a Python string → becomes `on\w+=` at runtime → valid regex 
+3. But if someone writes `"on\w+="` (single backslash in source) → Python interprets `\w` as a literal `\w` → still works as regex 
 4. The real issue: payload strings sometimes contain `(`, `)`, `[`, `]`, etc. that break when the "pattern" itself isn't properly escaped
 
 The confusion between "is this a regex?" and "is this a substring?" made the code brittle.

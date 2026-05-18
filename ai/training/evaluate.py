@@ -84,7 +84,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     
     total_samples = 0
     
-    logger_print("\n  🔍 Running inference on test set...")
+    logger_print("\n   Running inference on test set...")
     
     with torch.no_grad():
         for batch_idx, batch in enumerate(test_loader):
@@ -137,7 +137,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     sev_errors = (sev_preds != sev_labels).sum()
     
     logger_print("\n" + "=" * 60)
-    logger_print("  📊 TEST SET RESULTS")
+    logger_print("  TEST SET RESULTS")
     logger_print("=" * 60)
     
     logger_print(f"\n  Overall Accuracy:")
@@ -152,7 +152,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     #            CONTEXT CLASSIFICATION REPORT
     # ═══════════════════════════════════════════════════════
     
-    logger_print("\n  📋 Context Classification Report:")
+    logger_print("\n   Context Classification Report:")
     logger_print("  " + "─" * 56)
     
     ctx_report = classification_report(
@@ -169,7 +169,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     #            SEVERITY CLASSIFICATION REPORT
     # ═══════════════════════════════════════════════════════
     
-    logger_print("\n  📋 Severity Classification Report:")
+    logger_print("\n   Severity Classification Report:")
     logger_print("  " + "─" * 56)
     
     sev_report = classification_report(
@@ -216,7 +216,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     #             ERROR ANALYSIS
     # ═══════════════════════════════════════════════════════
     
-    logger_print("\n  ❌ Misclassification Breakdown (Context):")
+    logger_print("\n   Misclassification Breakdown (Context):")
     ctx_errors_detail = defaultdict(int)
     for i in range(len(ctx_preds)):
         if ctx_preds[i] != ctx_labels[i]:
@@ -231,7 +231,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     else:
         logger_print("    None! Perfect classification.")
     
-    logger_print("\n  ❌ Misclassification Breakdown (Severity):")
+    logger_print("\n   Misclassification Breakdown (Severity):")
     sev_errors_detail = defaultdict(int)
     for i in range(len(sev_preds)):
         if sev_preds[i] != sev_labels[i]:
@@ -255,7 +255,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     sev_f1_weighted = f1_score(sev_labels, sev_preds, average="weighted", zero_division=0)
     sev_f1_macro = f1_score(sev_labels, sev_preds, average="macro", zero_division=0)
     
-    logger_print("\n  🏆 Final Scores:")
+    logger_print("\n   Final Scores:")
     logger_print(f"  ┌──────────────────┬──────────────┬──────────────┐")
     logger_print(f"  │ Metric           │   Context    │   Severity   │")
     logger_print(f"  ├──────────────────┼──────────────┼──────────────┤")
@@ -290,7 +290,7 @@ def evaluate_model(model, test_loader, logger_print=print):
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
     
-    logger_print(f"\n  💾 Results saved → {results_path}")
+    logger_print(f"\n   Results saved → {results_path}")
     
     return results
 
@@ -320,7 +320,7 @@ def main():
     
     # Check checkpoint exists
     if not checkpoint_path.exists():
-        print(f"\n  ❌ Checkpoint not found: {checkpoint_path}")
+        print(f"\n   Checkpoint not found: {checkpoint_path}")
         print(f"  Available checkpoints:")
         for f in sorted(CHECKPOINT_DIR.glob("*.pt")):
             print(f"    → {f}")
@@ -333,7 +333,7 @@ def main():
     model = build_model()
     
     # Load weights
-    print(f"\n  📦 Loading checkpoint: {checkpoint_path.name}")
+    print(f"\n   Loading checkpoint: {checkpoint_path.name}")
     checkpoint = torch.load(checkpoint_path, map_location=DEVICE, weights_only=False)
     missing, unexpected = model.load_state_dict(checkpoint["model_state_dict"], strict=False)
     if missing:
@@ -349,7 +349,7 @@ def main():
     results = evaluate_model(model, test_loader)
     
     print("\n" + "=" * 60)
-    print("  ✅ Evaluation Complete!")
+    print("   Evaluation Complete!")
     print("=" * 60)
     print("")
 

@@ -218,26 +218,26 @@ def print_result(result, run_name):
     print(f"\n{'='*60}")
     print(f"  REGRESSION CHECK — {run_name}")
     print(f"{'='*60}")
-    print(f"  Overall: {'✅ PASSED' if result.passed else '❌ FAILED'}")
+    print(f"  Overall: {' PASSED' if result.passed else ' FAILED'}")
     print(f"  Checks: {result.summary['passed']} passed, {result.summary['failed']} failed\n")
 
     if result.metric_checks:
-        print(f"  📊 Metric Thresholds")
+        print(f"  Metric Thresholds")
         for c in result.metric_checks:
-            icon = "✅" if c["passed"] else "❌"
+            icon = "" if c["passed"] else ""
             print(f"    {icon}  {c['message']}")
         print()
 
     if result.endpoint_checks:
-        print(f"  🔍 Per-Endpoint Results")
+        print(f"   Per-Endpoint Results")
         for c in result.endpoint_checks:
-            icon = "✅" if c["passed"] else "❌"
+            icon = "" if c["passed"] else ""
             print(f"    {icon}  [{c['name']:30s}] {c['message']}")
         print()
 
     if not result.passed:
         print("  {:─^60}".format(""))
-        print(f"  ❌ REGRESSION DETECTED — review failures above")
+        print(f"   REGRESSION DETECTED — review failures above")
         fails = [c for c in result.endpoint_checks if not c["passed"]]
         if fails:
             print(f"  Endpoints below baseline: {[c['name'] for c in fails]}")
@@ -275,7 +275,7 @@ def main():
         else:
             output_path = DEFAULT_MANIFEST
         output_path.write_text(json.dumps(manifest, indent=2))
-        print(f"  ✅ Regression manifest generated: {output_path}")
+        print(f"   Regression manifest generated: {output_path}")
         print(f"     Source run: {run_dir.name}")
         print(f"     Endpoints:  {len(manifest['endpoints'])}")
         print(f"     Commit this file to version control as the golden baseline.")

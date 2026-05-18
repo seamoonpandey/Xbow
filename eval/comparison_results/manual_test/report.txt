@@ -22,23 +22,23 @@
   ├──────────────────────┬────────┬──────┬──────┬──────┬──────┬──────┬──────────┤
   │ Endpoint             │ Expect │      RS     │  XS  │  DF  │  ZAP │  Status  │
   ├──────────────────────┼────────┼──────┼──────┼──────┼──────┼──────┼──────────┤
-  │ reflected-body       │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-script     │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-attr-unquoted │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-href       │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-iframe     │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-multiparams │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ reflected-meta       │ Saf    │  ⬜   │  ⬜  │  ⬜  │  ⬜  │ ✅ No FPs │
-  │ bypass-double-encode │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ bypass-quote-escape  │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ bypass-blacklist     │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ bypass-case          │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ bypass-angle-only    │ Saf    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  1 FP(s) │
-  │ bypass-waf-sim       │ Vul    │  ✅   │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
-  │ mutation-innerhtml   │ Saf    │  ✅   │  ✅  │  ⬜  │  ⬜  │ ⚠️  2 FP(s) │
+  │ reflected-body       │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-script     │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-attr-unquoted │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-href       │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-iframe     │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-multiparams │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ reflected-meta       │ Saf    │  ⬜   │  ⬜  │  ⬜  │  ⬜  │  No FPs │
+  │ bypass-double-encode │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ bypass-quote-escape  │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ bypass-blacklist     │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ bypass-case          │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ bypass-angle-only    │ Saf    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  1 FP(s) │
+  │ bypass-waf-sim       │ Vul    │     │  ⬜  │  ⬜  │  ⬜  │ ⚠️  3 missed │
+  │ mutation-innerhtml   │ Saf    │     │    │  ⬜  │  ⬜  │ ⚠️  2 FP(s) │
   ├──────────────────────┴────────┴──────┴──────┴──────┴──────┴──────┴──────────┤
   │  RS=Red Sentinel    XS=XSStrike    DF=Dalfox    ZAP=OWASP ZAP              │
-  │  ✅=Detected        ⬜=Not found                                           │
+  │  =Detected        ⬜=Not found                                           │
   └────────────────────────────────────────────────────────────────────────────┘
 
   ┌─────────────────────────────────────────────────────────────────────────────┐

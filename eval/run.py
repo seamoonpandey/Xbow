@@ -261,7 +261,7 @@ def attempt_target_auth(target_config):
                 # Extract the cookie value
                 match = re.search(rf"{session_cookie}=([^;]+)", c)
                 if match:
-                    print(f"  ✅ Authenticated to {target_config['label']} (session: {match.group(1)[:16]}...)")
+                    print(f"   Authenticated to {target_config['label']} (session: {match.group(1)[:16]}...)")
                     return match.group(1)
 
         print(f"  ⚠️  Auth response but no {session_cookie} cookie found")
@@ -696,7 +696,7 @@ def main():
             "timeout": 5000,
             "stored_mode": False,
         })
-        print(f"  ✅ Fuzzer reachable at {FUZZER}")
+        print(f"   Fuzzer reachable at {FUZZER}")
     except Exception:
         print(f"  ⚠️  Fuzzer at {FUZZER} not reachable — will retry per endpoint\n")
 
@@ -760,7 +760,7 @@ def main():
     # ── Save archive ──
     run_dir = save_archive(endpoint_results, portswigger_results, all_endpoints,
                            run_id=args.output, target_name=TARGET_NAME)
-    print(f"\n  ✅ Results saved to: {run_dir}")
+    print(f"\n   Results saved to: {run_dir}")
     print(f"     summary.json — aggregated results")
     print(f"     results/      — per-endpoint raw results")
     print(f"     manifest_frozen.json — frozen endpoint definitions")

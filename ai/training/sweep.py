@@ -379,12 +379,12 @@ def run_sweep(study_name: str = SWEEP_STUDY_NAME, n_trials: int = SWEEP_N_TRIALS
 
     # ── Results ──
     print(f"\n{'=' * 60}")
-    print(f"  ✅ Sweep Complete!")
+    print(f"   Sweep Complete!")
     print(f"{'=' * 60}")
     print(f"  Time elapsed:    {elapsed / 60:.1f} minutes")
 
     best_trial = study.best_trial
-    print(f"\n  🏆 Best Trial (#{best_trial.number}):")
+    print(f"\n   Best Trial (#{best_trial.number}):")
     print(f"  ┌──────────────────────┬────────────────────┐")
     for key, value in best_trial.params.items():
         print(f"  │ {key:<20} │ {str(value):>18} │")
@@ -405,9 +405,9 @@ def run_sweep(study_name: str = SWEEP_STUDY_NAME, n_trials: int = SWEEP_N_TRIALS
     with open(study_dir / "best_params.json", "w") as f:
         json.dump(best_params, f, indent=2)
 
-    print(f"\n  💾 Best params saved → {study_dir / 'best_params.json'}")
-    print(f"  📊 View with:   optuna-dashboard sqlite:///{storage_path}")
-    print(f"  📋 Analyze with: python sweep.py --analyze {study_name}")
+    print(f"\n   Best params saved → {study_dir / 'best_params.json'}")
+    print(f"  View with:   optuna-dashboard sqlite:///{storage_path}")
+    print(f"   Analyze with: python sweep.py --analyze {study_name}")
 
     # ── Summary table ──
     print(f"\n  Trial Summary (top 5):")
@@ -459,7 +459,7 @@ def analyze_study(study_name: str):
     """Print detailed results for a completed sweep study."""
     storage_path = str(RUN_LOG_DIR / f"{study_name}.db")
     if not Path(storage_path).exists():
-        print(f"  ❌ Study not found: {storage_path}")
+        print(f"   Study not found: {storage_path}")
         print(f"  Run with --list to see available studies")
         return
 
@@ -469,7 +469,7 @@ def analyze_study(study_name: str):
     )
 
     print(f"\n{'=' * 60}")
-    print(f"  📊 Sweep Analysis: {study_name}")
+    print(f"  Sweep Analysis: {study_name}")
     print(f"{'=' * 60}")
 
     completed = [t for t in study.trials if t.state == TrialState.COMPLETE]
@@ -485,7 +485,7 @@ def analyze_study(study_name: str):
         print(f"    Mean val loss: {sum(values)/len(values):.6f}")
 
     if study.best_trial:
-        print(f"\n  🏆 Best Trial (#{study.best_trial.number}):")
+        print(f"\n   Best Trial (#{study.best_trial.number}):")
         print(f"  ┌──────────────────────┬────────────────────┐")
         for key, value in study.best_trial.params.items():
             print(f"  │ {key:<20} │ {str(value):>18} │")
@@ -514,7 +514,7 @@ def analyze_study(study_name: str):
     if len(completed) >= 5:
         try:
             importance = optuna.importance.get_param_importances(study)
-            print(f"\n  🔍 Hyperparameter Importance:")
+            print(f"\n   Hyperparameter Importance:")
             print(f"  ┌──────────────────────┬──────────┐")
             for param, imp in sorted(importance.items(), key=lambda x: -x[1]):
                 bar = "█" * int(imp * 50)

@@ -325,9 +325,9 @@ entire approach — send probe markers, analyze response — is inapplicable.
 
 | Source | How to be "inside" | Works with Playwright? |
 |--------|-------------------|----------------------|
-| Fragment | URL navigation | ✅ Yes (navigate to `url#payload`) |
-| postMessage | `page.evaluate()` | ✅ Yes (same origin context) |
-| localStorage | `page.evaluate()` → reload | ✅ Yes (two-step navigation) |
+| Fragment | URL navigation |  Yes (navigate to `url#payload`) |
+| postMessage | `page.evaluate()` |  Yes (same origin context) |
+| localStorage | `page.evaluate()` → reload |  Yes (two-step navigation) |
 
 Both are feasible with Playwright's `page.evaluate()` which runs JavaScript
 in the page's JavaScript context (same origin, same global scope). The
@@ -373,7 +373,7 @@ this to be strict.
 
 | Source | Priority | Effort | Risk | Recommendation |
 |--------|----------|--------|------|---------------|
-| `__fragment__` | ✅ Done | — | — | **Already fixed** |
+| `__fragment__` |  Done | — | — | **Already fixed** |
 | `localStorage` | **High** | 10–14 days | Medium | **Implement** — highest confidence of success, most predictable |
 | `postMessage` | **Low** | 13–19 days | High | **Defer** — high false-positive risk, needs app-specific knowledge |
 

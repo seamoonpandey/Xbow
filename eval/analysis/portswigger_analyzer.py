@@ -98,7 +98,7 @@ def print_analysis(analysis):
 
     findings = analysis.get("findings", [])
     if findings:
-        print(f"\n  🔍 Findings:")
+        print(f"\n   Findings:")
         for f in findings:
             icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(f.get("severity"), "⚪")
             print(f"    {icon} [{f.get('severity').upper()}] {f.get('context')}: {f.get('message')}")
@@ -130,7 +130,7 @@ def main():
     analysis_file = run_dir / "analysis" / "portswigger_analysis.json"
     analysis_file.parent.mkdir(parents=True, exist_ok=True)
     analysis_file.write_text(json.dumps(analysis, indent=2))
-    print(f"  ✅ PortSwigger analysis saved to: {analysis_file}")
+    print(f"   PortSwigger analysis saved to: {analysis_file}")
 
 
 if __name__ == "__main__":

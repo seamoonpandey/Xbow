@@ -123,9 +123,9 @@ def main():
         print(f"{'='*60}")
 
         if analysis["total_fns"] == 0:
-            print(f"\n  ✅ No false negatives! All vulnerable endpoints detected correctly.")
+            print(f"\n   No false negatives! All vulnerable endpoints detected correctly.")
         else:
-            print(f"\n  ❌ {analysis['total_fns']} False Negative(s) Found\n")
+            print(f"\n   {analysis['total_fns']} False Negative(s) Found\n")
             print(f"  {'Endpoint':30s} {'Category':12s} {'Payloads':10s} {'Refl':5s} {'Exec':5s}")
             print(f"  {'─'*30} {'─'*12} {'─'*10} {'─'*5} {'─'*5}")
             for entry in analysis["fn_endpoints"]:
@@ -133,7 +133,7 @@ def main():
                       f"{entry['payloads_sent']:5d}/{entry['results_returned']:3d} "
                       f"{entry['reflected']:5d} {entry['executed']:5d}")
 
-            print(f"\n  🔍 Root Cause Suggestions\n")
+            print(f"\n   Root Cause Suggestions\n")
             for entry in analysis["fn_endpoints"]:
                 print(f"  {entry['name']}:")
                 print(f"    Cause: {entry['suggested_cause']}")
@@ -152,7 +152,7 @@ def main():
         analysis_file = run_dir / "analysis" / "false_negatives.json"
         analysis_file.parent.mkdir(parents=True, exist_ok=True)
         analysis_file.write_text(json.dumps(analysis, indent=2))
-        print(f"  ✅ Analysis saved to: {analysis_file}")
+        print(f"   Analysis saved to: {analysis_file}")
 
 
 if __name__ == "__main__":

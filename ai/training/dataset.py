@@ -40,7 +40,7 @@ class XSSDataset(Dataset):
 
         # Load CSV
         df = pd.read_csv(csv_path)
-        print(f"  📄 Raw rows in {Path(csv_path).name}: {len(df)}")
+        print(f" Raw rows in {Path(csv_path).name}: {len(df)}")
 
         # Clean + validate
         self.samples = []
@@ -117,7 +117,7 @@ def get_dataloaders(batch_size: int = BATCH_SIZE) -> Tuple[DataLoader, DataLoade
     # CPU doesn't need workers since data loading and compute share the same device.
     num_workers = 2 if DEVICE.type == "cuda" else 0
 
-    print("\n📦 Loading datasets...")
+    print("\n Loading datasets...")
     print(f"  Device: {DEVICE.type} → num_workers={num_workers}")
 
     # Load DistilBERT tokenizer (matches pretrained backbone)
@@ -155,7 +155,7 @@ def get_dataloaders(batch_size: int = BATCH_SIZE) -> Tuple[DataLoader, DataLoade
         pin_memory=True,
     )
 
-    print(f"\n  📊 DataLoader Summary:")
+    print(f"\n  DataLoader Summary:")
     print(f"  Train: {len(train_ds):>6} samples → {len(train_loader)} batches")
     print(f"  Val:   {len(val_ds):>6} samples → {len(val_loader)} batches")
     print(f"  Test:  {len(test_ds):>6} samples → {len(test_loader)} batches")
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     # Grab one batch
     batch = next(iter(train_loader))
-    print(f"\n🔍 Sample batch:")
+    print(f"\n Sample batch:")
     print(f"  input_ids shape:      {batch['input_ids'].shape}")       # (32, 128)
     print(f"  attention_mask shape: {batch['attention_mask'].shape}")   # (32, 128)
     print(f"  context_label shape:  {batch['context_label'].shape}")   # (32,)
@@ -185,4 +185,4 @@ if __name__ == "__main__":
     print(f"  Payload:  {decoded[:80]}...")
     print(f"  Context:  {ctx_label}")
     print(f"  Severity: {sev_label}")
-    print(f"\n  ✅ Dataset works!")
+    print(f"\n   Dataset works!")

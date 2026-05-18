@@ -171,7 +171,7 @@ def main():
     analysis_file = run_dir / "analysis" / "context_coverage.json"
     analysis_file.parent.mkdir(parents=True, exist_ok=True)
     analysis_file.write_text(json.dumps(analysis, indent=2))
-    print(f"  ✅ Context coverage saved to: {analysis_file}")
+    print(f"   Context coverage saved to: {analysis_file}")
 
 
 if __name__ == "__main__":

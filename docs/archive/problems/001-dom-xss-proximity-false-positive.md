@@ -121,12 +121,12 @@ findings.append(DomXssFinding(..., has_tainted_source=True, ...))
 
 | # | Scenario | Expected | Result |
 |---|----------|----------|--------|
-| 1 | Static string arg (alf.nu polyfill) | 0 findings | ✅ PASS |
-| 2 | Variable tracing (`var x = location.hash; el.innerHTML = x`) | 1 finding | ✅ PASS |
-| 3 | Concatenated sink (`document.write('<h1>' + q)`) | 1 finding | ✅ PASS |
-| 4 | No tainted source (purely static) | 0 findings | ✅ PASS |
-| 5 | Direct source in sink (`el.innerHTML = location.hash`) | 1 finding | ✅ PASS |
-| 6 | Feature detection (`typeof localStorage`) | 0 findings | ✅ PASS |
+| 1 | Static string arg (alf.nu polyfill) | 0 findings |  PASS |
+| 2 | Variable tracing (`var x = location.hash; el.innerHTML = x`) | 1 finding |  PASS |
+| 3 | Concatenated sink (`document.write('<h1>' + q)`) | 1 finding |  PASS |
+| 4 | No tainted source (purely static) | 0 findings |  PASS |
+| 5 | Direct source in sink (`el.innerHTML = location.hash`) | 1 finding |  PASS |
+| 6 | Feature detection (`typeof localStorage`) | 0 findings |  PASS |
 
 ## Pattern / Lesson
 

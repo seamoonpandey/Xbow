@@ -65,7 +65,7 @@ if $GEN_BASELINE; then
     cd "$PROJECT_ROOT"
     python3 eval/analysis/regression.py "${RUN_ID:-}" --generate-manifest
     echo ""
-    echo "✅  Baseline generated at: eval/regression_manifest.json"
+    echo "  Baseline generated at: eval/regression_manifest.json"
     echo "    Commit this file to version control."
     exit 0
 fi
@@ -90,7 +90,7 @@ else
     echo ""
     if ! "${EVAL_CMD[@]}"; then
         echo ""
-        echo "❌  Evaluation pipeline failed. Aborting regression check."
+        echo "  Evaluation pipeline failed. Aborting regression check."
         exit 1
     fi
     echo ""
@@ -104,7 +104,7 @@ echo ""
 if ! python3 eval/analysis/regression.py "${RUN_ID:-}" --json > /tmp/regression_result.json 2>&1; then
     # Regression failed — print details
     echo "=============================================="
-    echo "  ❌ REGRESSION DETECTED"
+    echo "   REGRESSION DETECTED"
     echo "=============================================="
     python3 -c "
 import json
@@ -112,7 +112,7 @@ d = json.load(open('/tmp/regression_result.json'))
 print(f\"Checks: {d['summary']['passed']} passed, {d['summary']['failed']} failed\")
 for c in d.get('metric_checks', []) + d.get('endpoint_checks', []):
     if not c['passed']:
-        print(f\"  ❌ [{c['category']}] {c['name']}: {c['message']}\")
+        print(f\"   [{c['category']}] {c['name']}: {c['message']}\")
 "
     echo ""
     echo "Full results: /tmp/regression_result.json"
@@ -124,7 +124,7 @@ echo "=============================================="
 python3 -c "
 import json
 d = json.load(open('/tmp/regression_result.json'))
-print(f'  ✅ ALL CHECKS PASSED ({d[\"summary\"][\"passed\"]} checks)')
+print(f'   ALL CHECKS PASSED ({d[\"summary\"][\"passed\"]} checks)')
 "
 echo "=============================================="
 exit 0

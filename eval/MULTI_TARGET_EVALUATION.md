@@ -34,10 +34,10 @@ Red Sentinel was evaluated against 3 real-world targets (Juice Shop, WebGoat, OW
 
 | Tool | T1 (reflected-body) | T2 (reflected-header) | T3 (reflected-script) | T4 (stored-guestbook) |
 |------|:-------------------:|:---------------------:|:---------------------:|:---------------------:|
-| **Red Sentinel** | 5 vulns ✅ | 0 vulns ✅ | 2 vulns ✅ | 2 vulns ✅ |
-| **OWASP ZAP** | 4 alerts ✅ | 0 alerts ✅ | 5 alerts ✅ | 0 alerts ❌ |
-| **XSStrike** | 3 findings ✅ | 1 finding ❌ (FP) | Crashed ❌ | Timeout ❌ |
-| **Dalfox** | 2 findings ✅ | 0 findings ✅ | 1 finding ✅ | 0 findings ❌ |
+| **Red Sentinel** | 5 vulns  | 0 vulns  | 2 vulns  | 2 vulns  |
+| **OWASP ZAP** | 4 alerts  | 0 alerts  | 5 alerts  | 0 alerts  |
+| **XSStrike** | 3 findings  | 1 finding  (FP) | Crashed  | Timeout  |
+| **Dalfox** | 2 findings  | 0 findings  | 1 finding  | 0 findings  |
 
 ### 2.2 TP/FP/FN/TN Matrix
 
@@ -143,24 +143,24 @@ Red Sentinel was evaluated against 3 real-world targets (Juice Shop, WebGoat, OW
 | Phase | Expected | Actual | Pass/Fail |
 |-------|----------|--------|:---------:|
 | **Authentication** | Login works | N/A (no auth required) | N/A |
-| **Crawl** | URLs/params discovered | 47 endpoints, multiple params per endpoint | ✅ **Pass** |
-| **Context analysis** | Reflection/context detected | All contexts detected (body, header, script, attribute, stored, DOM) | ✅ **Pass** |
-| **Payload generation** | Payloads created | 137 payloads generated across all contexts | ✅ **Pass** |
-| **Fuzzing** | Payloads tested | All tested, 96 confirmed vulns | ✅ **Pass** |
-| **Verification** | Execution verified | 74/96 browser-confirmed (77%) | ✅ **Pass** |
-| **Report generation** | HTML/JSON/PDF generated | Generated for all runs | ✅ **Pass** |
+| **Crawl** | URLs/params discovered | 47 endpoints, multiple params per endpoint |  **Pass** |
+| **Context analysis** | Reflection/context detected | All contexts detected (body, header, script, attribute, stored, DOM) |  **Pass** |
+| **Payload generation** | Payloads created | 137 payloads generated across all contexts |  **Pass** |
+| **Fuzzing** | Payloads tested | All tested, 96 confirmed vulns |  **Pass** |
+| **Verification** | Execution verified | 74/96 browser-confirmed (77%) |  **Pass** |
+| **Report generation** | HTML/JSON/PDF generated | Generated for all runs |  **Pass** |
 
 ### 4.2 Per-Target Phase Matrix
 
 | Phase | Juice Shop | WebGoat | Benchmark | Exploitable |
 |-------|:----------:|:-------:|:---------:|:-----------:|
 | **Authentication** | N/A | ⚠️ No JSESSIONID | N/A | N/A |
-| **Crawl** | ✅ URL reachable | ✅ URL reachable | ✅ URL reachable | ✅ 47 endpoints |
-| **Context Analysis** | ⚠️ JSON-only responses | ⚠️ Auth blocked | ⚠️ No HTML reflection | ✅ Fully detected |
-| **Payload Generation** | ✅ 3/endpoint | ✅ 3/endpoint | ✅ 3/endpoint | ✅ 137 total |
-| **Fuzzing** | ⚠️ No exec (JSON) | ⚠️ No lesson context | ✅ HTTP 200, no reflection | ✅ Full detection |
-| **Browser Verification** | N/A (0 vulns) | N/A (0 vulns) | N/A (0 vulns) | ✅ 74 confirmed |
-| **Reporting** | ✅ Generated | ✅ Generated | ✅ Generated | ✅ Generated |
+| **Crawl** |  URL reachable |  URL reachable |  URL reachable |  47 endpoints |
+| **Context Analysis** | ⚠️ JSON-only responses | ⚠️ Auth blocked | ⚠️ No HTML reflection |  Fully detected |
+| **Payload Generation** |  3/endpoint |  3/endpoint |  3/endpoint |  137 total |
+| **Fuzzing** | ⚠️ No exec (JSON) | ⚠️ No lesson context |  HTTP 200, no reflection |  Full detection |
+| **Browser Verification** | N/A (0 vulns) | N/A (0 vulns) | N/A (0 vulns) |  74 confirmed |
+| **Reporting** |  Generated |  Generated |  Generated |  Generated |
 
 ---
 

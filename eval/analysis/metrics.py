@@ -28,7 +28,7 @@ def print_metrics(summary, run_name):
     print(f"  Target: {s.get('target', '?')}")
     print(f"{'='*60}")
 
-    print(f"\n  📊 Executive Summary")
+    print(f"\n  Executive Summary")
     print(f"  {'─'*50}")
     print(f"    Precision:          {m.get('precision', '?'):>8}")
     print(f"    Recall:             {m.get('recall', '?'):>8}")
@@ -67,11 +67,11 @@ def print_metrics(summary, run_name):
     fns = [(name, r) for name, r in sorted(endpoints.items())
            if r.get("expected") == "Vuln" and r.get("vulns", 0) == 0 and not r.get("error")]
     if fns:
-        print(f"\n  ❌ False Negatives ({len(fns)})")
+        print(f"\n   False Negatives ({len(fns)})")
         for name, r in fns:
             print(f"    - {name}: {r.get('category', '?')}")
     else:
-        print(f"\n  ✅ No false negatives!")
+        print(f"\n   No false negatives!")
 
     print()
 

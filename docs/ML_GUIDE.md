@@ -34,7 +34,7 @@ Large checkpoint binaries under `model/checkpoints/*.pt` are intentionally ignor
 | Severity accuracy | ~35.4% | 99.56% | **38.2%** |
 | Samples | 489 | 3,632 | **306** |
 
-**✅ The discrepancy is now resolved.** With clean splits and regenerated `test_results.json`, the test metrics (78.4% context, 38.2% severity) are consistent with the validation metrics (75.1% / 35.4%). The remaining gap is explained by the model's inherent performance and label quality, not by data leakage.
+** The discrepancy is now resolved.** With clean splits and regenerated `test_results.json`, the test metrics (78.4% context, 38.2% severity) are consistent with the validation metrics (75.1% / 35.4%). The remaining gap is explained by the model's inherent performance and label quality, not by data leakage.
 
 The old results (99.53%/99.56% on 3,632 samples) were inflated by data leakage — 78% of test payloads appeared in training, so the test measured memorization rather than generalization.
 
@@ -103,11 +103,11 @@ Both files use the same label taxonomy (8 context classes, 3 severity classes de
 
 ### Recommended Actions
 
-1. ✅ **Regenerated clean splits** (2026-03-13) — zero payload overlap between train/val/test. Strategy: grouped all rows by unique payload, split payloads 70/15/15 stratified by dominant context label, then assigned all rows for a given payload to the same split. Results: **0** duplicate payloads across all pairs.
-2. ✅ **Re-ran evaluation** (2026-03-13) — `test_results.json` updated with clean splits using checkpoint `best.pt`. Results are consistent with validation metrics.
+1.  **Regenerated clean splits** (2026-03-13) — zero payload overlap between train/val/test. Strategy: grouped all rows by unique payload, split payloads 70/15/15 stratified by dominant context label, then assigned all rows for a given payload to the same split. Results: **0** duplicate payloads across all pairs.
+2.  **Re-ran evaluation** (2026-03-13) — `test_results.json` updated with clean splits using checkpoint `best.pt`. Results are consistent with validation metrics.
 3. **Investigate severity labels** — 35% validation accuracy suggests label quality issues requiring manual audit.
 4. **Add data-leakage checks** to the dataset pipeline (e.g., in `scripts/dataset_stats.py` or a standalone validation script).
-5. ✅ **Per-class metrics are now available** via confusion matrix and error breakdown in `test_results.json`. Could be further structured into a dedicated per-class metrics table in the JSON output.
+5.  **Per-class metrics are now available** via confusion matrix and error breakdown in `test_results.json`. Could be further structured into a dedicated per-class metrics table in the JSON output.
 6. **Record evaluation metadata** in `test_results.json`: checkpoint path, config used, timestamp.
 
 ---

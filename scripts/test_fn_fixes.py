@@ -35,7 +35,7 @@ def test(url, payloads, desc):
             e = r.get("executed", False)
             refl = r.get("reflected", False)
             tp = r.get("type", "?")
-            print(f"  {'✅' if v else '❌'} vuln={v} exec={e} refl={refl} type={tp} | {p}")
+            print(f"  {'' if v else ''} vuln={v} exec={e} refl={refl} type={tp} | {p}")
         vuln_count = sum(1 for r in results.get("results", []) if r.get("vuln"))
         print(f"  -> {vuln_count}/{len(payloads)} vulns detected")
     except Exception as ex:

@@ -170,7 +170,7 @@ SWEEP_CTX_LOSS_WEIGHT_MAX = 0.8
 
 # ─── Print config on import ──────────────────────────────
 def print_config():
-    print("\n⚙️  Configuration:")
+    print("\n  Configuration:")
     print(f"  Project root:  {PROJECT_ROOT}")
     print(f"  Train file:    {TRAIN_FILE} (exists: {TRAIN_FILE.exists()})")
     print(f"  Val file:      {VAL_FILE} (exists: {VAL_FILE.exists()})")

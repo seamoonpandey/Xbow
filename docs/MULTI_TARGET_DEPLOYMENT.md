@@ -28,7 +28,7 @@ for port in 3000 8080 8443; do
   until curl -s -o /dev/null -w '%{http_code}' http://localhost:$port/ | grep -q 200; do
     sleep 3
   done
-  echo "✅ Port $port ready"
+  echo " Port $port ready"
 done
 ```
 

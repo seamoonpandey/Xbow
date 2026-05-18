@@ -75,7 +75,7 @@ if __name__ == "__main__":
     dummy_mask = torch.ones(4, 128, dtype=torch.long).to(DEVICE)
 
     ctx_logits, sev_logits = model(dummy_ids, dummy_mask)
-    print(f"\n🔍 Test forward pass:")
+    print(f"\n Test forward pass:")
     print(f"  Context logits:  {ctx_logits.shape}")    # (4, 8)
     print(f"  Severity logits: {sev_logits.shape}")    # (4, 3)
-    print("  ✅ Model works!")
+    print("   Model works!")
