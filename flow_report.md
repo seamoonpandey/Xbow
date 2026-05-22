@@ -155,12 +155,14 @@ From `dataset/processed/payloads_labeled.csv`:
 **Tokenizer**: BPE tokenizer trained on `dataset/splits/train_payloads.txt` (42,127 payloads).
 
 **XGBoost Ranker** (at `model/ranker/xgboost_ranker.json`):
+
 - Trained on `dataset/ranker_training/ranker_training_samples.jsonl` (9,012 samples, growing)
 - Features: payload length, character diversity, HTML tag count, event handler count, encoding layers, context match score, etc.
 - Output: `confidence_score` (0.0 to 1.0) for each payload
 - **Runtime feedback**: Every scan appends new labeled samples to the training file via `training_collector.py` — see [§15 Runtime Training Data Collection](#15-step-13-runtime-training-data-collection) for the full feedback loop
 
 **XSS Classifier** (`model/xss_classifier.py`):
+
 - Architecture: LSTM + Attention
 - Input: Tokenized payload (max_length=128)
 - Output: 8-class probability distribution
@@ -348,6 +350,7 @@ ws.onclose = () => {
 ## 4. Step 2: Dashboard → API Gateway
 
 **Already covered above**:
+
 - **§3.2** — The concrete POST request and response from dashboard to core API
 - **§3.4** — The WebSocket connection lifecycle for real-time updates
 
@@ -422,6 +425,7 @@ export class ScanEntity {
 ### 5.3 BullMQ Queue
 
 **Producer** (`core/src/queue/scan.producer.ts`):
+
 ```typescript
 async enqueue(scanId: string) {
   await this.queue.add('scan', { scanId }, {
@@ -434,6 +438,7 @@ async enqueue(scanId: string) {
 ```
 
 **Processor** (`core/src/queue/scan.processor.ts`):
+
 ```typescript
 async process(job: Job<{ scanId: string }>) {
   const { scanId } = job.data;
@@ -757,6 +762,7 @@ ranked_payloads = [
 **File**: `modules/payload-gen-module/selector.py`
 
 Filters payloads by:
+
 1. **Context match**: Only payloads whose context tag matches `html_body`
 2. **Allowed chars**: If WAF or char restrictions detected, filter incompatible payloads
 3. **Diversity**: Ensures variety in technique (original, mutated, case_variation, encoding, url_encoding)
@@ -1306,6 +1312,7 @@ async generate(scanId: string, fuzzResults: FuzzResult[]): Promise<Report> {
 **File**: `core/example_reports/62587fda-d7d2-4545-ad2b-321ab30c28a4.html`
 
 An interactive HTML report is generated with:
+
 - Summary cards (total vulns, severity breakdown, risk score)
 - Expandable vuln list with payload details
 - Evidence snippets (response HTML, browser dialog confirmation)
@@ -1807,8 +1814,6 @@ Measures coverage against the PortSwigger XSS cheat sheet (526 payloads):
 
 ### 17.1 Reflected XSS Walkthrough: `http://localhost:9090/reflected/body?q=test`
 
-
-
 **1. User submits scan request**
 
 ```
@@ -2194,6 +2199,7 @@ URL + Options                  Crawl → Endpoints               HTML Report
 | Database Schema | `init.sql` | `CREATE DATABASE rs;` |
 | Docker Compose | `docker-compose.yml` | Service orchestration |
 | Exploitable App | `exploitable/app.py` | Deliberately vulnerable test target (47 endpoints) |
+
 ```
 
 ---
