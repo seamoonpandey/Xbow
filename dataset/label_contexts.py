@@ -1,7 +1,6 @@
 import re
 import pandas as pd
 
-df = pd.read_csv("processed/all_payloads_raw.csv")
 
 def classify_context(payload):
     p = str(payload).lower()
@@ -61,16 +60,20 @@ def get_severity(payload):
         return "medium"
     return "low"
 
-df["context"] = df["payload"].apply(classify_context)
-df["technique"] = df["payload"].apply(classify_technique)
-df["severity"] = df["payload"].apply(get_severity)
-df["length"] = df["payload"].str.len()
+# ponytail: functions above are the single source of truth for the label rules;
+# scripts/audit_labels.py imports them. Keep them import-safe — no top-level I/O.
+if __name__ == "__main__":
+    df = pd.read_csv("processed/all_payloads_raw.csv")
+    df["context"] = df["payload"].apply(classify_context)
+    df["technique"] = df["payload"].apply(classify_technique)
+    df["severity"] = df["payload"].apply(get_severity)
+    df["length"] = df["payload"].str.len()
 
-print("\n=== CONTEXT ===")
-print(df["context"].value_counts())
-print("\n=== SEVERITY ===")
-print(df["severity"].value_counts())
+    print("\n=== CONTEXT ===")
+    print(df["context"].value_counts())
+    print("\n=== SEVERITY ===")
+    print(df["severity"].value_counts())
 
-df.to_csv("processed/payloads_labeled.csv", index=False)
-print(f"\n[DONE] Saved {len(df)} labeled payloads")
+    df.to_csv("processed/payloads_labeled.csv", index=False)
+    print(f"\n[DONE] Saved {len(df)} labeled payloads")
 
